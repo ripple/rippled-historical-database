@@ -7,5 +7,10 @@
     "test": "npm test"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "sequelize-cli": "^0.2.2",
+    "sequelize": "^1.7.9",
+    "pg": "^3.3.0"
+  }
 }
