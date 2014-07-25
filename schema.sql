@@ -35,9 +35,7 @@ CREATE TABLE ledgers (
     close_time_resolution BIGINT,
     close_flags           BIGINT,
     account_set_hash      bytea,
-    transaction_set_hash  bytea,
-    created_at            TIMESTAMP WITH TIME ZONE,
-    updated_at            TIMESTAMP WITH TIME ZONE
+    transaction_set_hash  bytea
 );
 
 CREATE INDEX ledger_sequence_index
@@ -52,9 +50,7 @@ CREATE TABLE account_transactions (
     transaction_id       BIGINT,
     account_id           BIGINT,
     ledger_sequence      BIGINT,
-    transaction_sequence BIGINT,
-    created_at           TIMESTAMP WITH TIME ZONE,
-    updated_at           TIMESTAMP WITH TIME ZONE
+    transaction_sequence BIGINT
 );
 
 CREATE INDEX account_transaction_id_index
@@ -71,9 +67,7 @@ CREATE INDEX account_ledger_index
 
 CREATE TABLE accounts (
     id         BIGSERIAL PRIMARY KEY,
-    address    bytea,
-    created_at TIMESTAMP WITH TIME ZONE,
-    updated_at TIMESTAMP WITH TIME ZONE
+    address    bytea
 );
 
 -----------------------------------------------------------------------------
@@ -94,9 +88,7 @@ CREATE TABLE transactions (
     ledger_sequence BIGINT,
     status          CHAR(1),
     raw             bytea,
-    meta            bytea,
-    created_at      TIMESTAMP WITH TIME ZONE,
-    updated_at      TIMESTAMP WITH TIME ZONE
+    meta            bytea
 );
 
 CREATE INDEX transaction_ledger_index
@@ -107,9 +99,7 @@ CREATE INDEX transaction_ledger_index
 CREATE TABLE ledger_transactions (
     transaction_id       BIGINT,
     ledger_id            BIGINT,
-    transaction_sequence BIGINT,
-    created_at           TIMESTAMP WITH TIME ZONE,
-    updated_at           TIMESTAMP WITH TIME ZONE
+    transaction_sequence BIGINT
 );
 
 -----------------------------------------------------------------------------
