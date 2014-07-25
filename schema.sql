@@ -38,8 +38,11 @@ CREATE TABLE ledgers (
     transaction_set_hash  bytea
 );
 
-CREATE INDEX ledger_sequence_index
+CREATE UNIQUE INDEX ledger_sequence_index
           ON ledgers(sequence);
+
+CREATE UNIQUE INDEX ledger_hash_index
+          ON ledgers(hash);
 
 CREATE INDEX ledger_time_index
           ON ledgers(closing_time);
