@@ -5,8 +5,8 @@ describe('Ledger Downloader', function() {
 
   var ledger_downloader = new LedgerDownloader();
 
-  it('should get latest ledger index', function(done) {
-    ledger_downloader.latestIndex(function(err, index) {
+  it('should get latest ledger index number', function(done) {
+    ledger_downloader.latestIndexNumber(function(err, index) {
       if (err) return err;
       assert(typeof index === 'number');
       assert(index > 0);
@@ -23,4 +23,3 @@ describe('Ledger Downloader', function() {
   });
 
 });
-
