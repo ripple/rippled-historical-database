@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+- '0.10'
+addons:
+  postgresql: '9.3'
+script: npm test
+before_install:
+- ./init_db.sh
+notifications:
+  email: false
