@@ -1,5 +1,5 @@
 var assert = require('assert');
-var LedgerTransaction = require(__dirname+'/../../lib/models/ledgerTransaction.js');
+var LedgerTransaction = require(__dirname+'/../../lib/models/ledger_transaction.js');
 
 describe('LedgerTransaction sequelize model', function() {
 
