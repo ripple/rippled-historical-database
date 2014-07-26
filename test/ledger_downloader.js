@@ -15,7 +15,7 @@ describe('Ledger Downloader', function() {
   });
 
   it('should get a particular ledger index', function(done) {
-    ledger_downloader.getIndex(7000001, function(err, ledger) {
+    ledger_downloader.getLedger(7000001, function(err, ledger) {
       if (err) return err;
       assert(typeof ledger === 'object');
       done();
