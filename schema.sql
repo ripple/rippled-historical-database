@@ -38,6 +38,12 @@ CREATE TABLE ledgers (
     transaction_set_hash  bytea
 );
 
+-- id and sequence are the same (ledger_index and seqHash).
+-- What is the previous closing_time?
+-- Where are the close_flags?
+-- Is account_set_hash = account_hash?
+-- Is transaction_set_hash = transaction_hash?
+
 CREATE INDEX ledger_sequence_index
           ON ledgers(sequence);
 
