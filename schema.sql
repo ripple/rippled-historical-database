@@ -24,31 +24,32 @@ DROP TABLE IF EXISTS ledger_transactions;
 
 -----------------------------------------------------------------------------
 
+-- NOTES:
+-- The parent_closing_time is not in the json response but
+--   is in the rippled header
+-- Where are the close_flags?
+
 CREATE TABLE ledgers (
     id                    BIGSERIAL PRIMARY KEY,
-    hash                  bytea,
-    sequence              BIGINT,
-    prev_hash             bytea,
+    ledger_hash           bytea,
+    parent_hash           bytea,
     total_coins           BIGINT,
-    closing_time          BIGINT,
-    prev_closing_time     BIGINT,
+    close_time            BIGINT,
     close_time_resolution BIGINT,
-    close_flags           BIGINT,
-    account_set_hash      bytea,
-    transaction_set_hash  bytea
+    account_hash          bytea,
+    transaction_hash      bytea
+
+    -- NOTE: Not in the JSON response:
+    -- parent_close_time     BIGINT,
+    -- close_flags           BIGINT,
+    -- state_hash            bytea
 );
 
--- id and sequence are the same (ledger_index and seqHash).
--- What is the previous closing_time?
--- Where are the close_flags?
--- Is account_set_hash = account_hash?
--- Is transaction_set_hash = transaction_hash?
+CREATE INDEX ledger_hash_index
+          ON ledgers(ledger_hash);
 
-CREATE INDEX ledger_sequence_index
-          ON ledgers(sequence);
-
-CREATE INDEX ledger_time_index
-          ON ledgers(closing_time);
+CREATE INDEX ledger_close_index
+          ON ledgers(close_time);
 
 -----------------------------------------------------------------------------
 

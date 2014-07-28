@@ -11,10 +11,9 @@ describe('Ledger sequelize model', function() {
 
   it('should retrive all ledger ids', function(done) {
     Ledger.setOfSavedLedgers(function(error, set) {
-      //console.log(error, set);
+      if (error) return error;
       done();
     });
   });
 
 });
-
