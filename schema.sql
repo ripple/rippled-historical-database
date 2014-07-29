@@ -37,7 +37,11 @@ CREATE TABLE ledgers (
     close_time            BIGINT,
     close_time_resolution BIGINT,
     account_hash          bytea,
-    transaction_hash      bytea
+    transaction_hash      bytea,
+    accepted              BOOLEAN,
+    closed                BOOLEAN,
+    close_time_estimated  BOOLEAN,
+    close_time_human      TIMESTAMP WITH TIME ZONE
 
     -- NOTE: Not in the JSON response:
     -- parent_close_time     BIGINT,
