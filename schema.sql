@@ -12,7 +12,7 @@ ALTER TABLE IF EXISTS account_transactions
     DROP CONSTRAINT IF EXISTS fk_account_id;
 
 ALTER TABLE IF EXISTS transactions
-    DROP CONSTRAINT IF EXISTS fk_from_account;
+    DROP CONSTRAINT IF EXISTS fk_account_id;
 
 -----------------------------------------------------------------------------
 
@@ -91,19 +91,20 @@ CREATE TYPE transaction_type AS ENUM('Payment', 'OfferCreate', 'OfferCancel',
 -----------------------------------------------------------------------------
 
 CREATE TABLE transactions (
-    id              BIGSERIAL PRIMARY KEY,
-    hash            bytea,
-    type            transaction_type,
-    from_account    BIGINT,
-    from_sequence   BIGINT,
-    ledger_sequence BIGINT,
-    status          CHAR(1),
-    raw             bytea,
-    meta            bytea
+    id               BIGSERIAL PRIMARY KEY,
+    account          bytea,
+    flags            BIGINT,
+    offer_sequence   BIGINT,
+    sequence         BIGINT,
+    signing_pub_key  bytea,
+    transaction_type transaction_type,
+    txn_signature    bytea,
+    hash             bytea,
+    meta_data        bytea
 );
 
 CREATE INDEX transaction_ledger_index
-          ON transactions(ledger_sequence);
+          ON transactions(sequence);
 
 -----------------------------------------------------------------------------
 
@@ -124,8 +125,8 @@ ALTER TABLE account_transactions
 -----------------------------------------------------------------------------
 
 ALTER TABLE transactions
-   ADD CONSTRAINT fk_from_account FOREIGN KEY(from_account)
-                                  REFERENCES accounts(id);
+   ADD CONSTRAINT fk_account_id FOREIGN KEY(id)
+                                REFERENCES accounts(id);
 
 -----------------------------------------------------------------------------
 -- vim: set syntax=sql:
