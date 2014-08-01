@@ -11,8 +11,8 @@ ALTER TABLE IF EXISTS account_transactions
     DROP CONSTRAINT IF EXISTS fk_transaction_id,
     DROP CONSTRAINT IF EXISTS fk_account_id;
 
-ALTER TABLE IF EXISTS transactions
-    DROP CONSTRAINT IF EXISTS fk_account_id;
+-- ALTER TABLE IF EXISTS transactions
+--     DROP CONSTRAINT IF EXISTS fk_account_id;
 
 -----------------------------------------------------------------------------
 
@@ -58,10 +58,10 @@ CREATE INDEX ledger_close_index
 -----------------------------------------------------------------------------
 
 CREATE TABLE account_transactions (
-    transaction_id       BIGINT,
-    account_id           BIGINT,
-    ledger_sequence      BIGINT,
-    transaction_sequence BIGINT
+    transaction_id       BIGINT NOT NULL,
+    account_id           BIGINT NOT NULL,
+    ledger_sequence      BIGINT NOT NULL,
+    transaction_sequence BIGINT NOT NULL
 );
 
 CREATE INDEX account_transaction_id_index
@@ -78,8 +78,11 @@ CREATE INDEX account_ledger_index
 
 CREATE TABLE accounts (
     id         BIGSERIAL PRIMARY KEY,
-    address    bytea
+    address    bytea NOT NULL UNIQUE
 );
+
+CREATE INDEX accounts_address_index
+          ON accounts(address);
 
 -----------------------------------------------------------------------------
 
@@ -93,10 +96,16 @@ CREATE TYPE transaction_type AS ENUM('Payment', 'OfferCreate', 'OfferCancel',
 CREATE TABLE transactions (
     id               BIGSERIAL PRIMARY KEY,
     account          bytea,
+    destination      bytea,
+    fee              BIGINT,
     flags            BIGINT,
+    paths            bytea,
+    send_max         bytea,
     offer_sequence   BIGINT,
     sequence         BIGINT,
     signing_pub_key  bytea,
+    taker_gets       bytea,
+    taker_pays       bytea,
     transaction_type transaction_type,
     txn_signature    bytea,
     hash             bytea,
@@ -109,9 +118,9 @@ CREATE INDEX transaction_ledger_index
 -----------------------------------------------------------------------------
 
 CREATE TABLE ledger_transactions (
-    transaction_id       BIGINT,
-    ledger_id            BIGINT,
-    transaction_sequence BIGINT
+    transaction_id       BIGINT NOT NULL,
+    ledger_id            BIGINT NOT NULL,
+    transaction_sequence BIGINT NOT NULL
 );
 
 -----------------------------------------------------------------------------
@@ -124,9 +133,9 @@ ALTER TABLE account_transactions
 
 -----------------------------------------------------------------------------
 
-ALTER TABLE transactions
-   ADD CONSTRAINT fk_account_id FOREIGN KEY(id)
-                                REFERENCES accounts(id);
+-- ALTER TABLE transactions
+--    ADD CONSTRAINT fk_account_id FOREIGN KEY(id)
+--                                 REFERENCES accounts(id);
 
 -----------------------------------------------------------------------------
 -- vim: set syntax=sql:
