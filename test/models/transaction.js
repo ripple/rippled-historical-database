@@ -23,7 +23,7 @@ describe('Transaction sequelize model', function() {
       //metaData: [Object]
     };
 
-    var obj = Transaction.createFromJSON(opts, function(error, transaction) {
+    var obj = Transaction.createFromJSON(opts, null, function(error, transaction) {
       assert(!error && transaction);
       done();
     });
