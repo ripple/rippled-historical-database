@@ -8,36 +8,25 @@ describe('Transaction sequelize model', function() {
     assert(transaction);
   });
 
-  it('should create a new transaction', function(done) {
+  it.skip('should create a new transaction', function(done) {
     var opts = {
-      hash: '329485u230945802394852',
-      type: 'Payment',
-      //from_account: 1, // TODO: Create account first
-      from_sequence: 1,
-      ledger_sequence: 1,
-      status: 1,
-      raw: 'testjweoifjwoiefj',
-      meta:  'oijaoweifjwefij'
+      Account: 'rEqSQFMsmMmhx8tGqmSEhXZ8KjBdkW6Qbc',
+      Amount: '20000000000',
+      Destination: 'rhbaHwBJCm1vxvEtR3iPWhHb99D4tjMqkM',
+      Fee: '12',
+      Flags: 0,
+      Sequence: 7,
+      SigningPubKey: '02CEAD9CD2AD131F309A4C1CB6FE3690C2719A20DD96E2EC7E3F831C2781650431',
+      TransactionType: 'Payment',
+      TxnSignature: '30450220741AF7C1C8702F0A8CB73A3609F5ECAE5DDECBC99BE713D6770C6896134003830221008C829277C4AC143CA810B1762261FD88E2C3B0D787BD086A43C4962658A0094F',
+      hash: 'C72A05BD8124CDDB0288C556EA466B278F77A6BBC35EEAF29F536A83FE4CD5D6'
+      //metaData: [Object]
     };
 
-    var obj = Transaction.build(opts);
-
-    obj.save()
-    .error(function(err) {
-      return err;
-    })
-    .success(function() {
-      assert(obj.hash.toString() === opts.hash);
-      assert(obj.type === opts.type);
-      //assert(obj.from_account == opts.from_account);
-      assert(obj.from_sequence == opts.from_sequence);
-      assert(obj.ledger_sequence == opts.ledger_sequence);
-      assert(obj.status == opts.status);
-      assert(obj.raw.toString() === opts.raw);
-      assert(obj.meta.toString() === opts.meta);
+    var obj = Transaction.createFromJSON(opts, null, function(error, transaction) {
+      assert(!error && transaction);
       done();
     });
   });
-
 });
 

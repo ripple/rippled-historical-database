@@ -11,8 +11,8 @@ ALTER TABLE IF EXISTS account_transactions
     DROP CONSTRAINT IF EXISTS fk_transaction_id,
     DROP CONSTRAINT IF EXISTS fk_account_id;
 
-ALTER TABLE IF EXISTS transactions
-    DROP CONSTRAINT IF EXISTS fk_from_account;
+-- ALTER TABLE IF EXISTS transactions
+--     DROP CONSTRAINT IF EXISTS fk_account_id;
 
 -----------------------------------------------------------------------------
 
@@ -24,37 +24,44 @@ DROP TABLE IF EXISTS ledger_transactions;
 
 -----------------------------------------------------------------------------
 
+-- NOTES:
+-- The parent_closing_time is not in the json response but
+--   is in the rippled header
+-- Where are the close_flags?
+
 CREATE TABLE ledgers (
     id                    BIGSERIAL PRIMARY KEY,
-    hash                  bytea,
-    sequence              BIGINT,
-    prev_hash             bytea,
+    ledger_hash           bytea,
+    parent_hash           bytea,
     total_coins           BIGINT,
-    closing_time          BIGINT,
-    prev_closing_time     BIGINT,
+    close_time            BIGINT,
     close_time_resolution BIGINT,
-    close_flags           BIGINT,
-    account_set_hash      bytea,
-    transaction_set_hash  bytea,
-    created_at            TIMESTAMP WITH TIME ZONE,
-    updated_at            TIMESTAMP WITH TIME ZONE
+    account_hash          bytea,
+    transaction_hash      bytea,
+    accepted              BOOLEAN,
+    closed                BOOLEAN,
+    close_time_estimated  BOOLEAN,
+    close_time_human      TIMESTAMP WITH TIME ZONE
+
+    -- NOTE: Not in the JSON response:
+    -- parent_close_time     BIGINT,
+    -- close_flags           BIGINT,
+    -- state_hash            bytea
 );
 
-CREATE INDEX ledger_sequence_index
-          ON ledgers(sequence);
+CREATE INDEX ledger_hash_index
+          ON ledgers(ledger_hash);
 
-CREATE INDEX ledger_time_index
-          ON ledgers(closing_time);
+CREATE INDEX ledger_close_index
+          ON ledgers(close_time);
 
 -----------------------------------------------------------------------------
 
 CREATE TABLE account_transactions (
-    transaction_id       BIGINT,
-    account_id           BIGINT,
-    ledger_sequence      BIGINT,
-    transaction_sequence BIGINT,
-    created_at           TIMESTAMP WITH TIME ZONE,
-    updated_at           TIMESTAMP WITH TIME ZONE
+    transaction_id       BIGINT NOT NULL,
+    account_id           BIGINT NOT NULL,
+    ledger_sequence      BIGINT NOT NULL,
+    transaction_sequence BIGINT NOT NULL
 );
 
 CREATE INDEX account_transaction_id_index
@@ -71,10 +78,11 @@ CREATE INDEX account_ledger_index
 
 CREATE TABLE accounts (
     id         BIGSERIAL PRIMARY KEY,
-    address    bytea,
-    created_at TIMESTAMP WITH TIME ZONE,
-    updated_at TIMESTAMP WITH TIME ZONE
+    address    bytea NOT NULL UNIQUE
 );
+
+CREATE INDEX accounts_address_index
+          ON accounts(address);
 
 -----------------------------------------------------------------------------
 
@@ -86,30 +94,33 @@ CREATE TYPE transaction_type AS ENUM('Payment', 'OfferCreate', 'OfferCancel',
 -----------------------------------------------------------------------------
 
 CREATE TABLE transactions (
-    id              BIGSERIAL PRIMARY KEY,
-    hash            bytea,
-    type            transaction_type,
-    from_account    BIGINT,
-    from_sequence   BIGINT,
-    ledger_sequence BIGINT,
-    status          CHAR(1),
-    raw             bytea,
-    meta            bytea,
-    created_at      TIMESTAMP WITH TIME ZONE,
-    updated_at      TIMESTAMP WITH TIME ZONE
+    id               BIGSERIAL PRIMARY KEY,
+    account          bytea,
+    destination      bytea,
+    fee              BIGINT,
+    flags            BIGINT,
+    paths            bytea,
+    send_max         bytea,
+    offer_sequence   BIGINT,
+    sequence         BIGINT,
+    signing_pub_key  bytea,
+    taker_gets       bytea,
+    taker_pays       bytea,
+    transaction_type transaction_type,
+    txn_signature    bytea,
+    hash             bytea,
+    meta_data        bytea
 );
 
 CREATE INDEX transaction_ledger_index
-          ON transactions(ledger_sequence);
+          ON transactions(sequence);
 
 -----------------------------------------------------------------------------
 
 CREATE TABLE ledger_transactions (
-    transaction_id       BIGINT,
-    ledger_id            BIGINT,
-    transaction_sequence BIGINT,
-    created_at           TIMESTAMP WITH TIME ZONE,
-    updated_at           TIMESTAMP WITH TIME ZONE
+    transaction_id       BIGINT NOT NULL,
+    ledger_id            BIGINT NOT NULL,
+    transaction_sequence BIGINT NOT NULL
 );
 
 -----------------------------------------------------------------------------
@@ -122,9 +133,9 @@ ALTER TABLE account_transactions
 
 -----------------------------------------------------------------------------
 
-ALTER TABLE transactions
-   ADD CONSTRAINT fk_from_account FOREIGN KEY(from_account)
-                                  REFERENCES accounts(id);
+-- ALTER TABLE transactions
+--    ADD CONSTRAINT fk_account_id FOREIGN KEY(id)
+--                                 REFERENCES accounts(id);
 
 -----------------------------------------------------------------------------
 -- vim: set syntax=sql:

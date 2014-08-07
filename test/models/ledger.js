@@ -1,6 +1,7 @@
 var assert = require('assert');
 var Ledger = require(__dirname+'/../../lib/models/ledger.js');
 
+
 describe('Ledger sequelize model', function() {
 
   it('should instantiate a new ledger', function() {
@@ -8,5 +9,11 @@ describe('Ledger sequelize model', function() {
     assert(ledger);
   });
 
-});
+  it('should retrive all ledger ids', function(done) {
+    Ledger.setOfSavedLedgers(function(error, set) {
+      if (error) return error;
+      done();
+    });
+  });
 
+});

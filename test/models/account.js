@@ -25,5 +25,23 @@ describe('Account sequelize model', function() {
     });
   });
 
+
+  it('should find and create', function(done) {
+    var addresses = [
+    'rhQMNd4yrCYnyGbAvSUieeundgtEXacoBT',
+    'rM3X3QSr8icjTGpaF52dozhbT2BZSXJQYM',
+    'rM3X3QSr8icjTGpaF52dozhbT2BZSXJQYB',
+    'rM3X3QSr8icjTGpaF52dozhbT2BZSXJQYA',
+    'rM3X3QSr8icjTGpaF52dozhbT2BZSXJQYC',
+    'rM3X3QSr8icjTGpaF52dozhbT2BZSXJQYQ'
+    ];
+
+    Account.findOrCreate(addresses, function(error, accounts){
+      if (error) return error;
+      //console.log(accounts);
+      done();
+    });
+  });
+
 });
 
