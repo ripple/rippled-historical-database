@@ -11,7 +11,7 @@ sequence gaps.
 
 1. shut down rippled, copy ledger.db elsewhere, restart rippled
 2. sqlite3 -csv ledger.db "SELECT LedgerSeq, LedgerHash, PrevHash FROM Ledgers ORDER BY LedgerSeq ASC;"
-> <somefile>
-3. ./validate.pl < <somefile>
+&gt; &lt;somefile&gt;
+3. ./validate.pl &lt; &lt;somefile&gt;
 
 
