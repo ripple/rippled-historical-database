@@ -24,7 +24,5 @@ pgconn = psycopg2.connect(args.p__pgconnection)
 pgconn.set_session(autocommit=True)
 
 for i in range(args.start, args.end+1):
-#    print(i)
-    ledger = ripd.cmd_ledger(args.start, transactions=True, expand=True)
-#    print(ledger)
+    ledger = ripd.cmd_ledger(i, transactions=True, expand=True)
     sl = storeledger.StoreLedger(pgconn, ledger["result"]["ledger"])
