@@ -12,39 +12,43 @@ class StoreLedger:
         if "transactions" in ledgerdict:
             self.create_accounts(ledgerdict["transactions"])
 
-        pgcursor = self._pghandle.cursor()
-        pgcursor.execute("BEGIN;")
-        inledger = {"id": None, "ledger_hash": None, "parent_hash": None,
-                    "total_coins": None, "close_time": None,
-                    "close_time_resolution": None, "account_hash": None,
-                    "transaction_hash": None, "accepted": None, "closed": None,
-                    "close_time_estimated": None, "close_time_human": None}
+        try:
+            pgcursor = self._pghandle.cursor()
+            pgcursor.execute("BEGIN;")
+            inledger = {"id": None, "ledger_hash": None, "parent_hash": None,
+                        "total_coins": None, "close_time": None,
+                        "close_time_resolution": None, "account_hash": None,
+                        "transaction_hash": None, "accepted": None, "closed": None,
+                        "close_time_estimated": None, "close_time_human": None}
 
-        for key in inledger.keys():
-            if key in ledgerdict:
-                inledger[key] = ledgerdict[key]
-        sql = "INSERT INTO LEDGERS VALUES (DEFAULT, %s, %s, %s, %s, %s, %s," +\
-            "%s, %s, %s, %s, %s);"
-        pgcursor.execute(sql, (inledger["ledger_hash"], inledger["parent_hash"],
-                               inledger["total_coins"], inledger["close_time"],
-                               inledger["close_time_resolution"],
-                               inledger["account_hash"],
-                               inledger["transaction_hash"],
-                               inledger["accepted"], inledger["closed"],
-                               inledger["close_time_estimated"],
-                               inledger["close_time_human"]))
-        sql = "SELECT currval(pg_get_serial_sequence('LEDGERS', 'id'));"
-        pgcursor.execute(sql)
-        inledger["id"] = pgcursor.fetchone()[0]
+            for key in inledger.keys():
+                if key in ledgerdict:
+                    inledger[key] = ledgerdict[key]
+            sql = "INSERT INTO LEDGERS VALUES (DEFAULT, %s, %s, %s, %s, %s, %s," +\
+                "%s, %s, %s, %s, %s);"
+            pgcursor.execute(sql, (inledger["ledger_hash"], inledger["parent_hash"],
+                                   inledger["total_coins"], inledger["close_time"],
+                                   inledger["close_time_resolution"],
+                                   inledger["account_hash"],
+                                   inledger["transaction_hash"],
+                                   inledger["accepted"], inledger["closed"],
+                                   inledger["close_time_estimated"],
+                                   inledger["close_time_human"]))
+            sql = "SELECT currval(pg_get_serial_sequence('LEDGERS', 'id'));"
+            pgcursor.execute(sql)
+            inledger["id"] = pgcursor.fetchone()[0]
 
-        if "transactions" in ledgerdict:
-            for idx, transaction in enumerate(ledgerdict["transactions"]):
-                self.store_transaction(pgcursor, transaction,
-                                       ledgerdict["seqNum"],
-                                       inledger["id"],
-                                       self._accounts[idx]["id"])
+            if "transactions" in ledgerdict:
+                for idx, transaction in enumerate(ledgerdict["transactions"]):
+                    self.store_transaction(pgcursor, transaction,
+                                           ledgerdict["seqNum"],
+                                           inledger["id"],
+                                           self._accounts[idx]["id"])
 
-        pgcursor.execute("COMMIT;")
+            pgcursor.execute("COMMIT;")
+        except:
+            pgcursor.execute("ROLLBACK;")
+            raise
 
     def create_accounts(self, transactions):
         self._accounts = [dict() for _ in
