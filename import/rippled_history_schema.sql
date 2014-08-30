@@ -35,7 +35,9 @@ CREATE TYPE transaction_type AS ENUM (
     'OfferCancel',
     'AccountSet',
     'SetRegularKey',
-    'TrustSet'
+    'TrustSet',
+    'EnableAmendment',
+    'SetFee'
 );
 
 
