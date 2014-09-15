@@ -48,6 +48,7 @@ class StoreLedger:
             pgcursor.execute("COMMIT;")
         except:
             pgcursor.execute("ROLLBACK;")
+            pgcursor.close()
             raise
 
     def create_accounts(self, transactions):
