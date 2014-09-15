@@ -35,7 +35,9 @@ CREATE TYPE transaction_type AS ENUM (
     'OfferCancel',
     'AccountSet',
     'SetRegularKey',
-    'TrustSet'
+    'TrustSet',
+    'EnableAmendment',
+    'SetFee'
 );
 
 
@@ -44,6 +46,17 @@ ALTER TYPE public.transaction_type OWNER TO rippled;
 SET default_tablespace = '';
 
 SET default_with_oids = false;
+
+--
+-- Name: account_balances; Type: TABLE; Schema: public; Owner: rippled; Tablespace: 
+--
+
+CREATE TABLE account_balances (
+    test integer
+);
+
+
+ALTER TABLE public.account_balances OWNER TO rippled;
 
 --
 -- Name: account_transactions; Type: TABLE; Schema: public; Owner: rippled; Tablespace: 
@@ -309,6 +322,13 @@ CREATE INDEX transaction_ledger_index ON transactions USING btree (sequence);
 --
 
 CREATE UNIQUE INDEX transactions_hash_idx ON transactions USING btree (hash);
+
+
+--
+-- Name: transactions_transaction_type_idx; Type: INDEX; Schema: public; Owner: rippled; Tablespace: 
+--
+
+CREATE INDEX transactions_transaction_type_idx ON transactions USING btree (transaction_type);
 
 
 --
