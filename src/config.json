@@ -5,5 +5,12 @@
   "servers"    :  [
       { "host" : "s-west.ripple.com", "port" : 443, "secure" : true },
       { "host" : "s-east.ripple.com", "port" : 443, "secure" : true }
-  ]
+  ],
+  "db" : {
+    "host"     : "127.0.0.1",
+    "user"     : "",
+    "password" : "",
+    "database" : "ripple_data",
+    "charset"  : "utf8"
+  }
 }

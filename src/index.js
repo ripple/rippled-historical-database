@@ -1,7 +1,13 @@
+var db = require('./db');
 var Stream = require('./ledgerStream');
 var stream = new Stream();
 
+
 stream.start();
 stream.on('ledger', function(ledger){
-  console.log(ledger.ledger_index);
+  db.saveLedger(ledger, function(err, resp){
+    
+  });
 });
+
+
