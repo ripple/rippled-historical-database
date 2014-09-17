@@ -28,8 +28,8 @@ exports.up = function(knex, Promise) {
       table.bigInteger('sequence');
       table.bigInteger('ledger_index');
       table.string('result');
-      table.json('raw');
-      table.json('meta');
+      table.binary('raw');
+      table.binary('meta');
     }),
     
     knex.schema.createTable('accounts', function(table) {
@@ -37,14 +37,14 @@ exports.up = function(knex, Promise) {
       table.binary('tx_hash');
       table.binary('parent');
       table.dateTime('created');
-    })
+    }),
     
     knex.schema.createTable('account_transactions', function(table) {
       table.binary('address');
       table.binary('tx_hash');
       table.bigInteger('ledger_index');
       table.bigInteger('sequence');
-    });
+    })
   ]);
 };
 
@@ -54,5 +54,5 @@ exports.down = function(knex, Promise) {
     knex.schema.dropTable('transactions'),
     knex.schema.dropTable('accounts'),
     knex.schema.dropTable('account_transactions'),
-  ])  
+  ]);  
 };
