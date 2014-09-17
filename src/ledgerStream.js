@@ -69,6 +69,15 @@ var LedgerStream = function () {
   
   self.handleLedger = function (ledgerIndex, ledger, callback) {
     var txHash;
+    
+    if (!ledger.closed) {
+      winston.info('ledger not closed, retrying:', ledgerIndex);
+      setTimeout(function(){
+        self.getLedger(ledgerIndex, callback);            
+      },500); 
+      return;     
+    }
+    
     try {
      txHash = Ledger.from_json(ledger).calc_tx_hash().to_hex();
     } catch(err) {
