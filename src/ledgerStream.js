@@ -38,7 +38,7 @@ var LedgerStream = function () {
    * @param {Object} ledgerIndex
    * @param {Object} callback
    */
-  self.getLedger = function (ledgerIndex, callback) {
+  self.getLedger = function (ledgerIndex, attempts, callback) {
     var options = {
       transactions:true, 
       expand:true,
@@ -50,31 +50,31 @@ var LedgerStream = function () {
       return;  
     }
     
+    if (!attempts) {
+      attempts = 0;
+    }
+    
     var request = remote.request_ledger(ledgerIndex, options, function(err, resp) {
       var ledgerIndex = this.message.ledger;
       if (err || !resp || !resp.ledger) {
-        winston.error("error:", err);  
-        setTimeout(function(){
-          self.getLedger(ledgerIndex, callback);            
-        }, 500);
+        winston.error("error:", err); 
+        retry(ledgerIndex, attempts, callback); 
         return;
       }    
       
-      self.handleLedger (ledgerIndex, resp.ledger, callback);
+      self.handleLedger (ledgerIndex, resp.ledger, attempts, callback);
     });
     
     var info = request.server ? request.server._url + ' ' + request.server._pubkey_node : '';
     winston.info('['+new Date().toISOString()+']', 'requesting ledger:', ledgerIndex, info);   
   };
   
-  self.handleLedger = function (ledgerIndex, ledger, callback) {
+  self.handleLedger = function (ledgerIndex, ledger, attempts, callback) {
     var txHash;
-    
+          
     if (!ledger.closed) {
-      winston.info('ledger not closed, retrying:', ledgerIndex);
-      setTimeout(function(){
-        self.getLedger(ledgerIndex, callback);            
-      },500); 
+      winston.info('ledger not closed:', ledgerIndex);
+      retry(ledgerIndex, attempts, callback); 
       return;     
     }
     
@@ -92,10 +92,7 @@ var LedgerStream = function () {
         'actual transaction_hash:   ' + txHash + '\n' +
         'expected transaction_hash: ' + ledger.transaction_hash);
         
-      setTimeout(function(){
-        self.getLedger(ledgerIndex, callback);            
-      },500);
-      
+      retry(ledgerIndex, attempts, callback); 
       return;
     } 
 
@@ -103,6 +100,21 @@ var LedgerStream = function () {
     if (typeof callback === 'function') callback(null, ledger);
     else self.emit('ledger', ledger);   
   };
+  
+  function retry (ledgerIndex, attempts, callback) {
+    
+    if (attempts >= 20) {
+      if (typeof callback === 'function') callback("failed to get ledger");
+      winston.error('failed to get ledger after ' + attempts + ' attempts:', ledgerIndex);
+      return;  
+    }
+    
+    attempts++;
+    winston.info("retry attempts:", attempts);
+    setTimeout(function() {
+      self.getLedger(ledgerIndex, attempts, callback);            
+    }, 250);
+  }
 };
 
 LedgerStream.prototype.__proto__ = events.EventEmitter.prototype;
