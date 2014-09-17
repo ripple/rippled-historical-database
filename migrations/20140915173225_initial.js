@@ -33,7 +33,7 @@ exports.up = function(knex, Promise) {
     }),
     
     knex.schema.createTable('accounts', function(table) {
-      table.binary('address').primary();
+      table.binary('address').primary().unique();
       table.binary('tx_hash');
       table.binary('parent');
       table.dateTime('created');
