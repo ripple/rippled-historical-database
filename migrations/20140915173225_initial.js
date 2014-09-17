@@ -15,7 +15,7 @@ exports.up = function(knex, Promise) {
     }),
     
     knex.schema.createTable('transactions', function(table) {
-      table.binary('hash').primary();
+      table.binary('hash').primary().unique();
       table.enu('type', [
         'Payment', 
         'OfferCreate', 
@@ -38,14 +38,13 @@ exports.up = function(knex, Promise) {
       table.binary('parent');
       table.dateTime('created');
     })
-/*    
+    
     knex.schema.createTable('account_transactions', function(table) {
       table.binary('address');
       table.binary('tx_hash');
       table.bigInteger('ledger_index');
       table.bigInteger('sequence');
     });
-*/
   ]);
 };
 
@@ -54,7 +53,6 @@ exports.down = function(knex, Promise) {
     knex.schema.dropTable('ledgers'),
     knex.schema.dropTable('transactions'),
     knex.schema.dropTable('accounts'),
-    //knex.schema.dropTable('account_transactions'),
- 
+    knex.schema.dropTable('account_transactions'),
   ])  
 };
