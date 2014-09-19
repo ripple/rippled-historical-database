@@ -23,36 +23,38 @@ var Account = bookshelf.Model.extend({
 	idAttribute: null
 });
 
+//Main
 db.saveLedger = function (ledger, callback) {
-	
-	//use knex.transactions  
+	 
+	//Print
 	//console.log(ledger);
-	console.log(ledger.transactions);
+	//console.log(ledger.transactions);
 
 	//Add all transactions to an array
-	//transactions_list = parse_transactions(ledger);
+	toAdd = parse_transactions(ledger);
 
 	//Add ledger info to database
-	//ledger_info = parse_ledger(ledger);
+	ledger_info = parse_ledger(ledger);
+	toAdd.push(ledger_info);
 
-	//console.log(transactions_list.length);
-	//insert_all(transactions_list);
-
-
+	console.log(toAdd.length - 1);
+	insert_all(toAdd);
 };
 
+//Given an array of queries, add to database atomically
 function insert_all(entry_array){
 	bookshelf.transaction(function(t){
 		console.log("Starting new DB call...");
 		return Promise.map(entry_array, function(model){
 			model.save({},{method: 'insert', transacting: t});
-		})
+		});
 	})
 	.then(function(){
 		console.log("Done.");
 	});
 }
 
+//Pre-process all transactions
 function parse_transactions(ledger){
 	var transaction_list = [];
 	for (var i=0; i<ledger.transactions.length; i++){
@@ -62,16 +64,17 @@ function parse_transactions(ledger){
 			type: entry.TransactionType,
 			account: entry.Account,
 			sequence: entry.Sequence,
-			//ledger_index:,
-			//result:,
+			ledger_index: ledger.seqNum,
+			result: entry.metaData.TransactionResult,
 			//raw:,
-			//meta:,
+			meta: entry.metaData,
 		});
 		transaction_list.push(tranaction_info);
 	}
 	return transaction_list;
 }
 
+//Pre-process ledger information
 function parse_ledger(ledger){
 	var ledger_info = Ledger.forge({
 		hash: ledger.hash,
