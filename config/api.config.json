@@ -1,11 +1,13 @@
 {
-  "port"   : 7111,
-  "dbtype" : "postgres",
-  "db"     : {
-    "host"     : "127.0.0.1",
-    "user"     : "",
-    "password" : "",
-    "database" : "ripple_data",
-    "charset"  : "utf8"
+  "port" : 7111,
+  "sql"  : {
+    "dbtype" : "postgres",
+    "db"     : {
+      "host"     : "127.0.0.1",
+      "user"     : "",
+      "password" : "",
+      "database" : "ripple_data",
+      "charset"  : "utf8"
+    }
   }
 }

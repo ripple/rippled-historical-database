@@ -1,4 +1,4 @@
-var config   = require('../config/import.config.json');
+var config   = require('../config/import.config');
 var winston  = require('winston');
 var Import   = require('./importer');
 var importer = new Import(config);

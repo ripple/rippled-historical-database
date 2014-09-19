@@ -1,6 +1,7 @@
 {
-  "port"       : 7111,
-  "db" : {
+  "port"   : 7111,
+  "dbtype" : "postgres",
+  "db"     : {
     "host"     : "127.0.0.1",
     "user"     : "",
     "password" : "",

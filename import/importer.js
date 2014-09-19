@@ -6,8 +6,8 @@ var emitter = new events.EventEmitter();
 
 var Importer = function (config) {
   var self   = this;
-  var remote = new ripple.Remote(config.ripple);
-
+  var remote = new ripple.Remote(config.get('ripple'));
+  
   remote.on('connect', function() {
     winston.info("import: Rippled connected");
   });
@@ -50,10 +50,10 @@ var Importer = function (config) {
     //set the start and stop index depending
     //on what was specified
     if (!stopIndex) {
-      stopIndex  = config.startIndex || 32570;  
+      stopIndex  = config.get('startIndex') || 32570;  
     } else if (!startIndex) {
       startIndex = stopIndex;
-      stopIndex  = config.startIndex || 32570; 
+      stopIndex  = config.get('startIndex') || 32570; 
     } else {
       startIndex++;
     }
@@ -131,7 +131,7 @@ var Importer = function (config) {
     * requests if there is any free space
     */ 
     function updateQueue () {
-      var max    = config.queLength;
+      var max    = config.get('queLength');
       var num    = earliest - stopIndex;
       var length = Object.keys(queue).length;
       
