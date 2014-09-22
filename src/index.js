@@ -1,18 +1,4 @@
-var db = require('./db');
-var winston = require('winston');
-var Stream  = require('./ledgerStream');
-var stream  = new Stream();
-var last;
-var lastHash;
+var importConfig  = require('../config/import.config');
+var apiConfig = require('../config/import.config');
 
-//stream.backFill();
-stream.liveStream();
-stream.on('ledger', function(ledger) {
-  console.log(ledger.ledger_index);
-/*
-  db.saveLedger(ledger, function(err, resp){
-    
-  });
-*/  
-});
-
+if (importConfig.get('couchdb'));

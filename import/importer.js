@@ -1,28 +1,33 @@
 var ripple  = require('ripple-lib');
 var Ledger  = require('../node_modules/ripple-lib/src/js/ripple/ledger').Ledger;
-var winston = require('winston');
+var log     = require('../lib/log')('import');
 var events  = require('events');
 var emitter = new events.EventEmitter();
+
+log.level(2);
 
 var Importer = function (config) {
   var self   = this;
   var remote = new ripple.Remote(config.get('ripple'));
   
+  remote.connect();
+  
   remote.on('connect', function() {
-    winston.info("import: Rippled connected");
+    log.info("import: Rippled connected");
   });
 
   remote.on('disconnect', function() {
-    winston.info("import: Rippled disconnected");
+    log.info("import: Rippled disconnected");
   }); 
       
   /**
    * backFill
    * begin a new backfilling thread
    */
-  self.backFill = function (stopIndex, startIndex) {
-    var bf = new BackFiller(stopIndex, startIndex, function(){
+  self.backFill = function (stopIndex, startIndex, callback) {
+    var bf = new BackFiller(stopIndex, startIndex, function() {
       delete bf;
+      if (typeof callback === 'function') callback(); 
     });  
   };
   
@@ -79,10 +84,11 @@ var Importer = function (config) {
       setTimeout(function() {
         self.getLedger({index:index || 'validated'}, function (err, ledger) {
           if (ledger) handleLedger(ledger);  
-          else if (index) {
-            queue[index] = 'failed';
-          } else {
-            console.log("failed to get validated ledger");
+          else {
+            //the live importer will fail after 10
+            //attempts, but the backfiller must retry indefinitely
+            log.error('backfiller failed to get ledger, retrying');
+            getLedger(index);
           }
         });          
       }, count*100);     
@@ -120,7 +126,7 @@ var Importer = function (config) {
       updateQueue();  
       
       if (earliest === stopIndex) {
-        winston.info('backfill complete:', stopIndex, '-', startIndex);
+        log.info('backfill complete:', stopIndex, '-', startIndex);
         if (typeof callback === 'function') callback(); 
       }
     }
@@ -167,18 +173,18 @@ var Importer = function (config) {
           break;
           
         } else if (queue[index] === 'failed') {
-          winston.warn('retry failed ledger:', index);
+          log.warn('retry failed ledger:', index);
           getLedger(index);
           break; 
         
         } else if (queue[index]) {
           if (earliestParentHash && earliestParentHash != queue[index].ledger_hash) {
-            winston.error("expected different parent hash:", index);
+            log.error("expected different parent hash:", index);
             callback("Unable to complete backfill: parent hash mismatch");
             break;
             
           } else if (earliest != index + 1) {
-            winston.error("unexpected index:", index);
+            log.error("unexpected index:", index);
             callback("Unable to complete backfill: unexpected index");
             break;            
           }
@@ -207,13 +213,19 @@ var Importer = function (config) {
     var latest; //latest ledger from rippled
     var first;  //first ledger from rippled  
     
-    winston.info("import: starting live stream");
+    log.info("import: starting live stream");
     remote.connect();
     
-    remote.on('ledger_closed', function(resp, server) {
-      winston.info('['+new Date().toISOString()+']', 'ledger closed:', resp.ledger_index);       
-      getValidatedLedger(resp.ledger_index, server);
-    });
+    try {
+      remote.once('connected', function(){ 
+        remote.on('ledger_closed', function(resp, server) {
+          log.info('['+new Date().toISOString()+']', 'ledger closed:', resp.ledger_index);       
+          getValidatedLedger(resp.ledger_index, server);
+        });
+      });
+    } catch (e) {
+      console.log(e);
+    }
 
     function getValidatedLedger (index, server) {
       var options = {
@@ -227,7 +239,7 @@ var Importer = function (config) {
 
           //retry if we get the previously closed ledger
           if (index && index === current + 1) {
-            winston.warn("ledger not most recent:", ledger.ledger_index); 
+            log.warn("ledger not most recent:", ledger.ledger_index); 
             getValidatedLedger (index, server);
             
           } else {
@@ -249,14 +261,14 @@ var Importer = function (config) {
       //this can happen when validated returns the same
       //ledger we got last time
       } else if (latest === current) {
-        winston.warn("already imported this ledger:", current);
+        log.warn("already imported this ledger:", current);
         return; 
       } 
       
       
       //there is a gap that needs to be filled
       if (current > latest + 1) {
-        winston.info("starting backfill:", latest + 1, '-', current - 1);
+        log.info("starting backfill:", latest + 1, '-', current - 1);
         self.backFill(latest + 1, current - 1);
       } 
       
@@ -272,41 +284,55 @@ var Importer = function (config) {
    * @param {Object} callback
    */
   self.getLedger = function (options, callback) {
+    var attempts = options.attempts || 0;
     var params = {
       transactions : true, 
       expand       : true,
     }
     
     if (isNaN(options.index) && options.index !== 'validated') {
-      winston.error("invalid ledger index");
+      log.error("invalid ledger index");
       callback("invalid ledger index");
       return;  
     }
     
-    var attempts = options.attempts || 0;
     
-    try {
-      var request = remote.request_ledger(options.index, params, handleResponse).timeout(5000, function(){
-        winston.warn("ledger request timed out after 5 seconds:", options.index);
-        retry(options.index, attempts, callback); 
+    if (remote.isConnected()) {
+      requestLedger(options, params, callback);
+        
+    } else {
+      remote.connect();
+      remote.once('connected', function() {
+        requestLedger(options, params, callback);
       });
+    }
+
+    
+    function requestLedger(options, params, callback) {
       
-      if (options.server) {
-        request.setServer(options.server);
-      }
-      
-      var info    = request.server ? request.server._url + ' ' + request.server._pubkey_node : '';
-      winston.info('['+new Date().toISOString()+']', 'requesting ledger:', options.index, info);   
-          
-    } catch (e) {
-      winston.error("error requesting ledger:", options.index, e); 
-      callback("error requesting ledger");
-      return;
+      try {
+        var request = remote.request_ledger(options.index, params, handleResponse).timeout(8000, function(){
+          log.warn("ledger request timed out after 8 seconds:", options.index);
+          retry(options.index, attempts, callback); 
+        });
+        
+        if (options.server) {
+          request.setServer(options.server);
+        }
+        
+        var info    = request.server ? request.server._url + ' ' + request.server._pubkey_node : '';
+        log.info('['+new Date().toISOString()+']', 'requesting ledger:', options.index, info);   
+            
+      } catch (e) {
+        log.error("error requesting ledger:", options.index, e); 
+        callback("error requesting ledger");
+        return;
+      }      
     }
     
     function handleResponse (err, resp) {
       if (err || !resp || !resp.ledger) {
-        winston.error("error:", err); 
+        log.error("error:", err); 
         retry(options.index, attempts, callback); 
         return;
       }    
@@ -316,7 +342,7 @@ var Importer = function (config) {
         return;  
       }
     
-      winston.info('['+new Date().toISOString()+']', 'Got ledger: ' + resp.ledger.ledger_index);   
+      log.info('['+new Date().toISOString()+']', 'Got ledger: ' + resp.ledger.ledger_index);   
       callback(null, resp.ledger); 
     }
   };
@@ -329,19 +355,19 @@ var Importer = function (config) {
     var txHash;
           
     if (!ledger.closed) {
-      winston.info('ledger not closed:', ledger.ledger_index);
+      log.info('ledger not closed:', ledger.ledger_index);
       return false;     
     }
     
     try {
      txHash = Ledger.from_json(ledger).calc_tx_hash().to_hex();
     } catch(err) {
-      winston.error("Error calculating transaction hash: "+ledger.ledger_index +" "+ err);
+      log.error("Error calculating transaction hash: "+ledger.ledger_index +" "+ err);
       txHash = '';
     } 
     
     if (!txHash || txHash !== ledger.transaction_hash) {
-      winston.info('transactions do not hash to the expected value for ' + 
+      log.info('transactions do not hash to the expected value for ' + 
         'ledger_index: ' + ledger.ledger_index + '\n' +
         'ledger_hash: ' + ledger.ledger_hash + '\n' +
         'actual transaction_hash:   ' + txHash + '\n' +
@@ -353,7 +379,7 @@ var Importer = function (config) {
     
     for (var i=0; i<ledger.transactions.length;i++) {
       if(!ledger.transactions[i].metaData) {
-        winston.info('transaction in ledger: ' + ledger.ledger_index + ' does not have metaData');
+        log.info('transaction in ledger: ' + ledger.ledger_index + ' does not have metaData');
         return false;
       }
     }
@@ -370,13 +396,13 @@ var Importer = function (config) {
   function retry (ledgerIndex, attempts, callback) {
     
     if (attempts >= 10) {
-      winston.error('failed to get ledger after ' + attempts + ' attempts:', ledgerIndex);      
+      log.error('failed to get ledger after ' + attempts + ' attempts:', ledgerIndex);      
       callback("failed to get ledger");
       return;  
     }
     
     attempts++;
-    winston.info("retry attempts:", attempts);
+    log.info("retry attempts:", attempts);
     setTimeout(function() {
       self.getLedger({index:ledgerIndex, attempts:attempts}, callback);            
     }, 250);
