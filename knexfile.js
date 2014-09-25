@@ -1,16 +1,16 @@
-var config = require('./src/config.json')
+var config = require('./config/import.config.json')
 var obj = {
     integration: {
-        client: "postgres",
-        connection: config.db
+        client: config.sql.dbtype,
+        connection: config.sql.db
     },
     staging: {
-        client: "postgres",
-        connection: config.db
+        client: config.sql.dbtype,
+        connection: config.sql.db
     },
     production: {
-        client: "postgres",
-        connection: config.db
+        client: config.sql.dbtype,
+        connection: config.sql.db
     }
 };
 // some call it integration
