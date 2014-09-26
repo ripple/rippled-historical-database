@@ -3,21 +3,21 @@
 exports.up = function(knex, Promise) {
   return Promise.all([
     knex.schema.createTable('ledgers',function(table) {
-      table.binary('hash').unique();
-      table.binary('index').unique();
+      table.integer('ledger_index').primary().unique();
+      table.binary('ledger_hash');
       table.binary('parent_hash');
       table.bigInteger('total_coins');
       table.bigInteger('close_time');
       table.bigInteger('close_time_resolution');
-      table.dateTime('close_time_human');
-      table.binary('account_hash');
-      table.binary('transaction_hash');
+      table.string('close_time_human');
+      table.binary('accounts_hash');
+      table.binary('transactions_hash');
     }),
     
     knex.schema.createTable('transactions', function(table) {
-      table.bigIncrements('id').primary().unsigned();
-      table.binary('hash').unique();
-      table.enu('type', [
+      table.bigIncrements('tx_id').primary().unsigned();
+      table.binary('tx_hash').unique();
+      table.enu('tx_type', [
         'Payment',
         'OfferCreate',
         'OfferCancel',
@@ -28,24 +28,25 @@ exports.up = function(knex, Promise) {
         'SetFee' 
       ]);
       table.binary('account');
-      table.bigInteger('sequence');
-      table.bigInteger('ledger_index').references('index').inTable('ledgers');
+      table.bigInteger('tx_sequence');
+      table.bigInteger('ledger_index').references('ledger_index').inTable('ledgers');
       table.string('result');
-      table.binary('raw');
-      table.binary('meta');
+      table.binary('tx_raw');
+      table.binary('tx_meta');
+      table.timestamp('executed_time');
     }),
     
     knex.schema.createTable('accounts', function(table) {
-      table.bigIncrements('id').primary().unsigned();
-      table.binary('address').unique();
+      table.bigIncrements('account_id').primary().unsigned();
+      table.binary('account').unique();
       table.binary('tx_hash');
       table.binary('parent');
-      table.dateTime('created');
+      table.timestamp('created_time');
     }),
     
     knex.schema.createTable('account_transactions', function(table) {
-      table.bigInteger('account_id').references('id').inTable('accounts');
-      table.bigInteger('transaction_id').references('id').inTable('transactions');
+      table.bigInteger('account_id').references('account_id').inTable('accounts');
+      table.bigInteger('tx_id').references('tx_id').inTable('transactions');
     })
   ]);
 };
