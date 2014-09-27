@@ -4,7 +4,7 @@ var log     = require('../lib/log')('import');
 var events  = require('events');
 var emitter = new events.EventEmitter();
 
-log.level(2);
+log.level(3);
 
 var Importer = function (config) {
   var self   = this;
@@ -137,7 +137,7 @@ var Importer = function (config) {
     * requests if there is any free space
     */ 
     function updateQueue () {
-      var max    = config.get('queLength');
+      var max    = config.get('queueLength');
       var num    = earliest - stopIndex;
       var length = Object.keys(queue).length;
       
@@ -217,7 +217,7 @@ var Importer = function (config) {
     remote.connect();
     
     try {
-      remote.once('connected', function(){ 
+      remote.once('connect', function(){ 
         remote.on('ledger_closed', function(resp, server) {
           log.info('['+new Date().toISOString()+']', 'ledger closed:', resp.ledger_index);       
           getValidatedLedger(resp.ledger_index, server);
@@ -285,34 +285,38 @@ var Importer = function (config) {
    */
   self.getLedger = function (options, callback) {
     var attempts = options.attempts || 0;
-    var params = {
+    var params   = {
       transactions : true, 
-      expand       : true,
+      expand       : true
     }
     
-    if (isNaN(options.index) && options.index !== 'validated') {
+    if (options.index === 'validated') {
+      params.validated = true;
+      
+    } else if (!isNaN(options.index)) {
+      params.ledger_index = options.index;
+      
+    } else {
       log.error("invalid ledger index");
       callback("invalid ledger index");
       return;  
     }
-    
-    
+     
     if (remote.isConnected()) {
-      requestLedger(options, params, callback);
+      requestLedger(params, callback);
         
     } else {
-      remote.connect();
-      remote.once('connected', function() {
-        requestLedger(options, params, callback);
+      remote.once('connect', function() {
+        requestLedger(params, callback);
       });
     }
-
     
-    function requestLedger(options, params, callback) {
+    function requestLedger(options, callback) {
+      var index = options.validated ? 'validated' : options.ledger_index;
       
       try {
-        var request = remote.request_ledger(options.index, params, handleResponse).timeout(8000, function(){
-          log.warn("ledger request timed out after 8 seconds:", options.index);
+        var request = remote.request_ledger(index, options, handleResponse).timeout(8000, function(){
+          log.warn("ledger request timed out after 8 seconds:", index);
           retry(options.index, attempts, callback); 
         });
         
@@ -320,19 +324,20 @@ var Importer = function (config) {
           request.setServer(options.server);
         }
         
-        var info    = request.server ? request.server._url + ' ' + request.server._pubkey_node : '';
-        log.info('['+new Date().toISOString()+']', 'requesting ledger:', options.index, info);   
+        var info  = request.server ? request.server.getServerID() : '';
+        log.info('['+new Date().toISOString()+']', 'requesting ledger:', index, info);   
             
       } catch (e) {
-        log.error("error requesting ledger:", options.index, e); 
+        log.error("error requesting ledger:", index, e); 
         callback("error requesting ledger");
         return;
       }      
     }
     
     function handleResponse (err, resp) {
+
       if (err || !resp || !resp.ledger) {
-        log.error("error:", err); 
+        log.error("error:", err ? err.message || err : null); 
         retry(options.index, attempts, callback); 
         return;
       }    
@@ -373,7 +378,6 @@ var Importer = function (config) {
         'actual transaction_hash:   ' + txHash + '\n' +
         'expected transaction_hash: ' + ledger.transaction_hash);
         
-      retry(ledger.ledger_index, attempts, callback); 
       return false;
     } 
     

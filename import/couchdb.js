@@ -36,7 +36,9 @@ var saveLedger = function (ledger, callback) {
       saveLedgerRecursive(ledger, 0 , callback);
       
     } else { 
-      callback(err && err.description ? err.description : err || "error");
+      var error = err && err.description ? err.description : err || "error";
+      log.error("rev lookupp failed:", error);
+      callback(error);
     } 
   });
 }
@@ -160,8 +162,8 @@ var HistoricalImport = function () {
   this.count    = 0;
   this.total    = 0;
   this.section  = { };
-  this.first    = reset ? null : store.getItem('earliestValidated');
-  var self      = this;
+  var self = this;
+  var first;
   
   
  /**
@@ -198,9 +200,19 @@ var HistoricalImport = function () {
   });
   
   this.start = function () {
-    console.log(self.first);
-    if (self.first) {
-      self._findGaps(self.first.index, self.first.hash); 
+    var start = config.get('startIndex');
+    if (start === 'validated') {
+      first = null;
+    } else if (start) {
+      first = {index:start};
+    } else {
+      first = store.getItem('earliestValidated'); 
+    }
+    
+    console.log(first);
+    
+    if (first) {
+      self._findGaps(first.index, first.hash); 
        
     } else {
       
@@ -220,21 +232,23 @@ var HistoricalImport = function () {
 
 
 HistoricalImport.prototype._getLedgerRecursive = function(index, attempts, callback) {
-    if (attempts && attempts > 10) {
-      callback("failed to get ledger");
+  var self = this;
+  
+  if (attempts && attempts > 10) {
+    callback("failed to get ledger");
+    return;
+  }
+  
+  self.importer.getLedger({index:index}, function(err, ledger) {
+    if (err) {
+      log.error(err, "retrying");
+      self._getLedgerRecursive(index, ++attempts, callback);
       return;
-    }
+    } 
     
-    this.importer.getLedger({index:index}, function(err, ledger) {
-      if (err) {
-        log.error(err, "retrying");
-        this._getLedgerRecursive(index, ++attempts, callback);
-        return;
-      } 
-      
-      callback(null, ledger);
-    });  
-  },
+    callback(null, ledger);
+  });  
+};
   
 
 HistoricalImport.prototype._findGaps = function (start, parentHash) {
@@ -253,13 +267,13 @@ HistoricalImport.prototype._findGaps = function (start, parentHash) {
 
 HistoricalImport.prototype._findGap = function (validated, ledgerHash, startIndex, callback) {
   var self = this;
-  var end  = validated - 20;
+  var end  = validated - 50;
   var ids  = [];
   var stopIndex; 
 
-  if (startIndex && startIndex - validated > 100) {
+  if (startIndex && startIndex - validated > 200) {
     log.info("max gap size reached:", startIndex);
-    callback(null, {startIndex:startIndex, stopIndex:startIndex - 100 + 1}); 
+    callback(null, {startIndex:startIndex, stopIndex:startIndex - 200 + 1}); 
     return;   
   } 
   
