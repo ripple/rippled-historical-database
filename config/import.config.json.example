@@ -1,5 +1,5 @@
 {
-  "queueLength"  : 50,
+  "queueLength" : 20,
   "ripple" : {
     "trace"                 : false,
     "allow_partial_history" : false,
@@ -21,7 +21,6 @@
   "nosql" : {
     "dbtype" : "couchdb",
     "db"     : {
-      "host"     : "",
       "host"     : "127.0.0.1",
       "port"     : 5984,
       "username" : "",

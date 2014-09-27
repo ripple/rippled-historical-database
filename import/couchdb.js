@@ -5,7 +5,6 @@ var diff     = require('deep-diff');
 var ripple   = require('ripple-lib');
 var Import   = require('./importer');
 var live     = new Import(config);
-var history  = new Import(config);
 var store    = require('node-persist');
 var indexer  = require('./indexer');
 var db       = require('../lib/couchdb')(config.get('nosql:db'));

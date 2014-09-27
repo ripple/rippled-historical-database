@@ -317,7 +317,7 @@ var Importer = function (config) {
       try {
         var request = remote.request_ledger(index, options, handleResponse).timeout(8000, function(){
           log.warn("ledger request timed out after 8 seconds:", index);
-          retry(options.index, attempts, callback); 
+          retry(index, attempts, callback); 
         });
         
         if (options.server) {
@@ -342,7 +342,16 @@ var Importer = function (config) {
         return;
       }    
       
-      if (!isValid(resp.ledger)) {
+      try {
+        var valid = isValid(resp.ledger);
+       
+      } catch (err) {
+        log.error("Error calculating transaction hash: "+resp.ledger.ledger_index +" "+ err);
+        callback("cannot validate ledger");
+        process.exit();
+      }
+      
+      if (!valid) {
         retry(options.index, attempts, callback); 
         return;  
       }
@@ -364,14 +373,9 @@ var Importer = function (config) {
       return false;     
     }
     
-    try {
-     txHash = Ledger.from_json(ledger).calc_tx_hash().to_hex();
-    } catch(err) {
-      log.error("Error calculating transaction hash: "+ledger.ledger_index +" "+ err);
-      txHash = '';
-    } 
+    txHash = Ledger.from_json(ledger).calc_tx_hash().to_hex();
     
-    if (!txHash || txHash !== ledger.transaction_hash) {
+    if (txHash !== ledger.transaction_hash) {
       log.info('transactions do not hash to the expected value for ' + 
         'ledger_index: ' + ledger.ledger_index + '\n' +
         'ledger_hash: ' + ledger.ledger_hash + '\n' +
