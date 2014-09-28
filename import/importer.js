@@ -1,3 +1,4 @@
+var config  = require('../config/import.config');
 var ripple  = require('ripple-lib');
 var Ledger  = require('../node_modules/ripple-lib/src/js/ripple/ledger').Ledger;
 var log     = require('../lib/log')('import');
@@ -6,7 +7,7 @@ var emitter = new events.EventEmitter();
 
 log.level(3);
 
-var Importer = function (config) {
+var Importer = function () {
   var self   = this;
   var remote = new ripple.Remote(config.get('ripple'));
   
@@ -80,7 +81,9 @@ var Importer = function (config) {
     * simultaneously, add a little padding
     * between requests
     */
-    function getLedger(index, count) {      
+    function getLedger(index, count) { 
+      if (!count) count = 0;
+         
       setTimeout(function() {
         self.getLedger({index:index || 'validated'}, function (err, ledger) {
           if (ledger) handleLedger(ledger);  
@@ -140,6 +143,7 @@ var Importer = function (config) {
       var max    = config.get('queueLength');
       var num    = earliest - stopIndex;
       var length = Object.keys(queue).length;
+      var count  = 0;
       
       if (length >= max)  num = 0;
       else if (num > max) num = max;
@@ -154,7 +158,7 @@ var Importer = function (config) {
         
         if (!queue[index]) {
           queue[index] = 'pending';
-          getLedger(index, i);
+          getLedger(index, count++);
         }
       }      
     }
@@ -347,7 +351,7 @@ var Importer = function (config) {
        
       } catch (err) {
         log.error("Error calculating transaction hash: "+resp.ledger.ledger_index +" "+ err);
-        callback("cannot validate ledger");
+        //callback("cannot validate ledger");
         process.exit();
       }
       
