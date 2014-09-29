@@ -27,7 +27,8 @@ exports.up = function(knex, Promise) {
         'SetFee' 
       ]);
       table.binary('account');
-      table.bigInteger('tx_sequence');
+      table.bigInteger('account_seq');
+      table.integer('tx_seq');
       table.bigInteger('ledger_index').references('ledger_index').inTable('ledgers');
       table.string('result');
       table.binary('tx_raw');
