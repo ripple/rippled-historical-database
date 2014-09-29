@@ -4,6 +4,13 @@ var Ledger  = require('../node_modules/ripple-lib/src/js/ripple/ledger').Ledger;
 var log     = require('../lib/log')('import');
 var events  = require('events');
 var emitter = new events.EventEmitter();
+var winston = require('winston');
+var hashErrorLog = new (require('winston').Logger)({
+  transports: [
+    new (winston.transports.Console)(),
+    new (winston.transports.File)({ filename: './log/hashErrors.log' })
+  ]   
+});
 
 log.level(3);
 
@@ -319,8 +326,8 @@ var Importer = function () {
       var index = options.validated ? 'validated' : options.ledger_index;
       
       try {
-        var request = remote.request_ledger(index, options, handleResponse).timeout(8000, function(){
-          log.warn("ledger request timed out after 8 seconds:", index);
+        var request = remote.request_ledger(index, options, handleResponse).timeout(15000, function(){
+          log.warn("ledger request timed out after 15 seconds:", index);
           retry(index, attempts, callback); 
         });
         
@@ -351,8 +358,8 @@ var Importer = function () {
        
       } catch (err) {
         log.error("Error calculating transaction hash: "+resp.ledger.ledger_index +" "+ err);
-        //callback("cannot validate ledger");
-        process.exit();
+        hashErrorLog.error(resp.ledger.ledger_index, err.toString());
+        valid = true;
       }
       
       if (!valid) {
