@@ -1,6 +1,5 @@
 {
-  "queLength"  : 50,
-  "startIndex" : 32750,
+  "queueLength" : 20,
   "ripple" : {
     "trace"                 : false,
     "allow_partial_history" : false,
@@ -23,9 +22,11 @@
     "dbtype" : "couchdb",
     "db"     : {
       "host"     : "127.0.0.1",
-      "user"     : "",
+      "port"     : 5984,
+      "username" : "",
       "password" : "",
-      "database" : ""
+      "database" : "",
+      "protocol" : "http"
     }
   }  
 }

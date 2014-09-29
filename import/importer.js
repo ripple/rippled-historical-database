@@ -1,12 +1,20 @@
+var config  = require('../config/import.config');
 var ripple  = require('ripple-lib');
 var Ledger  = require('../node_modules/ripple-lib/src/js/ripple/ledger').Ledger;
 var log     = require('../lib/log')('import');
 var events  = require('events');
 var emitter = new events.EventEmitter();
+var winston = require('winston');
+var hashErrorLog = new (require('winston').Logger)({
+  transports: [
+    new (winston.transports.Console)(),
+    new (winston.transports.File)({ filename: './log/hashErrors.log' })
+  ]   
+});
 
-log.level(2);
+log.level(3);
 
-var Importer = function (config) {
+var Importer = function () {
   var self   = this;
   var remote = new ripple.Remote(config.get('ripple'));
   
@@ -80,7 +88,9 @@ var Importer = function (config) {
     * simultaneously, add a little padding
     * between requests
     */
-    function getLedger(index, count) {      
+    function getLedger(index, count) { 
+      if (!count) count = 0;
+         
       setTimeout(function() {
         self.getLedger({index:index || 'validated'}, function (err, ledger) {
           if (ledger) handleLedger(ledger);  
@@ -137,9 +147,10 @@ var Importer = function (config) {
     * requests if there is any free space
     */ 
     function updateQueue () {
-      var max    = config.get('queLength');
+      var max    = config.get('queueLength');
       var num    = earliest - stopIndex;
       var length = Object.keys(queue).length;
+      var count  = 0;
       
       if (length >= max)  num = 0;
       else if (num > max) num = max;
@@ -154,7 +165,7 @@ var Importer = function (config) {
         
         if (!queue[index]) {
           queue[index] = 'pending';
-          getLedger(index, i);
+          getLedger(index, count++);
         }
       }      
     }
@@ -217,7 +228,7 @@ var Importer = function (config) {
     remote.connect();
     
     try {
-      remote.once('connected', function(){ 
+      remote.once('connect', function(){ 
         remote.on('ledger_closed', function(resp, server) {
           log.info('['+new Date().toISOString()+']', 'ledger closed:', resp.ledger_index);       
           getValidatedLedger(resp.ledger_index, server);
@@ -285,59 +296,73 @@ var Importer = function (config) {
    */
   self.getLedger = function (options, callback) {
     var attempts = options.attempts || 0;
-    var params = {
+    var params   = {
       transactions : true, 
-      expand       : true,
+      expand       : true
     }
     
-    if (isNaN(options.index) && options.index !== 'validated') {
+    if (options.index === 'validated') {
+      params.validated = true;
+      
+    } else if (!isNaN(options.index)) {
+      params.ledger_index = options.index;
+      
+    } else {
       log.error("invalid ledger index");
       callback("invalid ledger index");
       return;  
     }
-    
-    
+     
     if (remote.isConnected()) {
-      requestLedger(options, params, callback);
+      requestLedger(params, callback);
         
     } else {
-      remote.connect();
-      remote.once('connected', function() {
-        requestLedger(options, params, callback);
+      remote.once('connect', function() {
+        requestLedger(params, callback);
       });
     }
-
     
-    function requestLedger(options, params, callback) {
+    function requestLedger(options, callback) {
+      var index = options.validated ? 'validated' : options.ledger_index;
       
       try {
-        var request = remote.request_ledger(options.index, params, handleResponse).timeout(8000, function(){
-          log.warn("ledger request timed out after 8 seconds:", options.index);
-          retry(options.index, attempts, callback); 
+        var request = remote.request_ledger(index, options, handleResponse).timeout(15000, function(){
+          log.warn("ledger request timed out after 15 seconds:", index);
+          retry(index, attempts, callback); 
         });
         
         if (options.server) {
           request.setServer(options.server);
         }
         
-        var info    = request.server ? request.server._url + ' ' + request.server._pubkey_node : '';
-        log.info('['+new Date().toISOString()+']', 'requesting ledger:', options.index, info);   
+        var info  = request.server ? request.server.getServerID() : '';
+        log.info('['+new Date().toISOString()+']', 'requesting ledger:', index, info);   
             
       } catch (e) {
-        log.error("error requesting ledger:", options.index, e); 
+        log.error("error requesting ledger:", index, e); 
         callback("error requesting ledger");
         return;
       }      
     }
     
     function handleResponse (err, resp) {
+
       if (err || !resp || !resp.ledger) {
-        log.error("error:", err); 
+        log.error("error:", err ? err.message || err : null); 
         retry(options.index, attempts, callback); 
         return;
       }    
       
-      if (!isValid(resp.ledger)) {
+      try {
+        var valid = isValid(resp.ledger);
+       
+      } catch (err) {
+        log.error("Error calculating transaction hash: "+resp.ledger.ledger_index +" "+ err);
+        hashErrorLog.error(resp.ledger.ledger_index, err.toString());
+        valid = true;
+      }
+      
+      if (!valid) {
         retry(options.index, attempts, callback); 
         return;  
       }
@@ -359,21 +384,15 @@ var Importer = function (config) {
       return false;     
     }
     
-    try {
-     txHash = Ledger.from_json(ledger).calc_tx_hash().to_hex();
-    } catch(err) {
-      log.error("Error calculating transaction hash: "+ledger.ledger_index +" "+ err);
-      txHash = '';
-    } 
+    txHash = Ledger.from_json(ledger).calc_tx_hash().to_hex();
     
-    if (!txHash || txHash !== ledger.transaction_hash) {
+    if (txHash !== ledger.transaction_hash) {
       log.info('transactions do not hash to the expected value for ' + 
         'ledger_index: ' + ledger.ledger_index + '\n' +
         'ledger_hash: ' + ledger.ledger_hash + '\n' +
         'actual transaction_hash:   ' + txHash + '\n' +
         'expected transaction_hash: ' + ledger.transaction_hash);
         
-      retry(ledger.ledger_index, attempts, callback); 
       return false;
     } 
     

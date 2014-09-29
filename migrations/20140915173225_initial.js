@@ -9,7 +9,6 @@ exports.up = function(knex, Promise) {
       table.bigInteger('total_coins');
       table.bigInteger('close_time');
       table.bigInteger('close_time_resolution');
-      table.string('close_time_human');
       table.binary('accounts_hash');
       table.binary('transactions_hash');
     }),
@@ -33,7 +32,7 @@ exports.up = function(knex, Promise) {
       table.string('result');
       table.binary('tx_raw');
       table.binary('tx_meta');
-      table.timestamp('executed_time');
+      table.bigInteger('executed_time');
     }),
     
     knex.schema.createTable('accounts', function(table) {
@@ -41,7 +40,7 @@ exports.up = function(knex, Promise) {
       table.binary('account').unique();
       table.binary('tx_hash');
       table.binary('parent');
-      table.timestamp('created_time');
+      table.bigInteger('created_time');
     }),
     
     knex.schema.createTable('account_transactions', function(table) {
