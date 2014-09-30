@@ -2,6 +2,7 @@
 
 exports.up = function(knex, Promise) {
   return Promise.all([
+
     knex.schema.createTable('ledgers',function(table) {
       table.integer('ledger_index').primary().unique();
       table.binary('ledger_hash');
@@ -12,7 +13,7 @@ exports.up = function(knex, Promise) {
       table.binary('accounts_hash');
       table.binary('transactions_hash');
     }),
-    
+
     knex.schema.createTable('transactions', function(table) {
       table.bigIncrements('tx_id').primary().unsigned();
       table.binary('tx_hash').unique();
@@ -35,7 +36,7 @@ exports.up = function(knex, Promise) {
       table.binary('tx_meta');
       table.bigInteger('executed_time');
     }),
-    
+
     knex.schema.createTable('accounts', function(table) {
       table.bigIncrements('account_id').primary().unsigned();
       table.binary('account').unique();
@@ -43,19 +44,20 @@ exports.up = function(knex, Promise) {
       table.binary('parent');
       table.bigInteger('created_time');
     }),
-    
+
     knex.schema.createTable('account_transactions', function(table) {
       table.bigInteger('account_id').references('account_id').inTable('accounts');
       table.bigInteger('tx_id').references('tx_id').inTable('transactions');
     })
+   
   ]);
 };
 
 exports.down = function(knex, Promise) {
-  return Promise.all([
-    knex.schema.dropTable('ledgers'),
-    knex.schema.dropTable('transactions'),
-    knex.schema.dropTable('accounts'),
-    knex.schema.dropTable('account_transactions'),
-  ]);  
+  return Promise.all([ 
+    knex.raw('DROP TABLE IF EXISTS account_transactions; ' + 
+      'DROP TABLE IF EXISTS ledgers CASCADE; ' + 
+      'DROP TABLE IF EXISTS transactions CASCADE; ' + 
+      'DROP TABLE IF EXISTS accounts')
+  ]); 
 };
