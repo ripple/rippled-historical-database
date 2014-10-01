@@ -5,8 +5,8 @@ exports.up = function(knex, Promise) {
 
     knex.schema.createTable('ledgers',function(table) {
       table.integer('ledger_index').primary().unique();
-      table.binary('ledger_hash');
-      table.binary('parent_hash');
+      table.binary('ledger_hash').unique();
+      table.binary('parent_hash').unique();
       table.bigInteger('total_coins');
       table.bigInteger('close_time');
       table.bigInteger('close_time_resolution');
@@ -17,6 +17,7 @@ exports.up = function(knex, Promise) {
     knex.schema.createTable('transactions', function(table) {
       table.bigIncrements('tx_id').primary().unsigned();
       table.binary('tx_hash').unique();
+      table.bigInteger('ledger_index').references('ledger_index').inTable('ledgers');
       table.enu('tx_type', [
         'Payment',
         'OfferCreate',
@@ -27,11 +28,10 @@ exports.up = function(knex, Promise) {
         'EnableAmendment',
         'SetFee' 
       ]);
-      table.binary('account');
+      table.string('account', 64);
       table.bigInteger('account_seq');
       table.integer('tx_seq');
-      table.bigInteger('ledger_index').references('ledger_index').inTable('ledgers');
-      table.string('result');
+      table.string('tx_result');
       table.binary('tx_raw');
       table.binary('tx_meta');
       table.bigInteger('executed_time');
@@ -39,9 +39,9 @@ exports.up = function(knex, Promise) {
 
     knex.schema.createTable('accounts', function(table) {
       table.bigIncrements('account_id').primary().unsigned();
-      table.binary('account').unique();
+      table.string('account', 64).unique();
+      table.string('parent', 64);      
       table.binary('tx_hash');
-      table.binary('parent');
       table.bigInteger('created_time');
     }),
 
