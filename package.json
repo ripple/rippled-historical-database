@@ -26,6 +26,7 @@
     "nano": "^5.11.2",
     "moment": "^2.8.3",
     "deep-diff": "^0.2.0",
-    "node-persist": "0.0.2"
+    "node-persist": "0.0.2",
+    "response": "^0.14.0"
   }
 }
