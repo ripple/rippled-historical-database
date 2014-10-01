@@ -4,7 +4,7 @@
   "description": "SQL database storing historical data from Rippled.",
   "scripts": {
     "test": "mocha -R spec test/**/",
-    "start": "node import/couchdb.js"
+    "start": "node api/server.js"
   },
   "author": "",
   "license": "ISC",

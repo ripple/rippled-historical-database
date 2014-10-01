@@ -1,141 +1,368 @@
--- schema.sql
 --
--- This file contains the Postgres commands needed to recreate the Ripple
--- History project's database schema.  It automatically deletes any existing
--- tables and related objects before recreating them, ensuring that the
--- database is restored back to a pristine state each time it is run.
+-- PostgreSQL database dump
+--
 
------------------------------------------------------------------------------
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
 
-ALTER TABLE IF EXISTS account_transactions
-    DROP CONSTRAINT IF EXISTS fk_transaction_id,
-    DROP CONSTRAINT IF EXISTS fk_account_id;
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
 
--- ALTER TABLE IF EXISTS transactions
---     DROP CONSTRAINT IF EXISTS fk_account_id;
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
------------------------------------------------------------------------------
 
-DROP TABLE IF EXISTS ledgers;
-DROP TABLE IF EXISTS account_transactions;
-DROP TABLE IF EXISTS accounts;
-DROP TABLE IF EXISTS transactions;
-DROP TABLE IF EXISTS ledger_transactions;
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
 
------------------------------------------------------------------------------
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
--- NOTES:
--- The parent_closing_time is not in the json response but
---   is in the rippled header
--- Where are the close_flags?
 
-CREATE TABLE ledgers (
-    id                    BIGSERIAL PRIMARY KEY,
-    ledger_hash           bytea,
-    parent_hash           bytea,
-    total_coins           BIGINT,
-    close_time            BIGINT,
-    close_time_resolution BIGINT,
-    account_hash          bytea,
-    transaction_hash      bytea,
-    accepted              BOOLEAN,
-    closed                BOOLEAN,
-    close_time_estimated  BOOLEAN,
-    close_time_human      TIMESTAMP WITH TIME ZONE
+SET search_path = public, pg_catalog;
 
-    -- NOTE: Not in the JSON response:
-    -- parent_close_time     BIGINT,
-    -- close_flags           BIGINT,
-    -- state_hash            bytea
-);
+SET default_tablespace = '';
 
-CREATE INDEX ledger_hash_index
-          ON ledgers(ledger_hash);
+SET default_with_oids = false;
 
-CREATE INDEX ledger_close_index
-          ON ledgers(close_time);
-
------------------------------------------------------------------------------
+--
+-- Name: account_transactions; Type: TABLE; Schema: public; Owner: matthew; Tablespace: 
+--
 
 CREATE TABLE account_transactions (
-    transaction_id       BIGINT NOT NULL,
-    account_id           BIGINT NOT NULL,
-    ledger_sequence      BIGINT NOT NULL,
-    transaction_sequence BIGINT NOT NULL
+    account_id bigint,
+    tx_id bigint
 );
 
-CREATE INDEX account_transaction_id_index
-          ON account_transactions(transaction_id);
 
-CREATE INDEX account_transaction_index
-          ON account_transactions(account_id, ledger_sequence,
-                                  transaction_sequence);
+ALTER TABLE public.account_transactions OWNER TO matthew;
 
-CREATE INDEX account_ledger_index
-          ON account_transactions(ledger_sequence, account_id, transaction_id);
-
------------------------------------------------------------------------------
+--
+-- Name: accounts; Type: TABLE; Schema: public; Owner: matthew; Tablespace: 
+--
 
 CREATE TABLE accounts (
-    id         BIGSERIAL PRIMARY KEY,
-    address    bytea NOT NULL UNIQUE
+    account_id bigint NOT NULL,
+    account character varying(64),
+    parent character varying(64),
+    tx_hash bytea,
+    created_time bigint
 );
 
-CREATE INDEX accounts_address_index
-          ON accounts(address);
 
------------------------------------------------------------------------------
+ALTER TABLE public.accounts OWNER TO matthew;
 
-DROP TYPE IF EXISTS transaction_type;
-CREATE TYPE transaction_type AS ENUM('Payment', 'OfferCreate', 'OfferCancel',
-                                     'AccountSet', 'SetRegularKey',
-                                     'TrustSet');
+--
+-- Name: accounts_account_id_seq; Type: SEQUENCE; Schema: public; Owner: matthew
+--
 
------------------------------------------------------------------------------
+CREATE SEQUENCE accounts_account_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.accounts_account_id_seq OWNER TO matthew;
+
+--
+-- Name: accounts_account_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: matthew
+--
+
+ALTER SEQUENCE accounts_account_id_seq OWNED BY accounts.account_id;
+
+
+--
+-- Name: knex_migrations; Type: TABLE; Schema: public; Owner: matthew; Tablespace: 
+--
+
+CREATE TABLE knex_migrations (
+    id integer NOT NULL,
+    name character varying(255),
+    batch integer,
+    migration_time timestamp with time zone
+);
+
+
+ALTER TABLE public.knex_migrations OWNER TO matthew;
+
+--
+-- Name: knex_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: matthew
+--
+
+CREATE SEQUENCE knex_migrations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.knex_migrations_id_seq OWNER TO matthew;
+
+--
+-- Name: knex_migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: matthew
+--
+
+ALTER SEQUENCE knex_migrations_id_seq OWNED BY knex_migrations.id;
+
+
+--
+-- Name: ledgers; Type: TABLE; Schema: public; Owner: matthew; Tablespace: 
+--
+
+CREATE TABLE ledgers (
+    ledger_index integer NOT NULL,
+    ledger_hash bytea,
+    parent_hash bytea,
+    total_coins bigint,
+    close_time bigint,
+    close_time_resolution bigint,
+    accounts_hash bytea,
+    transactions_hash bytea
+);
+
+
+ALTER TABLE public.ledgers OWNER TO matthew;
+
+--
+-- Name: transactions; Type: TABLE; Schema: public; Owner: matthew; Tablespace: 
+--
 
 CREATE TABLE transactions (
-    id               BIGSERIAL PRIMARY KEY,
-    account          bytea,
-    destination      bytea,
-    fee              BIGINT,
-    flags            BIGINT,
-    paths            bytea,
-    send_max         bytea,
-    offer_sequence   BIGINT,
-    sequence         BIGINT,
-    signing_pub_key  bytea,
-    taker_gets       bytea,
-    taker_pays       bytea,
-    transaction_type transaction_type,
-    txn_signature    bytea,
-    hash             bytea,
-    meta_data        bytea
+    tx_id bigint NOT NULL,
+    tx_hash bytea,
+    ledger_index bigint,
+    tx_type text,
+    account character varying(64),
+    account_seq bigint,
+    tx_seq integer,
+    tx_result character varying(255),
+    tx_raw bytea,
+    tx_meta bytea,
+    executed_time bigint,
+    CONSTRAINT transactions_tx_type_check CHECK ((tx_type = ANY (ARRAY['Payment'::text, 'OfferCreate'::text, 'OfferCancel'::text, 'AccountSet'::text, 'SetRegularKey'::text, 'TrustSet'::text, 'EnableAmendment'::text, 'SetFee'::text])))
 );
 
-CREATE INDEX transaction_ledger_index
-          ON transactions(sequence);
 
------------------------------------------------------------------------------
+ALTER TABLE public.transactions OWNER TO matthew;
 
-CREATE TABLE ledger_transactions (
-    transaction_id       BIGINT NOT NULL,
-    ledger_id            BIGINT NOT NULL,
-    transaction_sequence BIGINT NOT NULL
-);
+--
+-- Name: transactions_tx_id_seq; Type: SEQUENCE; Schema: public; Owner: matthew
+--
 
------------------------------------------------------------------------------
+CREATE SEQUENCE transactions_tx_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
-ALTER TABLE account_transactions
-    ADD CONSTRAINT fk_transaction_id FOREIGN KEY (transaction_id)
-                                     REFERENCES transactions(id),
-    ADD CONSTRAINT fk_account_id FOREIGN KEY (account_id)
-                                 REFERENCES accounts(id);
 
------------------------------------------------------------------------------
+ALTER TABLE public.transactions_tx_id_seq OWNER TO matthew;
 
--- ALTER TABLE transactions
---    ADD CONSTRAINT fk_account_id FOREIGN KEY(id)
---                                 REFERENCES accounts(id);
+--
+-- Name: transactions_tx_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: matthew
+--
 
------------------------------------------------------------------------------
--- vim: set syntax=sql:
+ALTER SEQUENCE transactions_tx_id_seq OWNED BY transactions.tx_id;
+
+
+--
+-- Name: account_id; Type: DEFAULT; Schema: public; Owner: matthew
+--
+
+ALTER TABLE ONLY accounts ALTER COLUMN account_id SET DEFAULT nextval('accounts_account_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: matthew
+--
+
+ALTER TABLE ONLY knex_migrations ALTER COLUMN id SET DEFAULT nextval('knex_migrations_id_seq'::regclass);
+
+
+--
+-- Name: tx_id; Type: DEFAULT; Schema: public; Owner: matthew
+--
+
+ALTER TABLE ONLY transactions ALTER COLUMN tx_id SET DEFAULT nextval('transactions_tx_id_seq'::regclass);
+
+
+--
+-- Data for Name: account_transactions; Type: TABLE DATA; Schema: public; Owner: matthew
+--
+
+COPY account_transactions (account_id, tx_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: accounts; Type: TABLE DATA; Schema: public; Owner: matthew
+--
+
+COPY accounts (account_id, account, parent, tx_hash, created_time) FROM stdin;
+\.
+
+
+--
+-- Name: accounts_account_id_seq; Type: SEQUENCE SET; Schema: public; Owner: matthew
+--
+
+SELECT pg_catalog.setval('accounts_account_id_seq', 1, false);
+
+
+--
+-- Data for Name: knex_migrations; Type: TABLE DATA; Schema: public; Owner: matthew
+--
+
+COPY knex_migrations (id, name, batch, migration_time) FROM stdin;
+7	20140915173225_initial.js	1	2014-10-01 12:27:08.113-07
+\.
+
+
+--
+-- Name: knex_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: matthew
+--
+
+SELECT pg_catalog.setval('knex_migrations_id_seq', 7, true);
+
+
+--
+-- Data for Name: ledgers; Type: TABLE DATA; Schema: public; Owner: matthew
+--
+
+COPY ledgers (ledger_index, ledger_hash, parent_hash, total_coins, close_time, close_time_resolution, accounts_hash, transactions_hash) FROM stdin;
+\.
+
+
+--
+-- Data for Name: transactions; Type: TABLE DATA; Schema: public; Owner: matthew
+--
+
+COPY transactions (tx_id, tx_hash, ledger_index, tx_type, account, account_seq, tx_seq, tx_result, tx_raw, tx_meta, executed_time) FROM stdin;
+\.
+
+
+--
+-- Name: transactions_tx_id_seq; Type: SEQUENCE SET; Schema: public; Owner: matthew
+--
+
+SELECT pg_catalog.setval('transactions_tx_id_seq', 1, false);
+
+
+--
+-- Name: accounts_account_unique; Type: CONSTRAINT; Schema: public; Owner: matthew; Tablespace: 
+--
+
+ALTER TABLE ONLY accounts
+    ADD CONSTRAINT accounts_account_unique UNIQUE (account);
+
+
+--
+-- Name: accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: matthew; Tablespace: 
+--
+
+ALTER TABLE ONLY accounts
+    ADD CONSTRAINT accounts_pkey PRIMARY KEY (account_id);
+
+
+--
+-- Name: knex_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: matthew; Tablespace: 
+--
+
+ALTER TABLE ONLY knex_migrations
+    ADD CONSTRAINT knex_migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ledgers_ledger_hash_unique; Type: CONSTRAINT; Schema: public; Owner: matthew; Tablespace: 
+--
+
+ALTER TABLE ONLY ledgers
+    ADD CONSTRAINT ledgers_ledger_hash_unique UNIQUE (ledger_hash);
+
+
+--
+-- Name: ledgers_ledger_index_unique; Type: CONSTRAINT; Schema: public; Owner: matthew; Tablespace: 
+--
+
+ALTER TABLE ONLY ledgers
+    ADD CONSTRAINT ledgers_ledger_index_unique UNIQUE (ledger_index);
+
+
+--
+-- Name: ledgers_parent_hash_unique; Type: CONSTRAINT; Schema: public; Owner: matthew; Tablespace: 
+--
+
+ALTER TABLE ONLY ledgers
+    ADD CONSTRAINT ledgers_parent_hash_unique UNIQUE (parent_hash);
+
+
+--
+-- Name: ledgers_pkey; Type: CONSTRAINT; Schema: public; Owner: matthew; Tablespace: 
+--
+
+ALTER TABLE ONLY ledgers
+    ADD CONSTRAINT ledgers_pkey PRIMARY KEY (ledger_index);
+
+
+--
+-- Name: transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: matthew; Tablespace: 
+--
+
+ALTER TABLE ONLY transactions
+    ADD CONSTRAINT transactions_pkey PRIMARY KEY (tx_id);
+
+
+--
+-- Name: transactions_tx_hash_unique; Type: CONSTRAINT; Schema: public; Owner: matthew; Tablespace: 
+--
+
+ALTER TABLE ONLY transactions
+    ADD CONSTRAINT transactions_tx_hash_unique UNIQUE (tx_hash);
+
+
+--
+-- Name: account_transactions_account_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: matthew
+--
+
+ALTER TABLE ONLY account_transactions
+    ADD CONSTRAINT account_transactions_account_id_foreign FOREIGN KEY (account_id) REFERENCES accounts(account_id);
+
+
+--
+-- Name: account_transactions_tx_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: matthew
+--
+
+ALTER TABLE ONLY account_transactions
+    ADD CONSTRAINT account_transactions_tx_id_foreign FOREIGN KEY (tx_id) REFERENCES transactions(tx_id);
+
+
+--
+-- Name: transactions_ledger_index_foreign; Type: FK CONSTRAINT; Schema: public; Owner: matthew
+--
+
+ALTER TABLE ONLY transactions
+    ADD CONSTRAINT transactions_ledger_index_foreign FOREIGN KEY (ledger_index) REFERENCES ledgers(ledger_index);
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: matthew
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM matthew;
+GRANT ALL ON SCHEMA public TO matthew;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
