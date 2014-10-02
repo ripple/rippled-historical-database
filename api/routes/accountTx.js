@@ -28,7 +28,8 @@ var accountTx = function (req, res, next) {
       descending : req.query.descending === 'false' ? false : true,
       start      : req.query.start,
       end        : req.query.end,
-      type       : req.query.type
+      type       : req.query.type,
+      result     : req.query.result
     };
     
     if (isNaN(options.limit)) {
@@ -66,6 +67,7 @@ var accountTx = function (req, res, next) {
   function successResponse (transactions) {
     var result = {
       result       : 'success',
+      count        : transactions.length,
       transactions : transactions
     };
       
