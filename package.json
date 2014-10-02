@@ -4,7 +4,7 @@
   "description": "SQL database storing historical data from Rippled.",
   "scripts": {
     "test": "mocha -R spec test/**/",
-    "start": "node api/server.js"
+    "start": "nodemon api/server.js"
   },
   "author": "",
   "license": "ISC",
@@ -25,6 +25,7 @@
     "express": "^4.9.3",
     "body-parser": "^1.8.2",
     "request": "^2.39.0",
-    "response": "https://github.com/mikeal/response/archive/master.tar.gz"
+    "response": "https://github.com/mikeal/response/archive/master.tar.gz",
+    "nodemon": "^1.2.1"
   }
 }
