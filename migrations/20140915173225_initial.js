@@ -44,13 +44,13 @@ exports.up = function(knex, Promise) {
       table.binary('tx_hash');
       table.bigInteger('created_time');
     }),
-
-    knex.schema.createTable('account_transactions', function(table) {
+    
+  ]).then(function(){
+    return knex.schema.createTable('account_transactions', function(table) {
       table.bigInteger('account_id').references('account_id').inTable('accounts');
       table.bigInteger('tx_id').references('tx_id').inTable('transactions');
     })
-   
-  ]);
+  });
 };
 
 exports.down = function(knex, Promise) {
