@@ -1,6 +1,7 @@
 var Knex    = require('knex');
 var Promise = require('bluebird');
-var log     = require('./log')('postgres');
+var log     = require('../../lib/log')('postgres');
+var moment  = require('moment');
 
 var SerializedObject = require('ripple-lib').SerializedObject;
 var UInt160 = require('ripple-lib').UInt160;
@@ -277,14 +278,8 @@ var DB = function(config) {
     log.info("ACCOUNT TX:", options.address); 
     
     var descending = options.descending === false ? false : true;
-    var limit      = options.limit || 10;
-    
-    if (isNaN(limit)) {
-      limit = 10;
-      
-    } else if (limit > 1000) {
-      limit = 1000;  
-    }
+    var start;
+    var end;    
     
     var query = knex('accounts')
       .innerJoin('account_transactions', 'accounts.account_id', 'account_transactions.account_id')
@@ -295,41 +290,68 @@ var DB = function(config) {
       .select('transactions.ledger_index')
       .select('transactions.tx_seq')
       .select('transactions.executed_time')
-      .orderBy('transactions.account_seq', descending ? 'desc' : 'asc')
+      .orderBy('transactions.ledger_index', descending ? 'desc' : 'asc')
+      .orderBy('transactions.tx_seq', descending ? 'desc' : 'asc')
       .limit(options.limit || 10)
       .offset(options.offset || 0);   
+
+    if (options.start) {
+      start = moment.utc(options.start, moment.ISO_8601);
+
+      if (start.isValid()) {
+        query.where('transactions.executed_time', '>=', start.unix())        
+      } else {
+        return callback({error:'invalid start time, format must be ISO 8601', code:400});
+      }
+    }
+   
+    if (options.end) {   
+      end = moment.utc(options.end, moment.ISO_8601);
       
-      query.nodeify(function(err, rows) {
-        if (err) {
-          log.error(err);
-          return callback(err);
+      if (end.isValid()) {
+        query.where('transactions.executed_time', '<=', end.unix());
+      } else {
+        return callback({error:'invalid end time, format must be ISO 8601', code:400});
+      }
+    } 
+    
+    if (options.type) {
+      query.where('transactions.type', options.type);
+    }
+    
+    console.log(query.toSQL().sql);
+          
+    query.nodeify(function(err, rows) {
+      if (err) {
+        log.error(err);
+        return callback({error:err, code:500});
+      }
+      
+      prepareResponse(rows, callback);
+    }); 
+    
+    var prepareResponse = function (rows, callback) {
+      var transactions = [];
+      
+      rows.forEach(function(row) {
+        var data = { };
+        
+        try {
+          data.tx   = new SerializedObject(row.tx_raw).to_json();
+          data.meta = new SerializedObject(row.tx_meta).to_json();     
+        } catch (e) {
+          log.error(e);
+          return callback({error:e, code:500});
         }
         
-        prepareResponse(rows, callback);
-      }); 
+        data.tx.ledger_index  = parseInt(row.ledger_index, 10);
+        data.tx.executed_time = parseInt(row.executed_time, 10);  
+        transactions.push(data);
+      });
       
-      var prepareResponse = function (rows, callback) {
-        var transactions = [];
-        
-        rows.forEach(function(row) {
-          var data = { };
-          
-          try {
-            data.tx   = new SerializedObject(row.tx_raw).to_json();
-            data.meta = new SerializedObject(row.tx_meta).to_json();     
-          } catch (e) {
-            log.error(e);
-            return callback(e);
-          }
-          
-          data.tx.ledger_index  = parseInt(row.ledger_index, 10);
-          data.tx.executed_time = parseInt(row.executed_time, 10);  
-          transactions.push(data);
-        });
-        
-        log.info('Transactions Found:', transactions.length);
-        callback(null, transactions);
-      };
+      log.info('Transactions Found:', transactions.length);
+      callback(null, transactions);
+    };
   };
   
 	return this;
