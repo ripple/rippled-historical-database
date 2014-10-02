@@ -23,7 +23,6 @@ var DB = function(config) {
   * @param {Function} callback
   */  
   self.getAccountTransactions = function (options, callback) {
-    log.info("ACCOUNT TX:", options.account); 
     
     //prepare the sql query
     var query = prepareQuery ();
@@ -39,7 +38,6 @@ var DB = function(config) {
     }); 
     
    /**
-    *
     * prepareQuery
     * parse incoming options to create
     * the knex SQL query 
@@ -104,7 +102,6 @@ var DB = function(config) {
     }
     
    /**
-    * 
     * handleResponse 
     * @param {Object} rows
     * @param {Object} callback
@@ -115,12 +112,18 @@ var DB = function(config) {
       rows.forEach(function(row) {
         var data = { };
         
-        try {
-          data.tx   = new SerializedObject(row.tx_raw).to_json();
-          data.meta = new SerializedObject(row.tx_meta).to_json();     
-        } catch (e) {
-          log.error(e);
-          return callback({error:e, code:500});
+        if (options.binary) {
+          data.tx   = row.tx_raw;
+          data.meta = row.tx_meta;
+          
+        } else {
+          try {
+            data.tx   = new SerializedObject(row.tx_raw).to_json();
+            data.meta = new SerializedObject(row.tx_meta).to_json();     
+          } catch (e) {
+            log.error(e);
+            return callback({error:e, code:500});
+          }          
         }
         
         data.tx.ledger_index  = parseInt(row.ledger_index, 10);
@@ -128,7 +131,6 @@ var DB = function(config) {
         transactions.push(data);
       });
       
-      log.info('Transactions Found:', transactions.length);
       callback(null, transactions);
     };
   };

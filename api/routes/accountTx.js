@@ -6,7 +6,8 @@ var response = require('response');
 var accountTx = function (req, res, next) {
 
   var options = prepareOptions();
-
+  
+  log.info('ACCOUNT TX:', options.account); 
   postgres.getAccountTransactions(options, function(err, transactions) {
     if (err) {
       errorResponse(err);   
@@ -16,7 +17,6 @@ var accountTx = function (req, res, next) {
   });
   
  /**
-  * 
   * prepareOptions
   * parse request parameters to determine query options 
   */
@@ -29,7 +29,8 @@ var accountTx = function (req, res, next) {
       start      : req.query.start,
       end        : req.query.end,
       type       : req.query.type,
-      result     : req.query.result
+      result     : req.query.result,
+      binary     : !req.query.binary || req.query.binary === 'false' ? false : true 
     };
     
     if (isNaN(options.limit)) {
@@ -43,7 +44,6 @@ var accountTx = function (req, res, next) {
   };
   
  /**
-  * 
   * errorResponse 
   * return an error response
   * @param {Object} err
@@ -59,7 +59,6 @@ var accountTx = function (req, res, next) {
   };
   
  /**
-  * 
   * successResponse
   * return a successful response
   * @param {Object} transactions
@@ -70,7 +69,8 @@ var accountTx = function (req, res, next) {
       count        : transactions.length,
       transactions : transactions
     };
-      
+    
+    log.info('ACCOUNT TX: Transactions Found:', transactions.length);  
     response.json(result).pipe(res);      
   };
 }
