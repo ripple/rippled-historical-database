@@ -12,8 +12,4 @@ app.get('/v1/accounts/:address/transactions', routes.accountTx);
 
 //start the server
 app.listen(config.port);
-log.info('Ripple Data API running on port '+config.port);
-
-
-
-
+log.info('Ripple Data API running on port ' + config.port);
