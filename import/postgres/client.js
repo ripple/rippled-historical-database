@@ -9,11 +9,11 @@ var UInt160 = require('ripple-lib').UInt160;
 //Main
 var DB = function(config) {
 	var self = this;
-	var knex = Knex.initialize({
+	self.knex = Knex.initialize({
 		client     : config.dbtype,
 		connection : config.db
 	});
-	var bookshelf = require('bookshelf')(knex);
+	var bookshelf = require('bookshelf')(self.knex);
 	
 	//Define Bookshelf models
 	var Ledger = bookshelf.Model.extend({
@@ -36,6 +36,21 @@ var DB = function(config) {
 		idAttribute: null
 	});
 
+   /**
+    * migrate
+    * run latest db migrations
+    */
+    self.migrate = function () {
+      return self.knex.migrate.latest()
+      .spread(function(batchNo, list) {
+        if (list.length === 0) {
+          log.info('Migration: up to date');
+        } else {
+          log.info('Migration: batch ' + batchNo + ' run: ' + list.length + ' migrations \n' + list.join('\n'));
+        }
+      });
+    };
+  
 	//Parse ledger and add to database
 	self.saveLedger = function (ledger, callback) {
 		var ledger_info = [];
@@ -63,31 +78,26 @@ var DB = function(config) {
 				console.log("Starting new DB call...");
 				//Add ledger information
 				return ledger_info.save({},{method: 'insert', transacting: t})
-					.tap(function(l){
-						li = l.get('ledger_index');
-						//Go through transaction list
-						return Promise.map(tx_array, function(model){
-						  
-							//Add transaction to db
-							return model.tx.save({ledger_index: li},{method: 'insert', transacting: t})
-								//Get newly added tx_id
-								.then(function(tx){
-									tx_id = tx.get('tx_id');
-									console.log('New transaction:', tx_id);
+				.tap(function(l){
+				    li = l.get('ledger_index');
+				    //Go through transaction list
+				    return Promise.map(tx_array, function(model){ 
+				        //Add transaction to db
+						return model.tx.save({ledger_index: li},{method: 'insert', transacting: t})
+						    //Get newly added tx_id
+						.then(function(tx){
+						    tx_id = tx.get('tx_id');
+						    console.log('New transaction:', tx_id);
   									
-  									//Go through accounts associated with transaction
-  									return Promise.map(model.account, function(account){
-  										console.log('Checking relation of account:', account);
-  										//Add account and tx_id to account transaction table
-  										return add_acctx(account, tx_id, t);
-  									}).then(function(){
-  									 //console.log(tx_id);
-  									 //return knex.raw("update transactions set tx_raw = decode('"+tx.get('tx_raw')+"', 'hex') where tx_id = xxx")
-                     // .then(function(resp){console.log(resp)});
-  								});	 
-							 });
+  						    //Go through accounts associated with transaction
+  						    return Promise.map(model.account, function(account){
+  						        console.log('Checking relation of account:', account);
+  								//Add account and tx_id to account transaction table
+  								return add_acctx(account, tx_id, t);
+  						    }); 
 						});
-					});
+				    });
+		        });
 			})
 			//Print error or done
 			.nodeify(function(err, res){
@@ -118,14 +128,14 @@ var DB = function(config) {
 
 			//Create transaction bookshelf model
 			var tranaction_info = Transaction.forge({
-				tx_hash: knex.raw("decode('"+transaction.hash+"', 'hex')"),
+				tx_hash: self.knex.raw("decode('"+transaction.hash+"', 'hex')"),
 				tx_type: transaction.TransactionType,
 				account: transaction.Account,
 				account_seq: transaction.Sequence,
 				tx_seq: meta.TransactionIndex,
 				tx_result: meta.TransactionResult,
-				tx_raw: knex.raw("decode('"+hex_tx+"', 'hex')"),
-				tx_meta: knex.raw("decode('"+hex_meta+"', 'hex')"),
+				tx_raw: self.knex.raw("decode('"+hex_tx+"', 'hex')"),
+				tx_meta: self.knex.raw("decode('"+hex_meta+"', 'hex')"),
 				executed_time: ledger.close_time + 946684800
 			});
 			
@@ -163,13 +173,13 @@ var DB = function(config) {
 	function parse_ledger(ledger){
 		var ledger_info = Ledger.forge({
 			ledger_index: ledger.seqNum,
-			ledger_hash: knex.raw("decode('"+ledger.ledger_hash+"', 'hex')"),
-			parent_hash: knex.raw("decode('"+ledger.parent_hash+"', 'hex')"),
+			ledger_hash: self.knex.raw("decode('"+ledger.ledger_hash+"', 'hex')"),
+			parent_hash: self.knex.raw("decode('"+ledger.parent_hash+"', 'hex')"),
 			total_coins: ledger.total_coins,
 			close_time: ledger.close_time + 946684800,
 			close_time_resolution: ledger.close_time_resolution,
-			accounts_hash: knex.raw("decode('"+ledger.account_hash+"', 'hex')"),
-			transactions_hash: knex.raw("decode('"+ledger.transaction_hash+"', 'hex')"),
+			accounts_hash: self.knex.raw("decode('"+ledger.account_hash+"', 'hex')"),
+			transactions_hash: self.knex.raw("decode('"+ledger.transaction_hash+"', 'hex')"),
 		});
 		return ledger_info;
 	}
@@ -272,87 +282,6 @@ var DB = function(config) {
 				}
 			});
 	}
-
-
-  self.getAccountTransactions = function (options, callback) {
-    log.info("ACCOUNT TX:", options.address); 
-    
-    var descending = options.descending === false ? false : true;
-    var start;
-    var end;    
-    
-    var query = knex('accounts')
-      .innerJoin('account_transactions', 'accounts.account_id', 'account_transactions.account_id')
-      .innerJoin('transactions', 'account_transactions.tx_id', 'transactions.tx_id')
-      .where('accounts.account', options.account)
-      .select(knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-      .select(knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
-      .select('transactions.ledger_index')
-      .select('transactions.tx_seq')
-      .select('transactions.executed_time')
-      .orderBy('transactions.ledger_index', descending ? 'desc' : 'asc')
-      .orderBy('transactions.tx_seq', descending ? 'desc' : 'asc')
-      .limit(options.limit || 10)
-      .offset(options.offset || 0);   
-
-    if (options.start) {
-      start = moment.utc(options.start, moment.ISO_8601);
-
-      if (start.isValid()) {
-        query.where('transactions.executed_time', '>=', start.unix())        
-      } else {
-        return callback({error:'invalid start time, format must be ISO 8601', code:400});
-      }
-    }
-   
-    if (options.end) {   
-      end = moment.utc(options.end, moment.ISO_8601);
-      
-      if (end.isValid()) {
-        query.where('transactions.executed_time', '<=', end.unix());
-      } else {
-        return callback({error:'invalid end time, format must be ISO 8601', code:400});
-      }
-    } 
-    
-    if (options.type) {
-      query.where('transactions.type', options.type);
-    }
-    
-    console.log(query.toSQL().sql);
-          
-    query.nodeify(function(err, rows) {
-      if (err) {
-        log.error(err);
-        return callback({error:err, code:500});
-      }
-      
-      prepareResponse(rows, callback);
-    }); 
-    
-    var prepareResponse = function (rows, callback) {
-      var transactions = [];
-      
-      rows.forEach(function(row) {
-        var data = { };
-        
-        try {
-          data.tx   = new SerializedObject(row.tx_raw).to_json();
-          data.meta = new SerializedObject(row.tx_meta).to_json();     
-        } catch (e) {
-          log.error(e);
-          return callback({error:e, code:500});
-        }
-        
-        data.tx.ledger_index  = parseInt(row.ledger_index, 10);
-        data.tx.executed_time = parseInt(row.executed_time, 10);  
-        transactions.push(data);
-      });
-      
-      log.info('Transactions Found:', transactions.length);
-      callback(null, transactions);
-    };
-  };
   
 	return this;
 };

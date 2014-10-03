@@ -17,5 +17,5 @@ Promise.map(files, function(filename) {
   
 }).then(function(){
   console.log('Done.');
-  console.log('enter the db credentials then run \'node migrate\'');
+  console.log('enter the db credentials then run \'npm start\'');
 });

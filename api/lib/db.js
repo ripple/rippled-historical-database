@@ -10,11 +10,26 @@ var UInt160 = require('ripple-lib').UInt160;
 
 var DB = function(config) {
 	var self = this;
-	var knex = Knex.initialize({
+	self.knex = Knex.initialize({
 		client     : config.dbtype,
 		connection : config.db
 	});
 
+ /**
+  * migrate
+  * run latest db migrations
+  */
+  self.migrate = function () {
+    return self.knex.migrate.latest()
+    .spread(function(batchNo, list) {
+      if (list.length === 0) {
+        log.info('Migration: up to date');
+      } else {
+        log.info('Migration: batch ' + batchNo + ' run: ' + list.length + ' migrations \n' + list.join('\n'));
+      }
+    });
+  };
+  
  /**
   * 
   * getAccountTransactions
@@ -47,12 +62,12 @@ var DB = function(config) {
       var start;
       var end;    
       
-      var query = knex('accounts')
+      var query = self.knex('accounts')
         .innerJoin('account_transactions', 'accounts.account_id', 'account_transactions.account_id')
         .innerJoin('transactions', 'account_transactions.tx_id', 'transactions.tx_id')
         .where('accounts.account', options.account)
-        .select(knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-        .select(knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
+        .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
+        .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
         .select('transactions.ledger_index')
         .select('transactions.tx_seq')
         .select('transactions.executed_time')

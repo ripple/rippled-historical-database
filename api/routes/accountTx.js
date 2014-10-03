@@ -1,4 +1,4 @@
-var config   = require('../../config/import.config');
+var config   = require('../../config/api.config');
 var log      = require('../../lib/log')('api');
 var postgres = new require('../lib/db.js')(config.get('sql'));
 var response = require('response');
