@@ -1,4 +1,4 @@
-Ripple Historical Database
+Rippled Historical Database
 ==========================
 
 ![Travis Build Status](https://travis-ci.org/ripple/rippled-historical-database.svg?branch=develop)
@@ -14,7 +14,6 @@ SQL database as a canonical source of historical data in Ripple
 + `$ npm install`
 + create a new postgres database
 + set up config files in `/config`
-+ `$ node migrate`
 + to start the real time importing process: `$ node import/live`
 + to start the API server: `$ npm start` or `node api/server.js`
   +  `$ npm start` runs nodemon to restart the server whenever the source files change
