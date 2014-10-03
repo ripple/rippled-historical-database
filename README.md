@@ -5,9 +5,19 @@ Ripple Historical Database
 
 SQL database as a canonical source of historical data in Ripple
 
-#### Create the postgresql database schema found in `schema.sql`.
+##Setup Instructions
 
-    ./init_db.sh
++ install [postgres](http://www.postgresql.org/)
++ install [node.js](http://nodejs.org/) and [npm](https://www.npmjs.org/)
++ `$ git clone https://github.com/ripple/rippled-historical-database.git`
++ `$ cd rippled-historical-database`
++ `$ npm install`
++ create a new postgres database
++ set up config files in `/config`
++ `$ node migrate`
++ to start the real time importing process: `$ node import/live`
++ to start the API server: `$ npm start` or `node api/server.js`
+  +  `$ npm start` runs nodemon to restart the server whenever the source files change
+ 
 
 
-export DATABASE_URL=postgres://postgres:password@127.0.0.1:5432/test_db

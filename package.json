@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "SQL database storing historical data from Rippled.",
   "scripts": {
-    "test": "mocha -R spec test/**/",
+    "postinstall" : "node install.js",
+    "test": "mocha -R spec test/test.js",
     "start": "nodemon api/server.js"
   },
   "author": "",
@@ -26,6 +27,7 @@
     "body-parser": "^1.8.2",
     "request": "^2.39.0",
     "response": "https://github.com/mikeal/response/archive/master.tar.gz",
-    "nodemon": "^1.2.1"
+    "nodemon": "^1.2.1",
+    "mocha": "^1.21.4"
   }
 }
