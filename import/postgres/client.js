@@ -73,7 +73,12 @@ var DB = function(config) {
 			return add_acc(account);
 		})
 		//Atomically add ledger information, transactions, and account transactions
-		.then(function(){
+		.then(function(accounts){
+            var accountIDs = {};
+            accounts.forEach(function(account) {
+              accountIDs[account.get('account')] = account.get('account_id');
+            });
+          
 			bookshelf.transaction(function(t){
 				console.log("Starting new DB call...");
 				//Add ledger information
@@ -88,12 +93,20 @@ var DB = function(config) {
 						.then(function(tx){
 						    tx_id = tx.get('tx_id');
 						    console.log('New transaction:', tx_id);
-  									
+  		
   						    //Go through accounts associated with transaction
   						    return Promise.map(model.account, function(account){
   						        console.log('Checking relation of account:', account);
+                              
+                                var fields = {
+                                  account    : account,
+                                  account_id : accountIDs[account],
+                                  tx_hash    : tx.get('tx_hash'),
+                                  tx_id      : tx_id
+                                }
+                                
   								//Add account and tx_id to account transaction table
-  								return add_acctx(account, tx_id, t);
+  								return add_acctx(fields, t);
   						    }); 
 						});
 				    });
@@ -253,17 +266,11 @@ var DB = function(config) {
 	}
 
 	//Find account_id and add with tx_id to account_transactions table
-	function add_acctx(account, tx_id, t){
-		return new Account({account: account})
-			.fetch()
-			.then(function(model){
-				//Add account transaction
-				console.log('Account id:', model.get('account_id'), 'tx_id:', tx_id);
-				return Account_Transaction.forge({account_id: model.get('account_id'), tx_id: tx_id})
-					.save({},{method: 'insert', transacting: t}).then(function(result){
-						console.log('Added account transaction:', result.get('account_id'), result.get('tx_id'));
-					});
-			});
+	function add_acctx(fields, t){
+      return Account_Transaction.forge(fields)
+      .save({},{method: 'insert', transacting: t}).then(function(result){
+        console.log('Added account transaction:', result.get('account_id'), result.get('tx_id'));
+      });
 	}
 
 	function add_acc(account){
@@ -273,12 +280,14 @@ var DB = function(config) {
 				if (model === null){
 					console.log(account, 'does not exist.');
 					//Add
-					return Account.forge({account: account}).save().then(function(){
-						console.log('Added.');
+					return Account.forge({account: account}).save().then(function(model){
+						console.log(account, 'Added.');
+                        return model;
 					});
 				}
 				else{
 					console.log(account, "exists.");
+                    return model;
 				}
 			});
 	}
