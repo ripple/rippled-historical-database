@@ -8,7 +8,7 @@ var winston = require('winston');
 var hashErrorLog = new (require('winston').Logger)({
   transports: [
     new (winston.transports.Console)(),
-    new (winston.transports.File)({ filename: './log/hashErrors.log' })
+    new (winston.transports.File)({ filename: './hashErrors.log' })
   ]   
 });
 

@@ -6,6 +6,14 @@ var moment  = require('moment');
 var SerializedObject = require('ripple-lib').SerializedObject;
 var UInt160 = require('ripple-lib').UInt160;
 
+var winston = require('winston');
+var hashErrorLog = new (require('winston').Logger)({
+  transports: [
+    new (winston.transports.Console)(),
+    new (winston.transports.File)({ filename: './hashErrors.log' })
+  ]   
+});
+
 //Main
 var DB = function(config) {
 	var self = this;
@@ -58,14 +66,21 @@ var DB = function(config) {
 		var tx_array = [];
 		var acc_array = [];
 
-		//Preprocess ledger information
-		ledger_info = parse_ledger(ledger);
-		//Parse transactions
-		parsed_transactions = parse_transactions(ledger);
-		//Transactions in the format of {transactions, associated accounts}
-		tx_array = parsed_transactions.tx;
-		//List of all accounts
-		acc_array = parsed_transactions.acc;
+        try {
+          //Preprocess ledger information
+          ledger_info = parse_ledger(ledger);
+          //Parse transactions
+          parsed_transactions = parse_transactions(ledger);
+          //Transactions in the format of {transactions, associated accounts}
+          tx_array = parsed_transactions.tx;
+          //List of all accounts
+          acc_array = parsed_transactions.acc;
+          
+        } catch (e) {
+          hashErrorLog.error(ledger.ledger_index, e.toString());
+          log.info("Unable to save ledger:", ledger.ledger_index);
+          return;
+        }
 
 		//Add all accounts encountered in ledger to database
 		Promise.map(acc_array, function(account){
@@ -136,8 +151,15 @@ var DB = function(config) {
 			var affected_nodes = meta.AffectedNodes;
 
 			//Convert meta and tx (transaction minus meta) to hex
-			var hex_tx = to_hex(transaction);
-			var hex_meta = to_hex(meta);
+            try {
+			 var hex_tx = to_hex(transaction);
+			 var hex_meta = to_hex(meta);
+              
+            } catch (e) {
+              console.log(e);
+              throw new Error ({error:e, tx_hash: transaction.hash});
+              return null;
+            }
 
 			//Create transaction bookshelf model
 			var tranaction_info = Transaction.forge({
