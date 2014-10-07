@@ -66,21 +66,21 @@ var DB = function(config) {
 		var tx_array = [];
 		var acc_array = [];
 
-        try {
-          //Preprocess ledger information
-          ledger_info = parse_ledger(ledger);
-          //Parse transactions
-          parsed_transactions = parse_transactions(ledger);
-          //Transactions in the format of {transactions, associated accounts}
-          tx_array = parsed_transactions.tx;
-          //List of all accounts
-          acc_array = parsed_transactions.acc;
-          
-        } catch (e) {
-          hashErrorLog.error(ledger.ledger_index, e.toString());
-          log.info("Unable to save ledger:", ledger.ledger_index);
-          return;
-        }
+    try {
+      //Preprocess ledger information
+      ledger_info = parse_ledger(ledger);
+      //Parse transactions
+      parsed_transactions = parse_transactions(ledger);
+      //Transactions in the format of {transactions, associated accounts}
+      tx_array = parsed_transactions.tx;
+      //List of all accounts
+      acc_array = parsed_transactions.acc;
+      
+    } catch (e) {
+      hashErrorLog.error(ledger.ledger_index, e.toString());
+      log.info("Unable to save ledger:", ledger.ledger_index);
+      return;
+    }
 
 		//Add all accounts encountered in ledger to database
 		Promise.map(acc_array, function(account){
@@ -88,45 +88,50 @@ var DB = function(config) {
 			return add_acc(account);
 		})
 		//Atomically add ledger information, transactions, and account transactions
-		.then(function(accounts){
-            var accountIDs = {};
-            accounts.forEach(function(account) {
-              accountIDs[account.get('account')] = account.get('account_id');
-            });
+		.then(function(accounts) {
+      var accountIDs = {};
+      accounts.forEach(function(account) {
+        accountIDs[account.get('account')] = account.get('account_id');
+      });
           
 			bookshelf.transaction(function(t){
-				console.log("Starting new DB call...");
+        console.log("Starting new DB call...");
+				
 				//Add ledger information
 				return ledger_info.save({},{method: 'insert', transacting: t})
 				.tap(function(l){
-				    li = l.get('ledger_index');
-				    //Go through transaction list
-				    return Promise.map(tx_array, function(model){ 
-				        //Add transaction to db
-						return model.tx.save({ledger_index: li},{method: 'insert', transacting: t})
-						    //Get newly added tx_id
-						.then(function(tx){
-						    tx_id = tx.get('tx_id');
-						    console.log('New transaction:', tx_id);
+				
+          var li = l.get('ledger_index');
+				  var ledger_id = l.get('ledger_id');
+				    
+				  //Go through transaction list
+			    return Promise.map(tx_array, function(model){ 
+				    
+          //Add transaction to db
+					return model.tx.save({ledger_index: li, ledger_id:ledger_id},{method: 'insert', transacting: t})
+          .then(function(tx){
+            var tx_id = tx.get('tx_id');
+            console.log('New transaction:', tx_id);
   		
-  						    //Go through accounts associated with transaction
-  						    return Promise.map(model.account, function(account){
-  						        console.log('Checking relation of account:', account);
+            //Go through accounts associated with transaction
+  				  return Promise.map(model.account, function(account){
+              console.log('Checking relation of account:', account);
                               
-                                var fields = {
-                                  account    : account,
-                                  account_id : accountIDs[account],
-                                  tx_hash    : tx.get('tx_hash'),
-                                  tx_id      : tx_id
-                                }
+              var fields = {
+                account    : account,
+                account_id : accountIDs[account],
+                tx_hash    : tx.get('tx_hash'),
+                tx_id      : tx_id
+              };
                                 
-  								//Add account and tx_id to account transaction table
-  								return add_acctx(fields, t);
-  						    }); 
+							//Add account and tx_id to account transaction table
+							return add_acctx(fields, t);
+					    }); 
 						});
-				    });
-		        });
+				  });
+		    });
 			})
+			
 			//Print error or done
 			.nodeify(function(err, res){
 				if (err){
@@ -190,6 +195,7 @@ var DB = function(config) {
 					addresses = check_fields(nf, addresses);
 				}
 			});
+			
 			//Check if account already in all_addresses list
 			for (var j = 0; j<addresses.length; j++){
 				address = addresses[j];

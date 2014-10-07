@@ -4,7 +4,8 @@ exports.up = function(knex, Promise) {
   return Promise.all([
 
     knex.schema.createTable('ledgers',function(table) {
-      table.integer('ledger_index').primary().unique();
+      table.bigIncrements('ledger_id').primary().unsigned();
+      table.integer('ledger_index');
       table.binary('ledger_hash').unique();
       table.binary('parent_hash').unique();
       table.bigInteger('total_coins');
@@ -17,7 +18,8 @@ exports.up = function(knex, Promise) {
     knex.schema.createTable('transactions', function(table) {
       table.bigIncrements('tx_id').primary().unsigned();
       table.binary('tx_hash').unique();
-      table.bigInteger('ledger_index').references('ledger_index').inTable('ledgers');
+      table.bigInteger('ledger_id').references('ledger_id').inTable('ledgers');
+      table.bigInteger('ledger_index');
       table.enu('tx_type', [
         'Payment',
         'OfferCreate',
