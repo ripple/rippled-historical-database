@@ -26,7 +26,7 @@ var DB = function(config) {
 	//Define Bookshelf models
 	var Ledger = bookshelf.Model.extend({
 		tableName: 'ledgers',
-		idAttribute: 'ledger_index'
+		idAttribute: 'ledger_id'
 	});
 
 	var Transaction = bookshelf.Model.extend({
@@ -95,7 +95,7 @@ var DB = function(config) {
       });
           
 			bookshelf.transaction(function(t){
-        console.log("Starting new DB call...");
+        log.info("Saving ledger:", ledger_info.get('ledger_index'));
 				
 				//Add ledger information
 				return ledger_info.save({},{method: 'insert', transacting: t})
@@ -103,19 +103,18 @@ var DB = function(config) {
 				
           var li = l.get('ledger_index');
 				  var ledger_id = l.get('ledger_id');
-				    
+
 				  //Go through transaction list
 			    return Promise.map(tx_array, function(model){ 
-				    
+				   
           //Add transaction to db
 					return model.tx.save({ledger_index: li, ledger_id:ledger_id},{method: 'insert', transacting: t})
           .then(function(tx){
             var tx_id = tx.get('tx_id');
-            console.log('New transaction:', tx_id);
+            log.info('New transaction:', tx_id);
   		
             //Go through accounts associated with transaction
   				  return Promise.map(model.account, function(account){
-              console.log('Checking relation of account:', account);
                               
               var fields = {
                 account    : account,
@@ -127,6 +126,8 @@ var DB = function(config) {
 							//Add account and tx_id to account transaction table
 							return add_acctx(fields, t);
 					    }); 
+						}).then(function(){
+						  log.info("account transactions saved:", model.account.length);
 						});
 				  });
 		    });
@@ -135,10 +136,9 @@ var DB = function(config) {
 			//Print error or done
 			.nodeify(function(err, res){
 				if (err){
-					console.log(err);
-				}
-				else {
-					console.log('Done with ledger.');
+					log.error(err);
+				} else {
+					log.info('Done with ledger:', res.get('ledger_index'));
 				}
 			});
 		});
@@ -161,7 +161,7 @@ var DB = function(config) {
 			 var hex_meta = to_hex(meta);
               
             } catch (e) {
-              console.log(e);
+              log.error(e);
               throw new Error ({error:e, tx_hash: transaction.hash});
               return null;
             }
@@ -297,7 +297,7 @@ var DB = function(config) {
 	function add_acctx(fields, t){
       return Account_Transaction.forge(fields)
       .save({},{method: 'insert', transacting: t}).then(function(result){
-        console.log('Added account transaction:', result.get('account_id'), result.get('tx_id'));
+        log.debug('Added account transaction:', result.get('account_id'), result.get('tx_id'));
       });
 	}
 
@@ -306,16 +306,16 @@ var DB = function(config) {
 			.fetch()
 			.then(function(model){
 				if (model === null){
-					console.log(account, 'does not exist.');
+
 					//Add
 					return Account.forge({account: account}).save().then(function(model){
-						console.log(account, 'Added.');
-                        return model;
+						log.info(account, 'Added.');
+            return model;
 					});
 				}
 				else{
-					console.log(account, "exists.");
-                    return model;
+					log.info(account, "exists.");
+          return model;
 				}
 			});
 	}
