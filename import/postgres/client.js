@@ -14,6 +14,8 @@ var hashErrorLog = new (require('winston').Logger)({
   ]   
 });
 
+log.level(2);
+
 //Main
 var DB = function(config) {
 	var self = this;
@@ -66,27 +68,32 @@ var DB = function(config) {
 		var tx_array = [];
 		var acc_array = [];
 
-    try {
-      //Preprocess ledger information
-      ledger_info = parse_ledger(ledger);
-      //Parse transactions
-      parsed_transactions = parse_transactions(ledger);
-      //Transactions in the format of {transactions, associated accounts}
-      tx_array = parsed_transactions.tx;
-      //List of all accounts
-      acc_array = parsed_transactions.acc;
+        if (!callback) callback = function(){};
       
-    } catch (e) {
-      hashErrorLog.error(ledger.ledger_index, e.toString());
-      log.info("Unable to save ledger:", ledger.ledger_index);
-      return;
-    }
+        try {
+          //Preprocess ledger information
+          ledger_info = parse_ledger(ledger);
+          //Parse transactions
+          parsed_transactions = parse_transactions(ledger);
+          //Transactions in the format of {transactions, associated accounts}
+          tx_array = parsed_transactions.tx;
+          //List of all accounts
+          acc_array = parsed_transactions.acc;
+
+        } catch (e) {
+          hashErrorLog.error(ledger.ledger_index, e.toString());
+          log.info("Unable to save ledger:", ledger.ledger_index);
+          return;
+        }
 
 		//Add all accounts encountered in ledger to database
 		Promise.map(acc_array, function(account){
 			//Check if account entry already exists
 			return add_acc(account);
-		})
+		}).catch(function(e){
+          log.error(e);
+        })
+        
 		//Atomically add ledger information, transactions, and account transactions
 		.then(function(accounts) {
       var accountIDs = {};
@@ -135,11 +142,13 @@ var DB = function(config) {
 			
 			//Print error or done
 			.nodeify(function(err, res){
-				if (err){
-					log.error(err);
-				} else {
-					log.info('Done with ledger:', res.get('ledger_index'));
-				}
+              if (err){
+                log.info('Error saving ledger:', err, ledger.ledger_index);	
+                callback(err);
+              } else {
+                log.info('Done with ledger:', res.get('ledger_index'));
+                callback(null, ledger);
+              }
 			});
 		});
 	};
@@ -302,25 +311,67 @@ var DB = function(config) {
 	}
 
 	function add_acc(account){
-		return new Account({account: account})
-			.fetch()
-			.then(function(model){
-				if (model === null){
+      return new Account({account: account})
+      .fetch()
+      .then(function(model) {
+        if (model === null) {
 
-					//Add
-					return Account.forge({account: account}).save().then(function(model){
-						log.info(account, 'Added.');
+          //Add
+		  return Account.forge({account: account}).save().then(function(model){
+		    log.info(account, 'Added.');
             return model;
-					});
-				}
-				else{
-					log.info(account, "exists.");
+		  }).catch(function(e){
+
+            if (e.code !== '23505') {
+              log.error("unable to save account:", e);
+              return null;
+            }
+            
+            //account was concurrently added
+            log.info(account, "exists.");
+            return new Account({account: account})
+		    .fetch()
+            .then(function(model){
+              return model;
+            });
+          });
+        
+        } else {
+          log.info(account, "exists.");
           return model;
-				}
-			});
+		}
+      });
 	}
   
-	return this;
+    
+    /**
+    * getLedgers
+    * get a specific group of ledgers from the db
+    */
+  
+    self.getLedgers = function (options, callback) {
+
+      var query = self.knex('ledgers')
+        .where('ledger_index', '>=', options.startIndex)
+        .where('ledger_index', '<=', options.stopIndex)
+        .select('ledger_index')
+        .select(self.knex.raw("encode(ledger_hash, 'hex') as ledger_hash"))
+        .select(self.knex.raw("encode(parent_hash, 'hex') as parent_hash"))
+        .orderBy('ledger_index', 'desc');
+      
+      //execute the query      
+      query.nodeify(function(err, ledgers) {
+        if (err) {
+          log.error(err);
+          return callback(err);
+        }
+      
+        callback(null, ledgers);
+      }); 
+      
+    }
+    
+    return this;
 };
 
 

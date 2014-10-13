@@ -126,19 +126,19 @@ var Importer = function () {
       //add it to the queue    
       } else {
         queue[current] = ledger;
-      }
+      
+        //move the que forward if possible
+        advanceQueue(); 
 
-      //move the que forward if possible
-      advanceQueue(); 
+        if (earliest === stopIndex) {
+          log.info('backfill complete:', stopIndex, '-', startIndex);
+          if (typeof callback === 'function') callback(); 
+        }
+      }
       
       //get more ledgers if there is room 
       //if the queue has available space
-      updateQueue();  
-      
-      if (earliest === stopIndex) {
-        log.info('backfill complete:', stopIndex, '-', startIndex);
-        if (typeof callback === 'function') callback(); 
-      }
+      updateQueue();     
     }
     
    /**

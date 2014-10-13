@@ -62,10 +62,9 @@ var DB = function(config) {
       var start;
       var end;    
       
-      var query = self.knex('accounts')
-        .innerJoin('account_transactions', 'accounts.account_id', 'account_transactions.account_id')
+      var query = self.knex('account_transactions')
         .innerJoin('transactions', 'account_transactions.tx_id', 'transactions.tx_id')
-        .where('accounts.account', options.account)
+        .where('account_transactions.account', options.account)
         .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
         .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
         .select('transactions.ledger_index')
