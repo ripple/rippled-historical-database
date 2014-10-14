@@ -107,7 +107,15 @@ var HistoricalImport = function () {
     var self = this;
     
     this._findGap(start, parentHash, null, function(err, resp) {
-      if (resp) {
+      if (resp) {  
+        if (resp.startIndex < GENESIS_LEDGER) {
+          log.info("Genesis ledger reached:", GENESIS_LEDGER);  
+          return;
+        } else if (resp.stopIndex < GENESIS_LEDGER) {
+          log.info("setting stop index to genesis ledger");
+          resp.stopIndex = GENESIS_LEDGER;
+        }
+        
         self.importer.backFill(resp.stopIndex, resp.startIndex);
         self.count   = 0;
         self.total   = resp.startIndex - resp.stopIndex + 1;

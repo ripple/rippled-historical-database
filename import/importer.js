@@ -5,6 +5,7 @@ var log     = require('../lib/log')('import');
 var events  = require('events');
 var emitter = new events.EventEmitter();
 var winston = require('winston');
+var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
 var hashErrorLog = new (require('winston').Logger)({
   transports: [
     new (winston.transports.Console)(),
@@ -63,12 +64,22 @@ var Importer = function () {
     //set the start and stop index depending
     //on what was specified
     if (!stopIndex) {
-      stopIndex  = config.get('startIndex') || 32570;  
+      stopIndex  = config.get('startIndex') || GENESIS_LEDGER;  
     } else if (!startIndex) {
       startIndex = stopIndex;
-      stopIndex  = config.get('startIndex') || 32570; 
+      stopIndex  = config.get('startIndex') || GENESIS_LEDGER; 
     } else {
       startIndex++;
+    }
+    
+    if (stopIndex < GENESIS_LEDGER) {
+      stopIndex = GENESIS_LEDGER;
+    }
+    
+    if (startIndex < GENESIS_LEDGER) {
+      log.info('start index precedes genesis ledger (' + GENESIS_LEDGER + ')');
+      if (typeof callback === 'function') callback();  
+      return;
     }
     
     if (remote.isConnected()) {
