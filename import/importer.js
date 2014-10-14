@@ -326,7 +326,7 @@ var Importer = function () {
       var index = options.validated ? 'validated' : options.ledger_index;
       
       try {
-        var request = remote.request_ledger(index, options, handleResponse).timeout(15000, function(){
+        var request = remote.request_ledger(options, handleResponse).timeout(15000, function(){
           log.warn("ledger request timed out after 15 seconds:", index);
           retry(index, attempts, callback); 
         });

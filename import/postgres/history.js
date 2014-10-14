@@ -209,5 +209,7 @@ var HistoricalImport = function () {
   };
 }
 
-h = new HistoricalImport();
-h.start();
+db.migrate().then(function() {
+  h = new HistoricalImport();
+  h.start();
+});
