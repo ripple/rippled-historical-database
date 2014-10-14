@@ -81,8 +81,9 @@ var DB = function(config) {
           acc_array = parsed_transactions.acc;
 
         } catch (e) {
-          hashErrorLog.error(ledger.ledger_index, e.toString());
+          hashErrorLog.error(ledger.ledger_index, e.message);
           log.info("Unable to save ledger:", ledger.ledger_index);
+          callback(null, ledger);
           return;
         }
 
@@ -170,8 +171,7 @@ var DB = function(config) {
 			 var hex_meta = to_hex(meta);
               
             } catch (e) {
-              log.error(e);
-              throw new Error ({error:e, tx_hash: transaction.hash});
+              throw new Error (e + " " + transaction.hash);
               return null;
             }
 

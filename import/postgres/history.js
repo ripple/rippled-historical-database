@@ -25,26 +25,27 @@ var HistoricalImport = function () {
       if (err) {
         self.section.error = true;
         
-     } else if (resp) {  
+      } else if (resp) {  
         if (resp.ledger_index === self.section.stopIndex) {
           self.section.stopHash = resp.ledger_hash;
         }
-        
-        if (self.count === self.total) {
-          self._findGaps(self.section.stopIndex, self.section.stopHash);
-          /*
-          if (self.section.error) {
-            log.info("Error in section - retrying:", self.section.stopIndex, '-', self.section.startIndex);  
-            self._findGaps(self.section.startIndex, null);
-            
-          } else {
-            store.setItem('earliestValidated', {index:self.section.stopIndex, hash:self.section.stopHash});
-            log.info("gap filled:", self.section.stopIndex, '-', self.section.startIndex);
-            self._findGaps(self.section.stopIndex, self.section.stopHash);
-          }
-          */
-        }      
       }
+        
+      if (self.count === self.total) {
+        self._findGaps(self.section.stopIndex, self.section.stopHash);
+      /*
+      if (self.section.error) {
+        log.info("Error in section - retrying:", self.section.stopIndex, '-', self.section.startIndex);  
+        self._findGaps(self.section.startIndex, null);
+
+      } else {
+        store.setItem('earliestValidated', {index:self.section.stopIndex, hash:self.section.stopHash});
+        log.info("gap filled:", self.section.stopIndex, '-', self.section.startIndex);
+        self._findGaps(self.section.stopIndex, self.section.stopHash);
+      }
+      */
+      }      
+      
     });
   });
   
