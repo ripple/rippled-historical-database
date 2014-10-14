@@ -3,7 +3,7 @@ var Promise = require('bluebird');
 var log     = require('../../lib/log')('postgres');
 var moment  = require('moment');
 
-log.level(3);
+log.level(4);
 
 var SerializedObject = require('ripple-lib').SerializedObject;
 var UInt160 = require('ripple-lib').UInt160;
@@ -71,9 +71,11 @@ var DB = function(config) {
         .select('transactions.tx_seq')
         .select('transactions.executed_time')
         .orderBy('transactions.ledger_index', descending ? 'desc' : 'asc')
-        .orderBy('transactions.tx_seq', descending ? 'desc' : 'asc')
         .limit(options.limit || 10)
-        .offset(options.offset || 0);   
+      
+      if (options.offset) {
+        query.offset(options.offset || 0); 
+      }
   
       //handle start date/time - optional
       if (options.start) {
