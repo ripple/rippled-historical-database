@@ -13,7 +13,7 @@ var hashErrorLog = new (require('winston').Logger)({
   ]   
 });
 
-log.level(3);
+log.level(4);
 
 var Importer = function () {
   var self   = this;
@@ -61,17 +61,6 @@ var Importer = function () {
     var earliest;
     var earliestParentHash;
     
-    //set the start and stop index depending
-    //on what was specified
-    if (!stopIndex) {
-      stopIndex  = config.get('startIndex') || GENESIS_LEDGER;  
-    } else if (!startIndex) {
-      startIndex = stopIndex;
-      stopIndex  = config.get('startIndex') || GENESIS_LEDGER; 
-    } else {
-      startIndex++;
-    }
-    
     if (stopIndex < GENESIS_LEDGER) {
       stopIndex = GENESIS_LEDGER;
     }
@@ -83,12 +72,12 @@ var Importer = function () {
     }
     
     if (remote.isConnected()) {
-      getLedger(startIndex);
+      getLedger(startIndex + 1);
             
     } else {
       remote.connect();
       remote.once('connected', function(){
-        getLedger(startIndex); 
+        getLedger(startIndex + 1); 
       });
     }
     
@@ -126,18 +115,13 @@ var Importer = function () {
       //we will not add it to the queue
       if (!earliest) {
         
-        //make sure we have the start index
-        if (!startIndex) {
-          startIndex = current; 
-        } 
-        
         earliest           = current;
         earliestParentHash = ledger.parent_hash;
         
       //add it to the queue    
       } else {
         queue[current] = ledger;
-      
+        
         //move the que forward if possible
         advanceQueue(); 
 
@@ -145,11 +129,11 @@ var Importer = function () {
           log.info('backfill complete:', stopIndex, '-', startIndex);
           if (typeof callback === 'function') callback(); 
         }
-      }
+      } 
       
       //get more ledgers if there is room 
       //if the queue has available space
-      updateQueue();     
+      updateQueue();  
     }
     
    /**
