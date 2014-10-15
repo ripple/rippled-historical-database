@@ -41,9 +41,12 @@ var DB = function(config) {
     
     //prepare the sql query
     var query = prepareQuery ();
-      
+    log.debug(new Date().toISOString(), 'getting transactions:', options.account); 
+    
     //execute the query      
     query.nodeify(function(err, rows) {
+      log.debug(new Date().toISOString(), (rows ? rows.length : 0) + ' transactions found'); 
+      
       if (err) {
         log.error(err);
         return callback({error:err, code:500});
