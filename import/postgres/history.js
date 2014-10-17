@@ -2,7 +2,6 @@ var config   = require('../../config/import.config');
 var log      = require('../../lib/log')('postgres_history');
 var moment   = require('moment');
 var diff     = require('deep-diff');
-var ripple   = require('ripple-lib');
 var Importer = require('../importer');
 var db       = require('./client')(config.get('sql'));
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
