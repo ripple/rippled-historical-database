@@ -63,7 +63,8 @@ var DB = function(config) {
     function prepareQuery () {
       var descending = options.descending === false ? false : true;
       var start;
-      var end;    
+      var end;
+      var limit = options.limit < 5 ? 5 : options.limit || 10;
       
       var query = self.knex('account_transactions')
         .innerJoin('transactions', 'account_transactions.tx_id', 'transactions.tx_id')
@@ -74,7 +75,8 @@ var DB = function(config) {
         .select('transactions.tx_seq')
         .select('transactions.executed_time')
         .orderBy('transactions.ledger_index', descending ? 'desc' : 'asc')
-        .limit(options.limit || 10)
+        .orderBy('transactions.tx_seq', descending ? 'desc' : 'asc')
+        .limit(limit)
       
       if (options.offset) {
         query.offset(options.offset || 0); 
@@ -128,6 +130,10 @@ var DB = function(config) {
     function handleResponse (rows) {
       var transactions = [];
       
+      if (options.limit && options.limit < rows.length) {
+        rows = rows.slice(0, options.length);
+      }
+
       rows.forEach(function(row) {
         var data = { };
         
