@@ -12,10 +12,8 @@ app.use(bodyParser.json());
 app.get('/v1/accounts/:address/transactions', routes.accountTx);
 
 
-// Run database migrations
-db.migrate().then(function() {
-  
-  //start the server
-  app.listen(config.get('port'));
-  log.info('Ripple Data API running on port ' + config.get('port'));
-}).done();
+
+//start the server
+app.listen(config.get('port'));
+log.info('Ripple Data API running on port ' + config.get('port'));
+
