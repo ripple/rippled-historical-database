@@ -64,19 +64,20 @@ var DB = function(config) {
       var descending = options.descending === false ? false : true;
       var start;
       var end;
-      var limit = options.limit < 5 ? 5 : options.limit || 10;
+      //var limit = options.limit < 5 ? 5 : options.limit || 10;
+      console.log(options);
       
       var query = self.knex('account_transactions')
         .innerJoin('transactions', 'account_transactions.tx_id', 'transactions.tx_id')
         .where('account_transactions.account', options.account)
         .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
         .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
-        .select('transactions.ledger_index')
-        .select('transactions.tx_seq')
+        .select('account_transactions.ledger_index')
+        .select('account_transactions.tx_seq')
         .select('transactions.executed_time')
-        .orderBy('transactions.ledger_index', descending ? 'desc' : 'asc')
-        .orderBy('transactions.tx_seq', descending ? 'desc' : 'asc')
-        .limit(limit)
+        .orderBy('account_transactions.ledger_index', descending ? 'desc' : 'asc')
+        .orderBy('account_transactions.tx_seq', descending ? 'desc' : 'asc')
+        .limit(options.limit || 10)
       
       if (options.offset) {
         query.offset(options.offset || 0); 
@@ -104,6 +105,16 @@ var DB = function(config) {
         }
       } 
       
+      //handle minLedger - optional
+      if (options.minLedger) {
+        query.where('account_transactions.ledger_index', '>=', options.minLedger);        
+      }
+     
+       //handle maxLedger - optional
+      if (options.maxLedger) {
+        query.where('account_transactions.ledger_index', '<=', options.maxLedger);        
+      }            
+      
       //specify a result - default to tesSUCCESS,
       //exclude the where if 'all' is specified
       if (options.result && options.result !== 'all') {
@@ -130,9 +141,9 @@ var DB = function(config) {
     function handleResponse (rows) {
       var transactions = [];
       
-      if (options.limit && options.limit < rows.length) {
-        rows = rows.slice(0, options.length);
-      }
+      //if (options.limit && parseInt(options.limit, 10) < rows.length) {
+      //  rows = rows.slice(0, options.length);
+      //}
 
       rows.forEach(function(row) {
         var data = { };

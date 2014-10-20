@@ -28,6 +28,8 @@ var accountTx = function (req, res, next) {
       descending : req.query.descending === 'false' ? false : true,
       start      : req.query.start,
       end        : req.query.end,
+      minLedger  : req.query.ledger_min,
+      maxLedger  : req.query.ledger_max,
       type       : req.query.type,
       result     : req.query.result,
       binary     : !req.query.binary || req.query.binary === 'false' ? false : true 
