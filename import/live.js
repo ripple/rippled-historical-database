@@ -7,9 +7,12 @@ var config  = require('../config/import.config');
 var postgres = new require('./postgres/client.js')(config.get('sql'));
 var hbase    = new require('./hbase/client');
 
-/*
+
 //start import stream
 live.liveStream();
+
+/*
+//hbase importer
 live.on('ledger', function(ledger) {
   hbase.saveLedger(ledger);
 });

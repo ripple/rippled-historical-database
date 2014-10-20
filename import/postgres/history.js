@@ -216,7 +216,6 @@ var HistoricalImport = function () {
   };
 }
 
-db.migrate().then(function() {
-  h = new HistoricalImport();
-  h.start();
-});
+
+h = new HistoricalImport();
+h.start();

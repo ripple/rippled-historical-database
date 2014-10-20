@@ -20,7 +20,7 @@ exports.up = function(knex, Promise) {
     
     knex.raw('CREATE INDEX tx_ledger_index_seq_idx ON transactions (ledger_index DESC, tx_seq DESC)'),
     knex.raw('CREATE INDEX tx_time_seq_idx ON transactions (executed_time DESC, tx_seq DESC)'),
-    knex.raw('CREATE INDEX account_transactions_account_ledger_index_tx_seq_tx_hash_idx ON transactions (account, ledger_index DESC, tx_seq DESC, tx_hash DESC)'),
+    knex.raw('CREATE INDEX account_transactions_account_ledger_index_tx_seq_tx_hash_idx ON account_transactions (account, ledger_index DESC, tx_seq DESC, tx_hash DESC)'),
   ]);
 };
 

@@ -14,7 +14,7 @@ var hashErrorLog = new (require('winston').Logger)({
   ]   
 });
 
-log.level(2);
+log.level(3);
 
 //Main
 var DB = function(config) {
@@ -63,95 +63,98 @@ var DB = function(config) {
   
 	//Parse ledger and add to database
 	self.saveLedger = function (ledger, callback) {
-		var ledger_info = [];
-		var parsed_transactions = [];
-		var tx_array = [];
-		var acc_array = [];
+      var ledger_info = [];
+      var parsed_transactions = [];
+      var tx_array = [];
+      var acc_array = [];
 
-        if (!callback) callback = function(){};
-      
-        try {
-          //Preprocess ledger information
-          ledger_info = parse_ledger(ledger);
-          //Parse transactions
-          parsed_transactions = parse_transactions(ledger);
-          //Transactions in the format of {transactions, associated accounts}
-          tx_array = parsed_transactions.tx;
-          //List of all accounts
-          acc_array = parsed_transactions.acc;
+      if (!callback) callback = function(){};
 
-        } catch (e) {
-          hashErrorLog.error(ledger.ledger_index, e.message);
-          log.info("Unable to save ledger:", ledger.ledger_index);
-          callback(null, ledger);
-          return;
-        }
+      try {
+        //Preprocess ledger information
+        ledger_info = parse_ledger(ledger);
+        //Parse transactions
+        parsed_transactions = parse_transactions(ledger);
+        //Transactions in the format of {transactions, associated accounts}
+        tx_array = parsed_transactions.tx;
+        //List of all accounts
+        acc_array = parsed_transactions.acc;
 
-		//Add all accounts encountered in ledger to database
-		Promise.map(acc_array, function(account){
-			//Check if account entry already exists
-			return add_acc(account);
-		}).catch(function(e){
-          log.error(e);
+      } catch (e) {
+        hashErrorLog.error(ledger.ledger_index, e.message);
+        log.info("Unable to save ledger:", ledger.ledger_index);
+        callback(null, ledger);
+        return;
+      }
+
+      //Add all accounts encountered in ledger to database
+      Promise.map(acc_array, function(account){
+          //Check if account entry already exists
+          return add_acc(account);
+      }).catch(function(e){
+        log.error(e);
+      })
+
+      //Atomically add ledger information, transactions, and account transactions
+      .then(function(accounts) {
+        var accountIDs = {};
+        accounts.forEach(function(account) {
+          accountIDs[account.get('account')] = account.get('account_id');
+        });
+
+        bookshelf.transaction(function(t){
+          log.info("Saving ledger:", ledger_info.get('ledger_index'));
+
+          //Add ledger information
+          return ledger_info.save({},{method: 'insert', transacting: t})
+          .tap(function(l){
+
+            var li        = l.get('ledger_index');
+            var ledger_id = l.get('ledger_id');
+
+            //Go through transaction list
+            return Promise.map(tx_array, function(model){ 
+
+              //Add transaction to db
+              return model.tx.save({ledger_index: li, ledger_id:ledger_id},{method: 'insert', transacting: t})
+              .then(function(tx){
+                var tx_id = tx.get('tx_id');
+                log.info('New transaction:', tx_id);
+
+                //Go through accounts associated with transaction
+                return Promise.map(model.account, function(account){
+
+                  var fields = {
+                    account      : account,
+                    account_id   : accountIDs[account],
+                    tx_id        : tx_id,
+                    ledger_index : li,
+                    tx_seq       : tx.get('tx_seq'),
+                    tx_hash      : tx.get('tx_hash')
+                  };
+
+                  //Add account and tx_id to account transaction table
+                  return add_acctx(fields, t);
+                }); 
+              })
+              .then(function(){
+                log.info("account transactions saved:", model.account.length);
+              });
+            });
+          });
         })
-        
-		//Atomically add ledger information, transactions, and account transactions
-		.then(function(accounts) {
-      var accountIDs = {};
-      accounts.forEach(function(account) {
-        accountIDs[account.get('account')] = account.get('account_id');
-      });
-          
-			bookshelf.transaction(function(t){
-        log.info("Saving ledger:", ledger_info.get('ledger_index'));
-				
-				//Add ledger information
-				return ledger_info.save({},{method: 'insert', transacting: t})
-				.tap(function(l){
-				
-          var li = l.get('ledger_index');
-				  var ledger_id = l.get('ledger_id');
 
-				  //Go through transaction list
-			    return Promise.map(tx_array, function(model){ 
-				   
-          //Add transaction to db
-					return model.tx.save({ledger_index: li, ledger_id:ledger_id},{method: 'insert', transacting: t})
-          .then(function(tx){
-            var tx_id = tx.get('tx_id');
-            log.info('New transaction:', tx_id);
-  		
-            //Go through accounts associated with transaction
-  				  return Promise.map(model.account, function(account){
-                              
-              var fields = {
-                account    : account,
-                account_id : accountIDs[account],
-                tx_hash    : tx.get('tx_hash'),
-                tx_id      : tx_id
-              };
-                                
-							//Add account and tx_id to account transaction table
-							return add_acctx(fields, t);
-					    }); 
-						}).then(function(){
-						  log.info("account transactions saved:", model.account.length);
-						});
-				  });
-		    });
-			})
-			
-			//Print error or done
-			.nodeify(function(err, res){
-              if (err){
-                log.info('Error saving ledger:', err, ledger.ledger_index);	
-                callback(err);
-              } else {
-                log.info('Done with ledger:', res.get('ledger_index'));
-                callback(null, ledger);
-              }
-			});
-		});
+        //Print error or done
+        .nodeify(function(err, res){
+          if (err){
+            log.info('Error saving ledger:', err, ledger.ledger_index);	
+            callback(err);
+          } else {
+            log.info('Done with ledger:', res.get('ledger_index'));
+            callback(null, ledger);
+          }
+        });
+      });
 	};
 
 	//Pre-process all transactions
@@ -236,8 +239,8 @@ var DB = function(config) {
 
 	//Convert json to binary/hex to store as raw data
 	function to_hex(input){
-    hex = new SerializedObject.from_json(input).to_hex();
-    return hex;
+      hex = new SerializedObject.from_json(input).to_hex();
+      return hex;
 	}
 
 	//Check all fields for ripple accounts to add to database
