@@ -74,10 +74,10 @@ var DB = function(config) {
         .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
         .select('account_transactions.ledger_index')
         .select('account_transactions.tx_seq')
-        .select('transactions.executed_time')
+        .select('account_transactions.executed_time')
         .orderBy('account_transactions.ledger_index', descending ? 'desc' : 'asc')
         .orderBy('account_transactions.tx_seq', descending ? 'desc' : 'asc')
-        .limit(options.limit || 10)
+        .limit(options.limit || 20)
       
       if (options.offset) {
         query.offset(options.offset || 0); 
@@ -88,7 +88,7 @@ var DB = function(config) {
         start = moment.utc(options.start, moment.ISO_8601);
   
         if (start.isValid()) {
-          query.where('transactions.executed_time', '>=', start.unix())        
+          query.where('account_transactions.executed_time', '>=', start.unix())        
         } else {
           return callback({error:'invalid start time, format must be ISO 8601', code:400});
         }
@@ -99,7 +99,7 @@ var DB = function(config) {
         end = moment.utc(options.end, moment.ISO_8601);
         
         if (end.isValid()) {
-          query.where('transactions.executed_time', '<=', end.unix());
+          query.where('account_transactions.executed_time', '<=', end.unix());
         } else {
           return callback({error:'invalid end time, format must be ISO 8601', code:400});
         }
@@ -118,15 +118,15 @@ var DB = function(config) {
       //specify a result - default to tesSUCCESS,
       //exclude the where if 'all' is specified
       if (options.result && options.result !== 'all') {
-        query.where('transactions.tx_result', options.result);
+        query.where('account_transactions.tx_result', options.result);
         
       } else if (!options.result) {
-        query.where('transactions.tx_result', 'tesSUCCESS');
+        query.where('account_transactions.tx_result', 'tesSUCCESS');
       } 
       
       //specify a type - optional
       if (options.type) {
-        query.where('transactions.tx_type', options.type);  
+        query.where('account_transactions.tx_type', options.type);  
       }
       
       log.debug(query.toSQL().sql);
