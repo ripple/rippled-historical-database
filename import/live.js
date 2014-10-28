@@ -11,13 +11,13 @@ var hbase    = new require('./hbase/client');
 //start import stream
 live.liveStream();
 
-/*
+
 //hbase importer
 live.on('ledger', function(ledger) {
   hbase.saveLedger(ledger);
 });
-*/
 
+/*
 //postgres importer
 live.on('ledger', function(ledger) {
   postgres.saveLedger(ledger);
