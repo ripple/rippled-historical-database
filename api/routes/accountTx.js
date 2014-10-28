@@ -23,7 +23,7 @@ var accountTx = function (req, res, next) {
   function prepareOptions () {
     var options = {
       account    : req.params.address,
-      limit      : req.query.limit || 10,
+      limit      : req.query.limit || 20,
       offset     : req.query.offset,
       descending : req.query.descending === 'false' ? false : true,
       start      : req.query.start,
@@ -36,7 +36,7 @@ var accountTx = function (req, res, next) {
     };
     
     if (isNaN(options.limit)) {
-      options.limit = 10;
+      options.limit = 20;
         
     } else if (options.limit > 1000) {
       options.limit = 1000;  
