@@ -41,6 +41,10 @@ var DB = function(config) {
     
     //prepare the sql query
     var query = prepareQuery ();
+    if (query.error) {
+      return callback(query);
+    }
+    
     log.debug(new Date().toISOString(), 'getting transactions:', options.account); 
     
     //execute the query      
@@ -64,11 +68,9 @@ var DB = function(config) {
       var descending = options.descending === false ? false : true;
       var start;
       var end;
-      //var limit = options.limit < 5 ? 5 : options.limit || 10;
-      console.log(options);
       
       var query = self.knex('account_transactions')
-        .innerJoin('transactions', 'account_transactions.tx_id', 'transactions.tx_id')
+        .innerJoin('transactions', 'account_transactions.tx_hash', 'transactions.tx_hash')
         .where('account_transactions.account', options.account)
         .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
         .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
@@ -90,7 +92,7 @@ var DB = function(config) {
         if (start.isValid()) {
           query.where('account_transactions.executed_time', '>=', start.unix())        
         } else {
-          return callback({error:'invalid start time, format must be ISO 8601', code:400});
+          return {error:'invalid start time, format must be ISO 8601', code:400};
         }
       }
      
@@ -101,7 +103,7 @@ var DB = function(config) {
         if (end.isValid()) {
           query.where('account_transactions.executed_time', '<=', end.unix());
         } else {
-          return callback({error:'invalid end time, format must be ISO 8601', code:400});
+          return {error:'invalid end time, format must be ISO 8601', code:400};
         }
       } 
       

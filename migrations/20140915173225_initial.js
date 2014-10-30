@@ -2,25 +2,55 @@
 
 exports.up = function(knex, Promise) {
   return Promise.all([
-
     knex.schema.createTable('ledgers',function(table) {
-      table.bigIncrements('ledger_id').primary().unsigned();
+      table.binary('ledger').primary();
       table.integer('ledger_index');
-      table.binary('ledger_hash').unique();
-      table.binary('parent_hash').unique();
+      table.binary('parent_hash');
       table.bigInteger('total_coins');
-      table.bigInteger('close_time');
-      table.bigInteger('close_time_resolution');
+      table.bigInteger('closing_time');
+      table.bigInteger('close_time_res');
       table.binary('accounts_hash');
       table.binary('transactions_hash');
     }),
 
     knex.schema.createTable('transactions', function(table) {
-      table.bigIncrements('tx_id').primary().unsigned();
-      table.binary('tx_hash').unique();
-      table.bigInteger('ledger_id').references('ledger_id').inTable('ledgers');
+      table.binary('tx_hash').primary();
+      table.binary('tx_raw');
+      table.binary('tx_meta');
+      table.binary('ledger_hash');
       table.bigInteger('ledger_index');
       table.integer('tx_seq');
+      table.bigInteger('executed_time');
+      table.enum('tx_result', [
+        'tesSUCCESS',
+        'tecCLAIM',
+        'tecPATH_PARTIAL',
+        'tecUNFUNDED_ADD',
+        'tecUNFUNDED_OFFER',
+        'tecUNFUNDED_PAYMENT',
+        'tecFAILED_PROCESSING',
+        'tecDIR_FULL',
+        'tecINSUF_RESERVE_LINE',
+        'tecINSUF_RESERVE_OFFER',
+        'tecNO_DST',
+        'tecNO_DST_INSUF_XRP',
+        'tecNO_LINE_INSUF_RESERVE',
+        'tecNO_LINE_REDUNDANT',
+        'tecPATH_DRY',
+        'tecUNFUNDED',
+        'tecMASTER_DISABLED',
+        'tecNO_REGULAR_KEY',
+        'tecOWNERS',
+        'tecNO_ISSUER',
+        'tecNO_AUTH',
+        'tecNO_LINE',
+        'tecINSUFF_FEE',
+        'tecFROZEN',
+        'tecNO_TARGET',
+        'tecNO_PERMISSION',
+        'tecNO_ENTRY',
+        'tecINSUFFICIENT_RESERVE'
+      ]);
       table.enu('tx_type', [
         'Payment',
         'OfferCreate',
@@ -31,31 +61,58 @@ exports.up = function(knex, Promise) {
         'EnableAmendment',
         'SetFee' 
       ]);
-      table.string('account', 64);
-      table.bigInteger('account_seq');
-      table.string('tx_result');
-      table.binary('tx_raw');
-      table.binary('tx_meta');
-      table.bigInteger('executed_time');
-    }),
-
-    knex.schema.createTable('accounts', function(table) {
-      table.bigIncrements('account_id').primary().unsigned();
-      table.string('account', 64).unique();
-      table.string('parent', 64);      
-      table.binary('tx_hash');
-      table.bigInteger('created_time');
-    }),
-    
+      table.binary('account');
+      table.integer('account_seq');
+    })
   ]).then(function(){
+    
     return knex.schema.createTable('account_transactions', function(table) {
-      table.bigInteger('account_id').references('account_id').inTable('accounts');
-      table.bigInteger('tx_id').references('tx_id').inTable('transactions');
-      table.primary(['tx_id', 'account_id']);
-      table.string('account', 64);
-      table.binary('tx_hash');
+      table.binary('account');
+      table.binary('tx_hash').references('tx_hash').inTable('transactions');
+      table.primary(['tx_hash','account']);
       table.bigInteger('ledger_index');
       table.integer('tx_seq');
+      table.bigInteger('executed_time');
+      table.enum('tx_result', [
+        'tesSUCCESS',
+        'tecCLAIM',
+        'tecPATH_PARTIAL',
+        'tecUNFUNDED_ADD',
+        'tecUNFUNDED_OFFER',
+        'tecUNFUNDED_PAYMENT',
+        'tecFAILED_PROCESSING',
+        'tecDIR_FULL',
+        'tecINSUF_RESERVE_LINE',
+        'tecINSUF_RESERVE_OFFER',
+        'tecNO_DST',
+        'tecNO_DST_INSUF_XRP',
+        'tecNO_LINE_INSUF_RESERVE',
+        'tecNO_LINE_REDUNDANT',
+        'tecPATH_DRY',
+        'tecUNFUNDED',
+        'tecMASTER_DISABLED',
+        'tecNO_REGULAR_KEY',
+        'tecOWNERS',
+        'tecNO_ISSUER',
+        'tecNO_AUTH',
+        'tecNO_LINE',
+        'tecINSUFF_FEE',
+        'tecFROZEN',
+        'tecNO_TARGET',
+        'tecNO_PERMISSION',
+        'tecNO_ENTRY',
+        'tecINSUFFICIENT_RESERVE'
+      ]);
+      table.enu('tx_type', [
+        'Payment',
+        'OfferCreate',
+        'OfferCancel',
+        'AccountSet',
+        'SetRegularKey',
+        'TrustSet',
+        'EnableAmendment',
+        'SetFee' 
+      ]);
     })
   });
 };

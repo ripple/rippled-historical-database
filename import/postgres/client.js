@@ -14,6 +14,8 @@ var hashErrorLog = new (require('winston').Logger)({
   ]   
 });
 
+var EPOCH_OFFSET = 946684800;
+
 log.level(3);
 
 //Main
@@ -28,18 +30,18 @@ var DB = function(config) {
 	//Define Bookshelf models
 	var Ledger = bookshelf.Model.extend({
 		tableName: 'ledgers',
-		idAttribute: 'ledger_id'
+		idAttribute: 'ledger'
 	});
 
 	var Transaction = bookshelf.Model.extend({
 		tableName: 'transactions',
-		idAttribute: 'tx_id'
+		idAttribute: 'tx_hash'
 	});
 
-	var Account = bookshelf.Model.extend({
-		tableName: 'accounts',
-		idAttribute: 'account_id'
-	});
+//	var Account = bookshelf.Model.extend({
+//		tableName: 'accounts',
+//		idAttribute: 'account'
+//	});
 
 	var Account_Transaction = bookshelf.Model.extend({
 		tableName: 'account_transactions',
@@ -86,7 +88,9 @@ var DB = function(config) {
         callback(null, ledger);
         return;
       }
-
+/*
+      //NOTE: not adding accounts table for now
+      
       //Add all accounts encountered in ledger to database
       Promise.map(acc_array, function(account){
           //Check if account entry already exists
@@ -101,59 +105,56 @@ var DB = function(config) {
         accounts.forEach(function(account) {
           accountIDs[account.get('account')] = account.get('account_id');
         });
+*/
+      
+      bookshelf.transaction(function(t){
+        log.info("Saving ledger:", ledger_info.get('ledger_index'));
 
-        bookshelf.transaction(function(t){
-          log.info("Saving ledger:", ledger_info.get('ledger_index'));
+        //Add ledger information
+        return ledger_info.save({},{method: 'insert', transacting: t})
+        .tap(function(l){
 
-          //Add ledger information
-          return ledger_info.save({},{method: 'insert', transacting: t})
-          .tap(function(l){
+          //Go through transaction list
+          return Promise.map(tx_array, function(model){ 
 
-            var li        = l.get('ledger_index');
-            var ledger_id = l.get('ledger_id');
+            //Add transaction to db
+            return model.tx.save({},{method: 'insert', transacting: t})
+            .then(function(tx){
+              log.info('New transaction:', model.hash);
 
-            //Go through transaction list
-            return Promise.map(tx_array, function(model){ 
+              //Go through accounts associated with transaction
+              return Promise.map(model.account, function(account){
 
-              //Add transaction to db
-              return model.tx.save({ledger_index: li, ledger_id:ledger_id},{method: 'insert', transacting: t})
-              .then(function(tx){
-                var tx_id = tx.get('tx_id');
-                log.info('New transaction:', tx_id);
+                var fields = {
+                  tx_hash       : tx.get('tx_hash'),
+                  account       : account,
+                  ledger_index  : tx.get('ledger_index'),
+                  tx_seq        : tx.get('tx_seq'),
+                  executed_time : tx.get('executed_time'),
+                  tx_type       : tx.get('tx_type'),
+                  tx_result     : tx.get('tx_result'),
+                };
 
-                //Go through accounts associated with transaction
-                return Promise.map(model.account, function(account){
-
-                  var fields = {
-                    account      : account,
-                    account_id   : accountIDs[account],
-                    tx_id        : tx_id,
-                    ledger_index : li,
-                    tx_seq       : tx.get('tx_seq'),
-                    tx_hash      : tx.get('tx_hash')
-                  };
-
-                  //Add account and tx_id to account transaction table
-                  return add_acctx(fields, t);
-                }); 
-              })
-              .then(function(){
-                log.info("account transactions saved:", model.account.length);
-              });
+                //Add account and tx_id to account transaction table
+                return add_acctx(fields, t);
+              }); 
+            })
+            .then(function(){
+              log.info("account transactions saved:", model.account.length);
             });
           });
-        })
-
-        //Print error or done
-        .nodeify(function(err, res){
-          if (err){
-            log.info('Error saving ledger:', err, ledger.ledger_index);	
-            callback(err);
-          } else {
-            log.info('Done with ledger:', res.get('ledger_index'));
-            callback(null, ledger);
-          }
         });
+      })
+
+      //Print error or done
+      .nodeify(function(err, res){
+        if (err){
+          log.info('Error saving ledger:', err, ledger.ledger_index);	
+          callback(err);
+        } else {
+          log.info('Done with ledger:', res.get('ledger_index'));
+          callback(null, ledger);
+        }
       });
 	};
 
@@ -180,18 +181,18 @@ var DB = function(config) {
 
 			//Create transaction bookshelf model
 			var tranaction_info = Transaction.forge({
-				tx_hash: self.knex.raw("decode('"+transaction.hash+"', 'hex')"),
-				tx_type: transaction.TransactionType,
-				account: transaction.Account,
-				account_seq: transaction.Sequence,
-				tx_seq: meta.TransactionIndex,
-				tx_result: meta.TransactionResult,
-				tx_raw: self.knex.raw("decode('"+hex_tx+"', 'hex')"),
-				tx_meta: self.knex.raw("decode('"+hex_meta+"', 'hex')"),
-				executed_time: ledger.close_time + 946684800
+              tx_hash       : self.knex.raw("decode('"+transaction.hash+"', 'hex')"),
+              ledger_hash   : self.knex.raw("decode('"+ledger.ledger_hash+"', 'hex')"),
+              ledger_index  : ledger.ledger_index,
+              tx_type       : transaction.TransactionType,
+              tx_seq        : meta.TransactionIndex,
+		      tx_result     : meta.TransactionResult,
+              executed_time : ledger.close_time + EPOCH_OFFSET,
+              account       : transaction.Account,
+		      account_seq   : transaction.Sequence,
+		      tx_raw        : self.knex.raw("decode('"+hex_tx+"', 'hex')"),
+		      tx_meta       : self.knex.raw("decode('"+hex_meta+"', 'hex')")
 			});
-			
-
 
 			//Iterate through affected nodes in each transaction,
 			//create Account_Transaction and add it to array
@@ -215,7 +216,7 @@ var DB = function(config) {
 					all_addresses.push(address);
 				}
 			}
-			transaction_list.push({tx: tranaction_info, account: addresses});
+			transaction_list.push({tx: tranaction_info, account: addresses, hash:transaction.hash});
 
 		}
 		//console.log(all_addresses);
@@ -226,11 +227,11 @@ var DB = function(config) {
 	function parse_ledger(ledger){
 		var ledger_info = Ledger.forge({
 			ledger_index: ledger.seqNum,
-			ledger_hash: self.knex.raw("decode('"+ledger.ledger_hash+"', 'hex')"),
+			ledger: self.knex.raw("decode('"+ledger.ledger_hash+"', 'hex')"),
 			parent_hash: self.knex.raw("decode('"+ledger.parent_hash+"', 'hex')"),
 			total_coins: ledger.total_coins,
-			close_time: ledger.close_time + 946684800,
-			close_time_resolution: ledger.close_time_resolution,
+			closing_time: ledger.close_time + 946684800,
+			close_time_res: ledger.close_time_resolution,
 			accounts_hash: self.knex.raw("decode('"+ledger.account_hash+"', 'hex')"),
 			transactions_hash: self.knex.raw("decode('"+ledger.transaction_hash+"', 'hex')"),
 		});

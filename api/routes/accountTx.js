@@ -8,6 +8,7 @@ var accountTx = function (req, res, next) {
   var options = prepareOptions();
   
   log.info('ACCOUNT TX:', options.account); 
+
   postgres.getAccountTransactions(options, function(err, transactions) {
     if (err) {
       errorResponse(err);   
@@ -52,7 +53,7 @@ var accountTx = function (req, res, next) {
   */
   function errorResponse (err) {
     if (err.code === 400) {
-      log.error(err);
+      log.error(err.error || err);
       response.json({result:'error', message:err.error}).status(400).pipe(res);  
        
     } else {
