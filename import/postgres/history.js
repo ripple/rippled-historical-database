@@ -3,7 +3,7 @@ var log      = require('../../lib/log')('postgres_history');
 var moment   = require('moment');
 var diff     = require('deep-diff');
 var Importer = require('../importer');
-var db       = require('./client')(config.get('sql'));
+var db       = require('./client');
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
 
 var HistoricalImport = function () {
@@ -20,7 +20,7 @@ var HistoricalImport = function () {
   this.importer.on('ledger', function(ledger) {
     db.saveLedger(ledger, function(err, resp) {
       self.count++;
-      log.info(self.count, 'of', self.total);
+      log.info('ledger saved:', ledger.ledger_index, '---', self.count, 'of', self.total);
       if (err) {
         self.section.error = true;
         

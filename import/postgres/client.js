@@ -1,3 +1,4 @@
+var config  = require('../../config/import.config');
 var Knex    = require('knex');
 var Promise = require('bluebird');
 var log     = require('../../lib/log')('postgres');
@@ -16,7 +17,7 @@ var hashErrorLog = new (require('winston').Logger)({
 
 var EPOCH_OFFSET = 946684800;
 
-log.level(3);
+log.level(config.get('logLevel') || 2);
 
 //Main
 var DB = function(config) {
@@ -310,7 +311,7 @@ var DB = function(config) {
 	function add_acctx(fields, t){
       return Account_Transaction.forge(fields)
       .save({},{method: 'insert', transacting: t}).then(function(result){
-        log.debug('Added account transaction:', result.get('account_id'), result.get('tx_id'));
+        log.debug('Added account transaction:', result.get('account'));
       });
 	}
 
@@ -359,7 +360,7 @@ var DB = function(config) {
         .where('ledger_index', '>=', options.startIndex)
         .where('ledger_index', '<=', options.stopIndex)
         .select('ledger_index')
-        .select(self.knex.raw("encode(ledger_hash, 'hex') as ledger_hash"))
+        .select(self.knex.raw("encode(ledger, 'hex') as ledger_hash"))
         .select(self.knex.raw("encode(parent_hash, 'hex') as parent_hash"))
         .orderBy('ledger_index', 'desc');
       
@@ -379,4 +380,4 @@ var DB = function(config) {
 };
 
 
-module.exports = DB;
+module.exports = new DB(config.get('sql'));
