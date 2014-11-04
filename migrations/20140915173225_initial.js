@@ -3,8 +3,8 @@
 exports.up = function(knex, Promise) {
   return Promise.all([
     knex.schema.createTable('ledgers',function(table) {
-      table.binary('ledger').primary();
-      table.integer('ledger_index');
+      table.binary('ledger_hash').primary();
+      table.bigInteger('ledger_index');
       table.binary('parent_hash');
       table.bigInteger('total_coins');
       table.bigInteger('closing_time');
@@ -17,7 +17,7 @@ exports.up = function(knex, Promise) {
       table.binary('tx_hash').primary();
       table.binary('tx_raw');
       table.binary('tx_meta');
-      table.binary('ledger_hash');
+      table.binary('ledger_hash').references('ledger_hash').inTable('ledgers');;
       table.bigInteger('ledger_index');
       table.integer('tx_seq');
       table.bigInteger('executed_time');
@@ -62,7 +62,7 @@ exports.up = function(knex, Promise) {
         'SetFee' 
       ]);
       table.binary('account');
-      table.integer('account_seq');
+      table.bigInteger('account_seq');
     })
   ]).then(function(){
     

@@ -31,7 +31,7 @@ var DB = function(config) {
 	//Define Bookshelf models
 	var Ledger = bookshelf.Model.extend({
 		tableName: 'ledgers',
-		idAttribute: 'ledger'
+		idAttribute: 'ledger_hash'
 	});
 
 	var Transaction = bookshelf.Model.extend({
@@ -228,7 +228,7 @@ var DB = function(config) {
 	function parse_ledger(ledger){
 		var ledger_info = Ledger.forge({
 			ledger_index: ledger.seqNum,
-			ledger: self.knex.raw("decode('"+ledger.ledger_hash+"', 'hex')"),
+			ledger_hash: self.knex.raw("decode('"+ledger.ledger_hash+"', 'hex')"),
 			parent_hash: self.knex.raw("decode('"+ledger.parent_hash+"', 'hex')"),
 			total_coins: ledger.total_coins,
 			closing_time: ledger.close_time + 946684800,
@@ -360,7 +360,7 @@ var DB = function(config) {
         .where('ledger_index', '>=', options.startIndex)
         .where('ledger_index', '<=', options.stopIndex)
         .select('ledger_index')
-        .select(self.knex.raw("encode(ledger, 'hex') as ledger_hash"))
+        .select(self.knex.raw("encode(ledger_hash, 'hex') as ledger_hash"))
         .select(self.knex.raw("encode(parent_hash, 'hex') as parent_hash"))
         .orderBy('ledger_index', 'desc');
       
