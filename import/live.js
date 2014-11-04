@@ -5,7 +5,7 @@ var live     = new Importer();
 var indexer  = require('./couchdb/indexer');
 var couchdb  = require('./couchdb/client');
 var postgres = new require('./postgres/client');
-//var hbase    = require('./hbase/client');
+var hbase    = require('./hbase/client');
 
 var typeList = config.get('type') || 'postgres';
 var types    = { };

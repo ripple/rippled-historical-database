@@ -3,11 +3,10 @@ var log        = require('../../lib/log')('hbase');
 var Base       = require('ripple-lib').Base;
 var parser     = require('../../lib/ledgerParser');
 var moment     = require('moment');
-var superagent = require('superagent');
 var Promise    = require('bluebird');
 var HBase      = require('hbase');
 
-var PREFIX = "alpha_";
+var PREFIX = "a2_";
 var COMMON_FIELDS = [
   'Account',
   'AccountTxnID',
@@ -34,12 +33,6 @@ var COMMON_FIELDS = [
 /*
 var baseUrl = 'http://54.164.78.183:20550';
 
-superagent.get('http://54.164.78.183:20550/rplcouch_Accounts/r11L3HhmYjTRVpueMwKZwPDeb6hBCSdBn')
-.auth('user','pass')
-.set('Accept', 'application/json')
-.end(function (err, resp) {
-  console.log(resp.body);
-});
 */
 /*
 HB.getTable(PREFIX + 'ledgers').create('data', function(err, success){});
@@ -90,26 +83,23 @@ var Client = function (options) {
     self._ready = false;
     self._error = false; 
     
-    Promise.all([
-      addTable('transactions', [
-        'CommonFields',
-        'Payment',
-        'OfferCreate',
-        'OfferCancel',
-        'AccountSet',
-        'SetRegularKey',
-        'TrustSet',
-        'EnableAmendment',
-        'SetFee']),
-      addTable('transactions_by_index'),
+    Promise.all([    
       addTable('ledgers'),
-      addTable('ledgers_by_index'),
-      addTable('account_transactions'),
-      addTable('account_transactions_by_index'),
+      addTable('ledgers_by_index'), 
+      addTable('ledgers_by_time'), 
+      addTable('transactions'),
+      addTable('transactions_by_time'),
+      addTable('transactions_by_account_sequence'),
+      addTable('transactions_by_affected_account'),
       addTable('offers_exercised'),
+      addTable('offers_exercised_by_account'),
       addTable('balance_changes'),
-      addTable('accounts'),
-      addTable('accounts_created')
+      addTable('balance_changes_by_account'),
+      addTable('payments'),
+      addTable('payments_by_account'),
+      addTable('accounts_created'),
+      addTable('accounts_created_by_parent'),     
+      addTable('memos'),  
     ])
     .nodeify(function(err, resp) {
       var row;
@@ -192,7 +182,8 @@ Client.prototype.putRows = function (table, rows) {
         value = JSON.stringify(value);
       }
       
-      family = table === 'transactions' ? getColumnName(rows[rowkey].TransactionType, column) : 'data';
+      //family = table === 'transactions' ? getColumnName(rows[rowkey].TransactionType, column) : 'data';
+      family = 'data';
       data.push({
         key    : rowkey,
         column : family + ':' + column,
@@ -278,6 +269,7 @@ Client.prototype.putRow = function (table, rowkey, family, data) {
 Client.prototype.saveLedger = function (ledger, callback) {
   var self = this;
   var data;
+  var tables;
   
   if (self._error) {
     return log.info('Ledger not saved:', ledger.ledger_index);
@@ -287,17 +279,12 @@ Client.prototype.saveLedger = function (ledger, callback) {
     return self._queue.push({ledger:ledger, callback:callback});
   }
   
-  data = parser.parse(ledger); 
+  data   = parser.parseHBase(ledger); 
+  tables = Object.keys(data);
   
-  Promise.all([
-    self.putRows('ledgers', data.ledgers),
-    self.putRows('transactions', data.transactions),
-    self.putRows('transactions_by_index', data.transactionsByIndex),
-    self.putRows('account_transactions', data.accountTx),
-    self.putRows('account_transactions_by_index', data.accountTxByIndex),
-    self.putRows('offers_exercised', data.offersExercised),
-    self.putRows('balance_changes', data.balanceChanges)
-  ])
+  Promise.map(tables, function(name) {
+    return self.putRows(name, data[name]);
+  })
   .nodeify(function(err, resp) {   
     if (err) {
       //TODO: log unsaved ledgers
