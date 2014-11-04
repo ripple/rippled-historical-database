@@ -148,26 +148,29 @@ var HistoricalImport = function () {
       }
       
       var index = validated - 1;
+      var check;
+      
       for (var i=0; i<ledgers.length; i++) {  
+        check = parseInt(ledgers[i].ledger_index, 10);
         if (startIndex) {
-          log.info("gap ends at:", ledgers[i].ledger_index);
-          callback(null, {startIndex:startIndex, stopIndex:ledgers[i].ledger_index + 1});
+          log.info("gap ends at:", check);
+          callback(null, {startIndex:startIndex, stopIndex:check + 1});
           return;
 
-        } else if (ledgers[i].ledger_index < index) {
+        } else if (check < index) {
           log.info("missing ledger at:", index); 
-          log.info("gap ends at:", ledgers[i].ledger_index);
-          callback(null, {startIndex:index, stopIndex:ledgers[i].ledger_index + 1});
+          log.info("gap ends at:", check);
+          callback(null, {startIndex:index, stopIndex:check + 1});
           return;
 
         } else if (ledgerHash && ledgerHash !== ledgers[i].ledger_hash) {
-          log.info("incorrect ledger hash at:", ledgers[i].ledger_index); 
-          callback(null, {startIndex:index, stopIndex:ledgers[i].ledger_index + 1});
+          log.info("incorrect ledger hash at:", check); 
+          callback(null, {startIndex:index, stopIndex:check + 1});
           return;
 
         } else {
           ledgerHash = ledgers[i].parent_hash;
-          index = ledgers[i].ledger_index - 1;
+          index = check - 1;
         }
       }    
       
