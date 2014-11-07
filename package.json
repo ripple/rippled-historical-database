@@ -29,6 +29,7 @@
     "response": "https://github.com/mikeal/response/archive/master.tar.gz",
     "nodemon": "^1.2.1",
     "mocha": "^1.21.4",
-    "hbase": "^0.1.7"
+    "hbase": "^0.1.7",
+    "cors": "^2.5.0"
   }
 }
