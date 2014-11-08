@@ -2,6 +2,7 @@ var Knex    = require('knex');
 var Promise = require('bluebird');
 var log     = require('../../lib/log')('postgres');
 var moment  = require('moment');
+var sjcl    = require('ripple-lib').sjcl;
 
 log.level(4);
 
@@ -74,6 +75,7 @@ var DB = function(config) {
         .where('account_transactions.account', options.account)
         .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
         .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
+        .select(self.knex.raw("encode(account_transactions.tx_hash, 'hex') as tx_hash"))      
         .select('account_transactions.ledger_index')
         .select('account_transactions.tx_seq')
         .select('account_transactions.executed_time')
@@ -164,6 +166,7 @@ var DB = function(config) {
           }          
         }
         
+        data.tx.hash = row.tx_hash.toUpperCase();
         data.tx.ledger_index  = parseInt(row.ledger_index, 10);
         data.tx.executed_time = parseInt(row.executed_time, 10);  
         transactions.push(data);
