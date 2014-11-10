@@ -4,6 +4,7 @@ var log     = require('../../lib/log')('postgres');
 var moment  = require('moment');
 var sjcl    = require('ripple-lib').sjcl;
 
+var EPOCH_OFFSET = 946684800;
 log.level(4);
 
 var SerializedObject = require('ripple-lib').SerializedObject;
@@ -169,6 +170,7 @@ var DB = function(config) {
         data.tx.hash = row.tx_hash.toUpperCase();
         data.tx.ledger_index  = parseInt(row.ledger_index, 10);
         data.tx.executed_time = parseInt(row.executed_time, 10);  
+        data.tx.date          = data.tx.executed_time - EPOCH_OFFSET; 
         transactions.push(data);
       });
       
