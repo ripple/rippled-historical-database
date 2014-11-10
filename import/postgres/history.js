@@ -75,7 +75,7 @@ var HistoricalImport = function () {
           return;
         } 
         
-        self._findGaps(ledger.ledger_index, ledger.ledger_hash.toLowerCase());
+        self._findGaps(parseInt(ledger.ledger_index, 10) - 1, ledger.ledger_hash.toLowerCase());
       });
     }    
   };
@@ -154,18 +154,18 @@ var HistoricalImport = function () {
         check = parseInt(ledgers[i].ledger_index, 10);
         if (startIndex) {
           log.info("gap ends at:", check);
-          callback(null, {startIndex:startIndex, stopIndex:check + 1});
+          callback(null, {startIndex:startIndex, stopIndex:check});
           return;
 
         } else if (check < index) {
           log.info("missing ledger at:", index); 
           log.info("gap ends at:", check);
-          callback(null, {startIndex:index, stopIndex:check + 1});
+          callback(null, {startIndex:index, stopIndex:check});
           return;
 
         } else if (ledgerHash && ledgerHash !== ledgers[i].ledger_hash) {
           log.info("incorrect ledger hash at:", check); 
-          callback(null, {startIndex:index, stopIndex:check + 1});
+          callback(null, {startIndex:check, stopIndex:check});
           return;
 
         } else {

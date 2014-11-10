@@ -71,6 +71,12 @@ var Importer = function () {
       return;
     }
     
+    if (startIndex < stopIndex) {
+      log.info('start index precedes stop index', stopIndex, startIndex);
+      if (typeof callback === 'function') callback();        
+      return;
+    }
+    
     if (remote.isConnected()) {
       getLedger(startIndex + 1);
             
@@ -111,8 +117,10 @@ var Importer = function () {
     function handleLedger (ledger) {
       var current = parseInt(ledger.ledger_index, 10);
 
-      //if this is the start ledger,
-      //we will not add it to the queue
+      //if this is the first ledger,
+      //we will not add it to the queue because
+      //we are just getting the parent hash
+      //for validation
       if (!earliest) {
         
         earliest           = current;
