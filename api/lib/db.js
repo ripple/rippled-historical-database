@@ -11,11 +11,11 @@ var SerializedObject = require('ripple-lib').SerializedObject;
 var UInt160 = require('ripple-lib').UInt160;
 
 var DB = function(config) {
-	var self = this;
-	self.knex = Knex.initialize({
-		client     : config.dbtype,
-		connection : config.db
-	});
+  var self  = this;
+  self.knex = Knex.initialize({
+      client     : config.dbtype,
+      connection : config.db
+  });
 
  /**
   * migrate
@@ -70,6 +70,8 @@ var DB = function(config) {
       var descending = options.descending === false ? false : true;
       var start;
       var end;
+      var types;
+      var results;
       
       var query = self.knex('account_transactions')
         .innerJoin('transactions', 'account_transactions.tx_hash', 'transactions.tx_hash')
@@ -122,19 +124,33 @@ var DB = function(config) {
       
       //specify a result - default to tesSUCCESS,
       //exclude the where if 'all' is specified
+      //can be comma separated list
       if (options.result && options.result !== 'all') {
-        query.where('account_transactions.tx_result', options.result);
+        results = options.result.split(',');
+        query.where(function() {
+          var q = this;
+          results.forEach(function(result) {
+            q.orWhere('account_transactions.tx_result', result.trim());   
+          });
+        });
         
       } else if (!options.result) {
         query.where('account_transactions.tx_result', 'tesSUCCESS');
       } 
       
       //specify a type - optional
+      //can be comma separate list
       if (options.type) {
-        query.where('account_transactions.tx_type', options.type);  
+        types = options.type.split(',');
+        query.where(function() {
+          var q = this;
+          types.forEach(function(type) {
+            q.orWhere('account_transactions.tx_type', type.trim());   
+          });
+        });
       }
       
-      log.debug(query.toSQL().sql);
+      log.debug(query.toString());
       return query;     
     }
     
