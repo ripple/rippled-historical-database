@@ -147,11 +147,12 @@ var HistoricalImport = function () {
         return;
       }
       
-      var index = validated - 1;
+      var index = validated;
       var check;
       
       for (var i=0; i<ledgers.length; i++) {  
         check = parseInt(ledgers[i].ledger_index, 10);
+        
         if (startIndex) {
           log.info("gap ends at:", check);
           callback(null, {startIndex:startIndex, stopIndex:check});
@@ -162,7 +163,12 @@ var HistoricalImport = function () {
           log.info("gap ends at:", check);
           callback(null, {startIndex:index, stopIndex:check});
           return;
-
+          
+        } else if (check > index) {
+          log.info("duplicate ledger index:", check); 
+          callback();
+          return;
+          
         } else if (ledgerHash && ledgerHash !== ledgers[i].ledger_hash) {
           log.info("incorrect ledger hash at:", check); 
           callback(null, {startIndex:check, stopIndex:check});
