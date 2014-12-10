@@ -3,11 +3,13 @@ var log     = require('../../lib/log')('indexer');
 var db      = require('./client');
 var _       = require('underscore');
 var async   = require('async');
+
 /*
  * Indexer:  This module connects to couchDB and queries every view so
  * that couchDB will update the index to add the new ledgers.
  * 
  */
+
 function Indexer () {
   var docs;
   var count = 0;
@@ -20,9 +22,11 @@ function Indexer () {
   this.pingCouchDB = function() {
     log.info("indexing couchDB views");
     
-    if (docs && ++count < 100) {
+    if (docs && ++count < 5000) {
       updateViews(docs);
-      
+    
+    //get the docs if we dont have them, or
+    //every 5000 attempts (approx 7 hours)
     } else {
       count = 0;
       log.info("getting design docs");
