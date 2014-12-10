@@ -5,7 +5,10 @@ var log     = require('../lib/log')('import');
 var events  = require('events');
 var emitter = new events.EventEmitter();
 var winston = require('winston');
+
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
+var TIMEOUT = 30 * 1000;
+
 var hashErrorLog = new (require('winston').Logger)({
   transports: [
     new (winston.transports.Console)(),
@@ -329,7 +332,7 @@ var Importer = function () {
       var index = options.validated ? 'validated' : options.ledger_index;
       
       try {
-        var request = remote.request_ledger(options, handleResponse).timeout(15000, function(){
+        var request = remote.request_ledger(options, handleResponse).timeout(TIMEOUT, function(){
           log.warn("ledger request timed out after 15 seconds:", index);
           retry(index, attempts, callback); 
         });
@@ -437,5 +440,22 @@ Importer.prototype.__proto__ = events.EventEmitter.prototype;
 
 module.exports = Importer;
 
+/*
+function sizeof(normal_val) {
+  // Force string type
+  normal_val = JSON.stringify(normal_val);
 
+  var byteLen = 0;
+  for (var i = 0; i < normal_val.length; i++) {
+    var c = normal_val.charCodeAt(i);
+    byteLen += c < (1 <<  7) ? 1 :
+               c < (1 << 11) ? 2 :
+               c < (1 << 16) ? 3 :
+               c < (1 << 21) ? 4 :
+               c < (1 << 26) ? 5 :
+               c < (1 << 31) ? 6 : Number.NaN;
+  }
+  return byteLen / 1000;
+}
+*/
 
