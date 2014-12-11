@@ -149,6 +149,12 @@ var HistoricalImport = function () {
       
       //advance to the next batch
       if (!ledgers.length) {
+        if (params.stop && params.stop === end) {
+          log.info("stop index reached: ", check);
+          callback(null, {startIndex:params.start, stopIndex:end});
+          return;
+        }
+        
         self._findGap({
           validated  : end,
           parentHash : ledgerHash, 
@@ -178,6 +184,7 @@ var HistoricalImport = function () {
         } else if (check > index) {
           log.info("duplicate ledger index:", check); 
           callback();
+          if (cb) cb();
           return;
           
         } else if (ledgerHash && ledgerHash !== ledgers[i].ledger_hash) {
@@ -201,12 +208,18 @@ var HistoricalImport = function () {
       
       if (index > end) {
         startIndex = index;
+        end        = index;
+        ledgerHash = null;
         log.info("missing ledger at:", index); 
+        
+      } else {
+        end        = ledgers[ledgers.length-1].ledger_index;
+        ledgerHash = ledgers[ledgers.length-1].ledger_hash;
       }
       
       self._findGap({
-        validated  : ledgers[ledgers.length-1].ledger_index,
-        parentHash : ledgers[ledgers.length-1].ledger_hash,
+        validated  : end,
+        parentHash : ledgerHash,
         start      : startIndex,
         stop       : params.stop
       }, callback); 

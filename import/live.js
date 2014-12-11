@@ -5,6 +5,7 @@ var live     = new Importer();
 var indexer;
 var couchdb;
 var postgres;
+var validator;
 var hbase;
 
 var typeList = config.get('type') || 'postgres';
@@ -32,8 +33,10 @@ if (types.hbase) {
 //postgres importer
 if (types.postgres) {
   log.info('Saving Ledgers to Postgres');
-  postgres = new require('./postgres/client');
+  postgres  = new require('./postgres/client');
+  validator = new require('./postgres/validate')();
   
+  validator.start();
   live.on('ledger', function(ledger) {
     postgres.saveLedger(ledger, function(err, resp){
       if (err) {

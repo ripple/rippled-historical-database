@@ -374,7 +374,27 @@ var DB = function(config) {
         callback(null, ledgers);
       }); 
       
-    }
+    };
+    
+    self.getLatestLedger = function(callback) {
+       var query = self.knex('ledgers')
+        .select('ledger_index')
+        .select(self.knex.raw("encode(ledger_hash, 'hex') as ledger_hash"))
+        .select(self.knex.raw("encode(parent_hash, 'hex') as parent_hash"))
+        .limit(1)
+        .orderBy('ledger_index', 'desc');
+      
+      //execute the query      
+      query.nodeify(function(err, ledgers) {
+        
+        if (err) {
+          log.error(err);
+          return callback(err);
+        }
+      
+        callback(null, ledgers[0]);
+      });      
+    };
     
     return this;
 };
