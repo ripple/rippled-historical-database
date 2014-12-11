@@ -12,7 +12,8 @@ var HistoricalImport = function () {
   this.total    = 0;
   this.section  = { };
   var self = this;
-  var first;
+  var stopIndex;
+  var cb;
   
  /**
   * handle ledgers from the importer
@@ -31,7 +32,7 @@ var HistoricalImport = function () {
       }
         
       if (self.count === self.total) {
-        self._findGaps(self.section.stopIndex, self.section.stopHash);
+        self._findGaps(self.section.stopIndex, self.section.stopHash, stopIndex);
       /*
       if (self.section.error) {
         log.info("Error in section - retrying:", self.section.stopIndex, '-', self.section.startIndex);  
@@ -48,35 +49,28 @@ var HistoricalImport = function () {
     });
   });
   
-  this.start = function () {
-    var start = config.get('startIndex');
-    if (start === 'validated') {
-      first = null;
-    } else if (start) {
-      first = {index:start};
-    } else {
-      //get from db control table
-      console.log("get from control");
-      return;
-    }
+  this.start = function (start, stop, callback) {
+    log.info("starting historical import: ", start, stop);
+    stopIndex = stop;
+    cb        = callback;
     
-    console.log(first);
+    if (start && start !== 'validated') {
+      self._findGaps(start, null, stop); 
     
-    if (first) {
-      self._findGaps(first.index, first.hash); 
-       
+    //get latest validated ledger as the 
+    //starting point for historical importing        
     } else {
-      
-      //get latest validated ledger as the 
-      //starting point for historical importing
       self._getLedgerRecursive('validated', 0, function(err, ledger) {
         if (err) {
           log.error("failed to get latest validated ledger");
           return;
         } 
         
-        self._findGaps(parseInt(ledger.ledger_index, 10) - 1, ledger.parent_hash.toLowerCase());
-      });
+        var index = parseInt(ledger.ledger_index, 10) - 1;
+        var hash  = ledger.parent_hash.toLowerCase();
+        
+        self._findGaps(index, hash, stop);
+      });      
     }    
   };
 
@@ -100,16 +94,22 @@ var HistoricalImport = function () {
   };
   
 
-  this._findGaps = function (start, parentHash) {
-    log.info("finding gaps from ledger:", start); 
+  this._findGaps = function (start, startParentHash, stop) {
+    log.info("finding gaps - start: ", start, stop ? ' stop: ' + stop : ''); 
     var self = this;
     
-    this._findGap(start, parentHash, null, function(err, resp) {
-      console.log(err, resp);
+    this._findGap({
+      validated  : start,
+      parentHash : startParentHash,
+      stop       : stop
+      
+    }, function(err, resp) {
+
       if (resp) {
         if (resp.startIndex < GENESIS_LEDGER) {
           log.info("Genesis ledger reached:", GENESIS_LEDGER);  
           return;
+          
         } else if (resp.stopIndex < GENESIS_LEDGER) {
           log.info("setting stop index to genesis ledger");
           resp.stopIndex = GENESIS_LEDGER;
@@ -123,39 +123,50 @@ var HistoricalImport = function () {
     });
   };
 
-  this._findGap = function (validated, ledgerHash, startIndex, callback) {
+  this._findGap = function (params, callback) {
     var self = this;
-    var end  = validated - 50;
+    var end  = params.validated - 50;
     var ids  = [];
-    var stopIndex; 
-  
-    if (startIndex && startIndex - validated > 200) {
-      log.info("max gap size reached:", startIndex);
-      callback(null, {startIndex:startIndex, stopIndex:startIndex - 200 + 1}); 
-      return;   
-    } 
+    var ledgerHash = params.parentHash;    
+    var startIndex;
     
-    log.info('validating ledgers:', end + 1, '-', validated);
-    db.getLedgers({startIndex:end + 1, stopIndex:validated}, function(err, ledgers) {
+    if (params.stop && end < params.stop) {
+      end = params.stop;
+    }
+    
+    if (params.start && params.start - params.validated > 200) {
+      log.info("max gap size reached:", params.start);
+      callback(null, {startIndex:params.start, stopIndex:params.start - 200 + 1}); 
+      return;   
+    }
+    
+    log.info('validating ledgers:', end, '-', params.validated);
+    db.getLedgers({startIndex:end, stopIndex:params.validated}, function(err, ledgers) {
       if (err) {
         callback(err);
         return;
       }
       
+      //advance to the next batch
       if (!ledgers.length) {
-        self._findGap(end, ledgerHash, startIndex || validated, callback); 
+        self._findGap({
+          validated  : end,
+          parentHash : ledgerHash, 
+          start      : params.start || params.validated, 
+          stop       : params.stop
+        }, callback); 
         return;
       }
       
-      var index = validated;
+      var index = params.validated;
       var check;
       
       for (var i=0; i<ledgers.length; i++) {  
         check = parseInt(ledgers[i].ledger_index, 10);
         
-        if (startIndex) {
+        if (params.start) {
           log.info("gap ends at:", check);
-          callback(null, {startIndex:startIndex, stopIndex:check});
+          callback(null, {startIndex:params.start, stopIndex:check});
           return;
 
         } else if (check < index) {
@@ -176,6 +187,12 @@ var HistoricalImport = function () {
           callback(null, {startIndex:check, stopIndex:check});
           return;
 
+        } else if (params.stop && check<=params.stop) {
+          log.info("stop index reached: ", check); 
+          callback(null, null);
+          if (cb) cb();
+          return;        
+          
         } else {
           ledgerHash = ledgers[i].parent_hash;
           index = check - 1;
@@ -187,46 +204,14 @@ var HistoricalImport = function () {
         log.info("missing ledger at:", index); 
       }
       
-      self._findGap(end, ledgerHash, startIndex, callback); 
-    });
-    
-/*
-    db.nano.fetch({keys:ids}, function(err, resp){
-      if (err || !resp.rows) {
-        callback(err);
-        return;
-      }
-      
-      for (var i=0; i<resp.rows.length; i++) {
-        if (startIndex) { 
-          if (resp.rows[i].doc) {
-            stopIndex = parseInt(resp.rows[i].key, 10) + 1;
-            log.info("gap ends at:", stopIndex);
-            callback(null, {startIndex:startIndex, stopIndex:stopIndex});
-            return;
-          }
-          
-        } else {
-          if (!resp.rows[i].doc) {
-            startIndex = parseInt(resp.rows[i].key, 10);
-            log.info("missing ledger at:", startIndex);
-              
-          } else if (ledgerHash && resp.rows[i].doc.ledger_hash !== ledgerHash) {
-            startIndex = parseInt(resp.rows[i].key, 10);
-            log.info("incorrect ledger hash at:", startIndex);  
-            
-          } else {
-            ledgerHash = resp.rows[i].doc.parentHash;
-          }
-        } 
-      }
-      
-      self._findGap(end, ledgerHash, startIndex, callback);   
-    }); 
-*/    
+      self._findGap({
+        validated  : ledgers[ledgers.length-1].ledger_index,
+        parentHash : ledgers[ledgers.length-1].ledger_hash,
+        start      : startIndex,
+        stop       : params.stop
+      }, callback); 
+    });  
   };
 }
 
-
-h = new HistoricalImport();
-h.start();
+module.exports = HistoricalImport;
