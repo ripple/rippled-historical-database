@@ -62,7 +62,8 @@ var HistoricalImport = function () {
     } else {
       self._getLedgerRecursive('validated', 0, function(err, ledger) {
         if (err) {
-          log.error("failed to get latest validated ledger");
+          log.error('failed to get latest validated ledger');
+          callback('failed to get latest validated ledger');
           return;
         } 
         
@@ -124,19 +125,20 @@ var HistoricalImport = function () {
   };
 
   this._findGap = function (params, callback) {
-    var self = this;
-    var end  = params.validated - 50;
-    var ids  = [];
-    var ledgerHash = params.parentHash;    
+    var self       = this;
+    var end        = params.validated - 50;
+    var ledgerHash = params.parentHash; 
+    var index      = params.validated;
+    var check;
     var startIndex;
     
     if (params.stop && end < params.stop) {
       end = params.stop;
     }
     
-    if (params.start && params.start - params.validated > 200) {
+    if (params.start && params.start - params.validated >= 200) {
       log.info("max gap size reached:", params.start);
-      callback(null, {startIndex:params.start, stopIndex:params.start - 200 + 1}); 
+      callback(null, {startIndex:params.start, stopIndex:params.start - 200}); 
       return;   
     }
     
@@ -150,8 +152,8 @@ var HistoricalImport = function () {
       //advance to the next batch
       if (!ledgers.length) {
         if (params.stop && params.stop === end) {
-          log.info("stop index reached: ", check);
-          callback(null, {startIndex:params.start, stopIndex:end});
+          log.info("stop index reached: ", params.stop);
+          callback(null, {startIndex:params.start || params.validated, stopIndex:end});
           return;
         }
         
@@ -164,8 +166,6 @@ var HistoricalImport = function () {
         return;
       }
       
-      var index = params.validated;
-      var check;
       
       for (var i=0; i<ledgers.length; i++) {  
         check = parseInt(ledgers[i].ledger_index, 10);
@@ -188,8 +188,6 @@ var HistoricalImport = function () {
           return;
           
         } else if (ledgerHash && ledgerHash !== ledgers[i].ledger_hash) {
-          console.log(ledgerHash, ledgers[i].ledger_hash);
-          console.log(check, ledgers[i].ledger_index);
           log.info("incorrect ledger hash at:", check); 
           callback(null, {startIndex:check, stopIndex:check});
           return;

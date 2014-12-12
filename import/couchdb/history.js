@@ -137,8 +137,6 @@ var HistoricalImport = function () {
       end = params.stop;
     }
     
-    console.log(params);
-    
     if (params.start && params.start - params.index >= 200) {
       log.info("max gap size reached:", params.start);
       callback(null, {startIndex:params.start, stopIndex:params.start - 200}); 
