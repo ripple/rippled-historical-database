@@ -333,7 +333,7 @@ var Importer = function () {
       
       try {
         var request = remote.request_ledger(options, handleResponse).timeout(TIMEOUT, function(){
-          log.warn("ledger request timed out after 15 seconds:", index);
+          log.warn('ledger request timed out after ' + (TIMEOUT/1000) + ' seconds:', index);
           retry(index, attempts, callback); 
         });
         
