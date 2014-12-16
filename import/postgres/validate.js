@@ -38,6 +38,9 @@ var Validator = function() {
         stopIndex = ledger.ledger_index;
         working = false;
         
+        //dont wait 90 seconds for the intial backfill
+        setTimeout(validate, 15000);
+        
       } else {      
         history.start(ledger.ledger_index, stopIndex, function(err, resp) {
           log.info('validated to:', ledger.ledger_index);
