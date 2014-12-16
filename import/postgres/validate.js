@@ -20,31 +20,40 @@ var Validator = function() {
     working = true;
     log.info('Starting validation process...');
     db.getLatestLedger(function(err, ledger) {
-      
+      var ledgerIndex;
+
       if (err) {
         log.error(err);
         working = false;
+        return;
         
       } else if (!ledger || !ledger.ledger_index) {
         log.info('no ledgers saved');
         working = false;
+        return;
+      } 
       
-      } else if (ledger.ledger_index === stopIndex) {
+      ledgerIndex = parseInt(ledger.ledger_index, 10);
+      
+      if (ledgerIndex === stopIndex) {
         log.info('ledger not advanced!!!', stopIndex);
         working = false;
       
       } else if (!stopIndex) {
-        log.info('setting stop index: ', ledger.ledger_index);
-        stopIndex = ledger.ledger_index;
+        log.info('setting stop index: ', ledgerIndex);
+        stopIndex = ledgerIndex;
         working = false;
         
         //dont wait 90 seconds for the intial backfill
         setTimeout(validate, 15000);
         
       } else {      
-        history.start(ledger.ledger_index, stopIndex, function(err, resp) {
-          log.info('validated to:', ledger.ledger_index);
-          stopIndex = ledger.ledger_index;
+        
+        //history imports include the start and end ledgers
+        //so account for that by adding and subtracting
+        history.start(ledgerIndex - 1, stopIndex + 1, function(err, resp) {
+          log.info('validated to:', ledgerIndex);
+          stopIndex = ledgerIndex - 1;
           working = false;
         });
       }
