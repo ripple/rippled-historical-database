@@ -30,13 +30,16 @@ There is a secondary process that runs periodically to validate the data already
 Live importing can be done onto one or more data stores concurrently, defaulting to postgres:
 
 `$ node import/live`
+
 `$ node import/live --type hbase`
+
 `$ node import/live --type postgres,couchdb`
 
 #Manual Backfill
 Backfilling history can be triggered from the last validated ledger, or a specific ledger range.  The ledger range is inclusive of the start and stop indexes provided.  Start index is defaulted to the last validated ledger index.  Backfilling proceeds backwards in time, so the start index must be greater than the stop index.
 
 `$ node import/postgres/backfill`
+
 `$ node import/couchdb/backfill --startIndex 1000000 --stopIndex 2000000`
 
 ##API Server
