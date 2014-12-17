@@ -40,7 +40,7 @@ Backfilling history can be triggered from the last validated ledger, or a specif
 
 `$ node import/postgres/backfill`
 
-`$ node import/couchdb/backfill --startIndex 1000000 --stopIndex 2000000`
+`$ node import/couchdb/backfill --startIndex 2000000 --stopIndex 1000000`
 
 ##API Server
 
