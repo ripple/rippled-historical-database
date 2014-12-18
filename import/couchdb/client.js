@@ -47,10 +47,28 @@ var Client = {
     });
   },
   
+  getLatestLedger : function (callback) {
+    var params = {
+      endKey     : moment.utc().toArray().slice(0,6),
+      limit      : 1,
+      reduce     : false,
+      descending : true
+    };
+    
+    nano.view('ledgersClosed', 'v1', params, function(err, resp){
+      if (err || !resp || !resp.rows || !resp.rows.length) {
+        return callback(err);
+      }
+      
+      nano.get(resp.rows[0].id, callback);
+    });
+  },
+  
   /**
   * addLeadingZeros converts numbers to strings and pads them with
   * leading zeros up to the given number of digits
   */
+  
   addLeadingZeros : function (number, digits) {
     var numStr = String(number);
     if (!digits) digits = 10;

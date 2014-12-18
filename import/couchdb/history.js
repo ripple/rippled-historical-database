@@ -72,7 +72,7 @@ var HistoricalImport = function () {
         } 
         
         var index = parseInt(ledger.ledger_index, 10) - 1;
-        var hash  = ledger.parent_hash.toLowerCase();
+        var hash  = ledger.parent_hash.toUpperCase();
         
         self._findGaps(index, hash, stop);
       });      
@@ -166,6 +166,9 @@ var HistoricalImport = function () {
           
         } else if (resp.rows[i].doc && ledgerHash && resp.rows[i].doc.ledger_hash !== ledgerHash) {
           log.info("incorrect ledger hash at:", check);
+          console.log(ledgerHash);
+          console.log(resp.rows[i].doc.ledger_hash);
+          console.log(resp.rows[i].doc.parent_hash);
           params.start = check;
           
         } else if (!resp.rows[i].doc && !params.start) {

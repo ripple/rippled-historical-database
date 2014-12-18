@@ -4,8 +4,9 @@ var Importer = require('./importer');
 var live     = new Importer();
 var indexer;
 var couchdb;
+var couchdbValidator;
 var postgres;
-var validator;
+var postgresValidator;
 var hbase;
 
 var typeList = config.get('type') || 'postgres';
@@ -33,10 +34,10 @@ if (types.hbase) {
 //postgres importer
 if (types.postgres) {
   log.info('Saving Ledgers to Postgres');
-  postgres  = new require('./postgres/client');
-  validator = new require('./postgres/validate')();
+  postgres = new require('./postgres/client');
+  postgresValidator = new require('./postgres/validate')();
   
-  validator.start();
+  postgresValidator.start();
   live.on('ledger', function(ledger) {
     postgres.saveLedger(ledger, function(err, resp){
       if (err) {
@@ -53,7 +54,9 @@ if (types.couchdb) {
   log.info('Saving Ledgers to CouchDB');
   indexer = require('./couchdb/indexer');
   couchdb = require('./couchdb/client');
+  couchdbValidator = new require('./couchdb/validate')();
   
+  couchdbValidator.start();
   live.on('ledger', function(ledger) {
     couchdb.saveLedger(ledger, function(err, resp){
       if (resp) indexer.pingCouchDB();
