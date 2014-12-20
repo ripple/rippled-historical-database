@@ -1,7 +1,8 @@
-var config   = require('../config/import.config');
-var log      = require('../lib/log')('ledgerstream');
-var Importer = require('./importer');
-var live     = new Importer();
+var config     = require('../config/import.config');
+var log        = require('../lib/log')('ledgerstream');
+var Importer   = require('./importer');
+var aggregator = require('../lib/aggregator');
+var live       = new Importer();
 var indexer;
 var couchdb;
 var couchdbValidator;
@@ -58,8 +59,12 @@ if (types.couchdb) {
   
   couchdbValidator.start();
   live.on('ledger', function(ledger) {
+    //aggregator.digestLedger(ledger);
+    //return;
+    
     couchdb.saveLedger(ledger, function(err, resp){
       if (resp) indexer.pingCouchDB();
+      aggregator.digestLedger(ledger);
     });
   });
 }

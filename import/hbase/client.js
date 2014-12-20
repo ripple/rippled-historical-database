@@ -260,6 +260,36 @@ Client.prototype.putRow = function (table, rowkey, family, data) {
   });
 }
 
+Client.prototype.saveRow = function (table, rowkey, data) {
+  var self   = this;
+  var fields = [];
+  var values = [];
+  var value;
+
+  
+  //format data
+  data.forEach(function(column) {
+    fields.push(column.family + ':' + column.name);
+    value = column.value;
+    if (typeof value !== 'string') {
+      value = JSON.stringify(value);
+    }
+    
+    values.push(value);
+  });
+  
+  //promisify
+  return new Promise (function(resolve, reject) {
+    self.hbase.getRow(table, rowkey).put(fields, values, function(err, resp){
+      if (err) {
+        reject(err);
+      } else {
+        resolve(resp);
+      }
+    });  
+  });
+}
+
 /**
  * saveLedger
  * save a ledger and associated

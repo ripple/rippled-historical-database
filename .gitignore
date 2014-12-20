@@ -27,3 +27,4 @@ node_modules
 .idea
 config/*.config.json
 persist/*
+.DS_Store
