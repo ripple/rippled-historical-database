@@ -23,6 +23,7 @@ var HistoricalImport = function () {
  /**
   * handle ledgers from the importer
   */  
+  
   this.importer.on('ledger', function(ledger) {
     db.saveLedger(ledger, function(err, resp) {
       self.count++;
