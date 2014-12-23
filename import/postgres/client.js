@@ -1,13 +1,14 @@
-var config  = require('../../config/import.config');
-var Knex    = require('knex');
-var Promise = require('bluebird');
-var log     = require('../../lib/log')('postgres');
-var moment  = require('moment');
-
+var config   = require('../../config/import.config');
+var Knex     = require('knex');
+var Promise  = require('bluebird');
+var log      = require('../../lib/log')('postgres');
+var moment   = require('moment');
+var UInt160  = require('ripple-lib').UInt160;
+var winston  = require('winston');
+var dbConfig = config.get('postgres');
 var SerializedObject = require('ripple-lib').SerializedObject;
-var UInt160 = require('ripple-lib').UInt160;
 
-var winston = require('winston');
+var EPOCH_OFFSET = 946684800;
 var hashErrorLog = new (require('winston').Logger)({
   transports: [
     new (winston.transports.Console)(),
@@ -15,16 +16,14 @@ var hashErrorLog = new (require('winston').Logger)({
   ]   
 });
 
-var EPOCH_OFFSET = 946684800;
-
 log.level(config.get('logLevel') || 2);
 
 //Main
 var DB = function(config) {
 	var self = this;
 	self.knex = Knex.initialize({
-		client     : config.dbtype,
-		connection : config.db
+		client     : 'postgres',
+		connection : dbConfig
 	});
 	var bookshelf = require('bookshelf')(self.knex);
 	
@@ -400,4 +399,4 @@ var DB = function(config) {
 };
 
 
-module.exports = new DB(config.get('sql'));
+module.exports = new DB();

@@ -6,57 +6,7 @@ var moment     = require('moment');
 var Promise    = require('bluebird');
 var HBase      = require('hbase');
 
-var PREFIX = "a2_";
-var COMMON_FIELDS = [
-  'Account',
-  'AccountTxnID',
-  'Fee',
-  'Flags',
-  'LastLedgerSequence',
-  'Memos',
-  'Sequence',
-  'SigningPubKey',
-  'SourceTag',
-  'TransactionType',
-  'TxnSignature',
-  'ledger_hash',
-  'ledger_index',
-  'tx_index',
-  'executed_time',
-  'tx_result',
-  'hash',
-  'raw',
-  'meta',
-  'metaData'
-];
-
-/*
-var baseUrl = 'http://54.164.78.183:20550';
-
-*/
-/*
-HB.getTable(PREFIX + 'ledgers').create('data', function(err, success){});
-HB.getTable(PREFIX + 'ledgers_by_index').create('data', function(err, success){});
-HB.getTable(PREFIX + 'transactions')
-.create({ColumnSchema: [
-  {name: 'CommonFields'},
-  {name: 'Payment'},
-  {name: 'OfferCreate'},
-  {name: 'OfferCancel'},
-  {name: 'AccountSet'},
-  {name: 'SetRegularKey'},
-  {name: 'TrustSet'},
-  {name: 'EnableAmendment'},
-  {name: 'SetFee'}
-]}, function(err, success){})
-
-HB.getTable(PREFIX + 'transactions_by_index').create('data', function(err, success){});
-HB.getTable(PREFIX + 'account_transactions').create('data', function(err, success){});
-HB.getTable(PREFIX + 'account_transactions_by_index').create('data', function(err, success){});
-HB.getTable(PREFIX + 'offers_exercised').create('data', function(err, success){});
-HB.getTable(PREFIX + 'balance_changes').create('data', function(err, success){});
-HB.getTable(PREFIX + 'accounts').create('data', function(err, success){});
-*/
+var PREFIX = "a3_";
 
 /**
  * Client
@@ -68,11 +18,8 @@ var Client = function (options) {
   self._ready = true;
   self._error = false;
   self._queue = [];
-  self.hbase  = HBase({
-    host : '54.164.78.183',
-    port : 20550
-  });
-  
+  self.hbase  = HBase(config.get('hbase'));
+  console.log(config.get('hbase'));
   /**
    * initTables
    * create tables and column families
@@ -82,24 +29,24 @@ var Client = function (options) {
   self._initTables = function (done) {
     self._ready = false;
     self._error = false; 
-    
+
     Promise.all([    
       addTable('ledgers'),
-      addTable('ledgers_by_index'), 
-      addTable('ledgers_by_time'), 
-      addTable('transactions'),
-      addTable('transactions_by_time'),
-      addTable('transactions_by_account_sequence'),
-      addTable('transactions_by_affected_account'),
-      addTable('offers_exercised'),
-      addTable('offers_exercised_by_account'),
+      addTable('transactions'), 
+      addTable('exchanges'), 
       addTable('balance_changes'),
-      addTable('balance_changes_by_account'),
       addTable('payments'),
-      addTable('payments_by_account'),
       addTable('accounts_created'),
-      addTable('accounts_created_by_parent'),     
-      addTable('memos'),  
+      addTable('memos'),
+      addTable('lu_ledgers_by_index'),
+      addTable('lu_ledgers_by_time'),
+      addTable('lu_transactions_by_time'),
+      addTable('lu_account_transactions'),
+      addTable('lu_affected_account_transactions'),
+      addTable('lu_account_exchanges'),
+      addTable('lu_account_balance_changes'),
+      addTable('lu_account_payments'),     
+      addTable('lu_account_memos'),  
     ])
     .nodeify(function(err, resp) {
       var row;
@@ -128,8 +75,8 @@ var Client = function (options) {
    * add a new table to HBase
    */
   
-  function addTable (table, families) {
-    if (!families) families = ['data'];
+  function addTable (table) {
+    var families = ['f','d'];
     return new Promise (function(resolve, reject) {
       var schema = [];
       families.forEach(function(family) {
@@ -182,8 +129,7 @@ Client.prototype.putRows = function (table, rows) {
         value = JSON.stringify(value);
       }
       
-      //family = table === 'transactions' ? getColumnName(rows[rowkey].TransactionType, column) : 'data';
-      family = 'data';
+      family = 'd';
       data.push({
         key    : rowkey,
         column : family + ':' + column,
@@ -201,21 +147,13 @@ Client.prototype.putRows = function (table, rows) {
   return new Promise (function(resolve, reject) {
     self.hbase.getRow(PREFIX + table).put(data, function(err, resp){
       if (err) {
+        console.log(PREFIX + table, err, resp);
         reject(err);
       } else {
         resolve(resp);
       }
     });  
   });
-  
-  //determine column name 
-  function getColumnName (family, column) {
-    if (COMMON_FIELDS.indexOf(column) !== -1) {
-      family = 'CommonFields';
-    } 
-
-    return family + ':' + column;
-  }
 };
 
 /**
@@ -301,6 +239,9 @@ Client.prototype.saveLedger = function (ledger, callback) {
   var data;
   var tables;
   
+  //make a copy
+  ledger = JSON.parse(JSON.stringify(ledger));
+  
   if (self._error) {
     return log.info('Ledger not saved:', ledger.ledger_index);
   }
@@ -310,7 +251,10 @@ Client.prototype.saveLedger = function (ledger, callback) {
   }
   
   data   = parser.parseHBase(ledger); 
+  //console.log(data);
+
   tables = Object.keys(data);
+
   
   Promise.map(tables, function(name) {
     return self.putRows(name, data[name]);

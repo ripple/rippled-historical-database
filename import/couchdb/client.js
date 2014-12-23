@@ -6,7 +6,7 @@ var ripple   = require('ripple-lib');
 var http     = require('http');
 var https    = require('https');
 var queries  = 0;
-var dbConfig = config.get('nosql:db');
+var dbConfig = config.get('couchdb');
 var nano     = require('nano')({
     url : dbConfig.protocol +
       '://' + dbConfig.username + 
