@@ -41,7 +41,7 @@ var Client = {
         
       } else { 
         var error = err && err.description ? err.description : err || "error";
-        log.error("rev lookupp failed:", error);
+        log.error("rev lookup failed:", error);
         callback(error);
       } 
     });
@@ -60,6 +60,7 @@ var Client = {
         return callback(err);
       }
       
+      console.log(resp.rows[0]);
       nano.get(resp.rows[0].id, callback);
     });
   },

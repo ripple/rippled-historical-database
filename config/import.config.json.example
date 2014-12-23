@@ -8,25 +8,23 @@
       { "host" : "s-east.ripple.com", "port" : 443, "secure" : true }
     ]
   },
-  "sql" : {
-    "dbtype" : "postgres",
-    "db"     : {
-      "host"     : "127.0.0.1",
-      "user"     : "",
-      "password" : "",
-      "database" : "ripple_data",
-      "charset"  : "utf8"
-    }
+  "postgres" : {
+    "host"     : "127.0.0.1",
+    "user"     : "",
+    "password" : "",
+    "database" : "ripple_data",
+    "charset"  : "utf8"
   },
-  "nosql" : {
-    "dbtype" : "couchdb",
-    "db"     : {
-      "host"     : "127.0.0.1",
-      "port"     : 5984,
-      "username" : "",
-      "password" : "",
-      "database" : "",
-      "protocol" : "http"
-    }
+  "couchdb" : {
+    "host"     : "127.0.0.1",
+    "port"     : 5984,
+    "username" : "",
+    "password" : "",
+    "database" : "",
+    "protocol" : "http"
+  },
+  "hbase" : {
+    "host" : "",
+    "port" : 20550 
   }  
 }
