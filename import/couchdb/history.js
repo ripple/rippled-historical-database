@@ -4,12 +4,9 @@ var moment   = require('moment');
 var diff     = require('deep-diff');
 var ripple   = require('ripple-lib');
 var Importer = require('../importer');
-var store    = require('node-persist');
 var indexer  = require('./indexer');
 var db       = require('./client');
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
-
-store.initSync();
 
 var HistoricalImport = function () {
   this.importer = new Importer();
@@ -45,7 +42,6 @@ var HistoricalImport = function () {
             self._findGaps(self.section.startIndex, null, stopIndex);
             
           } else {
-            store.setItem('earliestValidated', {index:self.section.stopIndex, hash:self.section.stopHash});
             log.info("gap filled:", self.section.stopIndex, '-', self.section.startIndex);
             self._findGaps(self.section.stopIndex, self.section.stopHash, stopIndex);
           }
