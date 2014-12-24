@@ -174,7 +174,7 @@ Client.prototype.putRows = function (table, rows) {
  * save a single row
  */
 
-Client.prototype.putRow = function (table, rowkey, data) {
+Client.prototype.putRow = function (table, rowKey, data) {
   var self   = this;
   var columns = prepareColumns(data);
   var put;
@@ -189,11 +189,12 @@ Client.prototype.putRow = function (table, rowkey, data) {
     columnValues : columns
   });
   
+  
   //promisify
   return new Promise (function(resolve, reject) {
-    hbase.put(PREFIX + table, put, function(err, resp) {
+    hbase.put(table, put, function(err, resp) {
       if (err) {
-        console.log(PREFIX + table, err, resp);
+        console.log(table, err, resp);
         reject(err);
       } else {
         resolve(resp);
