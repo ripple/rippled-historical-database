@@ -4,22 +4,36 @@ var Base       = require('ripple-lib').Base;
 var parser     = require('../../lib/ledgerParser');
 var moment     = require('moment');
 var Promise    = require('bluebird');
-var HBase      = require('hbase');
+var thrift     = require('thrift');
+var HBase      = require('../../lib/hbase/hbase');
+var HBaseTypes = require('../../lib/hbase/hbase_types');
+var HBaseRest  = require('hbase');
+var dbConfig   = config.get('hbase');  
+ 
+var connection = thrift.createConnection(dbConfig.host, dbConfig.port, {
+  transport : thrift.TFramedTransport,
+  protocol  : thrift.TBinaryProtocol
+});
 
-var PREFIX = "a3_";
+var PREFIX = "test_a3_";
+var hbase;
+var rest = HBaseRest(config.get('hbase-rest'));
+
+connection.on('connect', function() {
+  hbase = thrift.createClient(HBase,connection);
+});
 
 /**
  * Client
  * HBase client class
  */
 
-var Client = function (options) { 
+var Client = function () { 
   var self    = this;
   self._ready = true;
   self._error = false;
   self._queue = [];
-  self.hbase  = HBase(config.get('hbase'));
-  console.log(config.get('hbase'));
+
   /**
    * initTables
    * create tables and column families
@@ -83,7 +97,7 @@ var Client = function (options) {
         schema.push({name : family});
       });
 
-      self.hbase.getTable(PREFIX + table)
+      rest.getTable(PREFIX + table)
       .create({ColumnSchema : schema}, function(err, resp){ 
         if (err) {
           reject(err);
@@ -94,7 +108,6 @@ var Client = function (options) {
     });  
   }
 };
-
 
 /**
  * getRow
@@ -113,29 +126,29 @@ Client.prototype.getRow = function (table, rowkey, columns) {
 Client.prototype.putRows = function (table, rows) {
   var self = this;
   var data = [];
-  var family;
-  var columnName;
+  var columns;
+  var name;
   var value;
   
+  if (!hbase) {
+    throw new Error('hbase not connected');
+    return;
+  }
+  
   //format rows
-  for (rowkey in rows) {    
-    for (column in rows[rowkey]) {
-      value = rows[rowkey][column];
-      
-      if (!value) {
-        continue;
-        
-      } else if (typeof value !== 'string') {
-        value = JSON.stringify(value);
-      }
-      
-      family = 'd';
-      data.push({
-        key    : rowkey,
-        column : family + ':' + column,
-        $      : value
-      });
+  for (rowKey in rows) { 
+    columns = prepareColumns(rows[rowKey]);
+    
+    if (!columns.length) {
+      continue;
     }
+    
+    //if (table === 'transactions')
+    //console.log(table, rowKey, columns);
+    data.push(new HBaseTypes.TPut({
+      row          : rowKey,
+      columnValues : columns
+    }));
   }
   
   //only send it if we have data
@@ -145,7 +158,7 @@ Client.prototype.putRows = function (table, rows) {
   
   //promiseify
   return new Promise (function(resolve, reject) {
-    self.hbase.getRow(PREFIX + table).put(data, function(err, resp){
+    hbase.putMultiple(PREFIX + table, data, function(err, resp) {
       if (err) {
         console.log(PREFIX + table, err, resp);
         reject(err);
@@ -157,74 +170,35 @@ Client.prototype.putRows = function (table, rows) {
 };
 
 /**
- *
+ * putRow
+ * save a single row
  */
 
-Client.prototype.putRow = function (table, rowkey, family, data) {
+Client.prototype.putRow = function (table, rowkey, data) {
   var self   = this;
-  var fields = [];
-  var values = [];
-  var value;
-
-  if (typeof family === 'object') {
-    data   = family;
-    family = null; 
+  var columns = prepareColumns(data);
+  var put;
+  
+  if (!columns.length) {
+    return;
   }
   
-  if (!family) {
-    family = 'data';
-  }
   
-  //format data
-  for (key in data) {
-    fields.push(family + ':' + key);
-    value = data[key];
-    if (typeof value !== 'string') {
-      value = JSON.stringify(value);
-    }
-    
-    values.push(value);
-  }
-  
-  //promisify
-  return new Promise (function(resolve, reject) {
-    self.hbase.getRow(PREFIX + table, rowkey).put(fields, values, function(err, resp){
-      if (err) {
-        reject(err);
-      } else {
-        resolve(resp);
-      }
-    });  
-  });
-}
-
-Client.prototype.saveRow = function (table, rowkey, data) {
-  var self   = this;
-  var fields = [];
-  var values = [];
-  var value;
-
-  
-  //format data
-  data.forEach(function(column) {
-    fields.push(column.family + ':' + column.name);
-    value = column.value;
-    if (typeof value !== 'string') {
-      value = JSON.stringify(value);
-    }
-    
-    values.push(value);
+  put = new HBaseTypes.TPut({
+    row          : rowKey,
+    columnValues : columns
   });
   
   //promisify
   return new Promise (function(resolve, reject) {
-    self.hbase.getRow(table, rowkey).put(fields, values, function(err, resp){
+    hbase.put(PREFIX + table, put, function(err, resp) {
       if (err) {
+        console.log(PREFIX + table, err, resp);
         reject(err);
       } else {
         resolve(resp);
       }
-    });  
+    });   
   });
 }
 
@@ -251,10 +225,7 @@ Client.prototype.saveLedger = function (ledger, callback) {
   }
   
   data   = parser.parseHBase(ledger); 
-  //console.log(data);
-
   tables = Object.keys(data);
-
   
   Promise.map(tables, function(name) {
     return self.putRows(name, data[name]);
@@ -273,6 +244,51 @@ Client.prototype.saveLedger = function (ledger, callback) {
   });
                 
 };
-      
 
-module.exports = new Client(config);
+/**
+ * prepareColumns
+ * create an array of columnValue
+ * objects for the given data
+ */
+
+function prepareColumns (data) {
+  var columns = [];
+  
+  for (column in data) {
+    value = data[column];
+
+    //ignore empty rows
+    if (!value) {
+      continue;
+    }
+
+    columns.push(prepareColumn(column, value));
+  }
+  
+  return columns;
+}
+
+/**
+ * prepareColumn
+ * create a columnValue object
+ * for the given column
+ */
+
+function prepareColumn (key, value) {
+  var name;
+  
+  //stringify JSON and arrays  
+  if (typeof value !== 'string') {
+    value = JSON.stringify(value);
+  }
+
+  //default family to 'd' for data
+  name  = key.split(':');
+  return new HBaseTypes.TColumnValue({
+    family    : name[1] ? name[0] : 'd',
+    qualifier : name[1] ? name[1] : name[0],
+    value     : value
+  });
+}
+
+module.exports = new Client();
