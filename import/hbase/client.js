@@ -16,12 +16,11 @@ var connection = thrift.createConnection(dbConfig.host, dbConfig.port, {
 });
 
 var PREFIX = "test_a3_";
-var hbase;
+var LI_PAD = 12;
 var rest = HBaseRest(config.get('hbase-rest'));
 
-connection.on('connect', function() {
-  hbase = thrift.createClient(HBase,connection);
-});
+function onConnect() {
+};
 
 /**
  * Client
@@ -29,11 +28,25 @@ connection.on('connect', function() {
  */
 
 var Client = function () { 
-  var self    = this;
+  var self = this;
+  var connection = thrift.createConnection(dbConfig.host, dbConfig.port, {
+    transport : thrift.TFramedTransport,
+    protocol  : thrift.TBinaryProtocol
+  });
+  
   self._ready = true;
   self._error = false;
   self._queue = [];
-
+  self._isConnected = false;
+  
+  connection.on('connect', function() {
+    self.hbase = thrift.createClient(HBase,connection);
+    self._isConnected = true;
+    log.info('HBASE connected');
+    if (self.onConnect) self.onConnect();
+  });
+  
+  
   /**
    * initTables
    * create tables and column families
@@ -130,7 +143,7 @@ Client.prototype.putRows = function (table, rows) {
   var name;
   var value;
   
-  if (!hbase) {
+  if (!self._isConnected) {
     throw new Error('hbase not connected');
     return;
   }
@@ -158,7 +171,7 @@ Client.prototype.putRows = function (table, rows) {
   
   //promiseify
   return new Promise (function(resolve, reject) {
-    hbase.putMultiple(PREFIX + table, data, function(err, resp) {
+    self.hbase.putMultiple(PREFIX + table, data, function(err, resp) {
       if (err) {
         console.log(PREFIX + table, err, resp);
         reject(err);
@@ -175,14 +188,18 @@ Client.prototype.putRows = function (table, rows) {
  */
 
 Client.prototype.putRow = function (table, rowKey, data) {
-  var self   = this;
+  var self    = this;
   var columns = prepareColumns(data);
   var put;
+  
+  if (!self._isConnected) {
+    throw new Error('hbase not connected');
+    return;
+  }
   
   if (!columns.length) {
     return;
   }
-  
   
   put = new HBaseTypes.TPut({
     row          : rowKey,
@@ -192,7 +209,7 @@ Client.prototype.putRow = function (table, rowKey, data) {
   
   //promisify
   return new Promise (function(resolve, reject) {
-    hbase.put(table, put, function(err, resp) {
+    self.hbase.put(table, put, function(err, resp) {
       if (err) {
         console.log(table, err, resp);
         reject(err);
@@ -213,6 +230,11 @@ Client.prototype.saveLedger = function (ledger, callback) {
   var self = this;
   var data;
   var tables;
+
+  if (!self._isConnected) {
+    throw new Error('hbase not connected');
+    return;
+  }
   
   //make a copy
   ledger = JSON.parse(JSON.stringify(ledger));
@@ -244,6 +266,55 @@ Client.prototype.saveLedger = function (ledger, callback) {
     }
   });
                 
+};
+
+
+Client.prototype.getLedgers = function (options, callback) {
+  var self  = this;
+  var count = options.stopIndex - options.startIndex;
+
+  if (!self._isConnected) {
+    throw new Error('hbase not connected');
+    return;
+  }
+  
+  var scan = new HBaseTypes.TScan({
+    startRow : pad(options.startIndex, LI_PAD),
+    stopRow  : pad(options.stopIndex+1, LI_PAD)
+  });
+  
+  self.hbase.openScanner(PREFIX + 'lu_ledgers_by_index', scan, function(err, id) {
+
+    if (err) {
+      callback('unable to create scanner');
+      return;
+    }
+    
+    self.hbase.getScannerRows(id, count, function (err, rows){
+      var results = [];
+      var r, rowkey;
+      
+      if (err) {
+        callback(err);
+        return;
+      }
+      
+      rows.forEach(function(row) {
+        r = {};
+        rowkey = row.row.split('|');
+        r.ledger_index = parseInt(rowkey[0], 10);
+        r.ledger_hash  = rowkey[1];
+        
+        row.columnValues.forEach(function(column) {
+          r[column.qualifier] = column.value;
+        });
+        
+        results.push(r);
+      });
+      
+      callback(null, results);
+    });
+  });
 };
 
 /**
@@ -290,6 +361,13 @@ function prepareColumn (key, value) {
     qualifier : name[1] ? name[1] : name[0],
     value     : value
   });
+}
+
+function pad(num, size) {
+  var s = num+"";
+  if (!size) size = 10;
+  while (s.length < size) s = "0" + s;
+  return s;
 }
 
 module.exports = new Client();
