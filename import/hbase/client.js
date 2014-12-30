@@ -9,18 +9,10 @@ var HBase      = require('../../lib/hbase/hbase');
 var HBaseTypes = require('../../lib/hbase/hbase_types');
 var HBaseRest  = require('hbase');
 var dbConfig   = config.get('hbase');  
- 
-var connection = thrift.createConnection(dbConfig.host, dbConfig.port, {
-  transport : thrift.TFramedTransport,
-  protocol  : thrift.TBinaryProtocol
-});
 
-var PREFIX = "test_a3_";
+var PREFIX = "beta_";
 var LI_PAD = 12;
 var rest = HBaseRest(config.get('hbase-rest'));
-
-function onConnect() {
-};
 
 /**
  * Client
@@ -29,23 +21,31 @@ function onConnect() {
 
 var Client = function () { 
   var self = this;
-  var connection = thrift.createConnection(dbConfig.host, dbConfig.port, {
-    transport : thrift.TFramedTransport,
-    protocol  : thrift.TBinaryProtocol
-  });
+  var connection;
   
   self._ready = true;
   self._error = false;
   self._queue = [];
-  self._isConnected = false;
   
-  connection.on('connect', function() {
-    self.hbase = thrift.createClient(HBase,connection);
-    self._isConnected = true;
-    log.info('HBASE connected');
-    if (self.onConnect) self.onConnect();
-  });
+  function connectHbase (fn) { 
+    connection = thrift.createConnection(dbConfig.host, dbConfig.port, {
+      transport : thrift.TFramedTransport,
+      protocol  : thrift.TBinaryProtocol
+    });
+
+    connection.on('connect', function() {
+      self.hbase = thrift.createClient(HBase,connection);
+      log.info('hbase connected');
+      connection.connected = true;
+      if (fn) setImmediate(fn);
+    });
+  }
+
+  connectHbase();
   
+  self.isConnected = function () {
+    return !!self.hbase && !!connection && connection.connected;
+  }
   
   /**
    * initTables
@@ -143,7 +143,7 @@ Client.prototype.putRows = function (table, rows) {
   var name;
   var value;
   
-  if (!self._isConnected) {
+  if (!self.isConnected()) {
     throw new Error('hbase not connected');
     return;
   }
@@ -192,7 +192,7 @@ Client.prototype.putRow = function (table, rowKey, data) {
   var columns = prepareColumns(data);
   var put;
   
-  if (!self._isConnected) {
+  if (!self.isConnected()) {
     throw new Error('hbase not connected');
     return;
   }
@@ -231,7 +231,7 @@ Client.prototype.saveLedger = function (ledger, callback) {
   var data;
   var tables;
 
-  if (!self._isConnected) {
+  if (!self.isConnected()) {
     throw new Error('hbase not connected');
     return;
   }
@@ -273,7 +273,7 @@ Client.prototype.getLedgers = function (options, callback) {
   var self  = this;
   var count = options.stopIndex - options.startIndex;
 
-  if (!self._isConnected) {
+  if (!self.isConnected()) {
     throw new Error('hbase not connected');
     return;
   }
