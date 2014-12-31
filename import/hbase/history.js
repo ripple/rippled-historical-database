@@ -2,7 +2,7 @@ var config   = require('../../config/import.config');
 var log      = require('../../lib/log')('hbase_history');
 var moment   = require('moment');
 var Importer = require('../importer');
-var db       = require('./client');
+var DB       = require('./client');
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
 
 var HistoricalImport = function () {
@@ -10,6 +10,7 @@ var HistoricalImport = function () {
   this.count    = 0;
   this.total    = 0;
   this.section  = { };
+  this.db       = new DB();
   var self = this;
   var stopIndex;
   var cb;
@@ -20,7 +21,7 @@ var HistoricalImport = function () {
   */  
   
   this.importer.on('ledger', function(ledger) {
-    db.saveLedger(ledger, function(err, resp) {
+    self.db.saveLedger(ledger, function(err, resp) {
       self.count++;
       if (err) {
         log.error(err);
@@ -58,13 +59,6 @@ var HistoricalImport = function () {
     var self  = this;
     stopIndex = stop;
     cb        = callback;
-    
-    if (!db.isConnected()) {
-      db.connect(function(){
-        self.start(start, stop, callback); 
-      });
-      return;
-    }
     
     if (!start || start < GENESIS_LEDGER) {
       start = GENESIS_LEDGER;
@@ -145,7 +139,7 @@ var HistoricalImport = function () {
     
     log.info('validating ledgers:', startIndex, '-', end);
     
-    db.getLedgers({
+    self.db.getLedgers({
       startIndex : startIndex,
       stopIndex  : end
     }, function (err, ledgers) {

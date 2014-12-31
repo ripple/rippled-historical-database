@@ -27,24 +27,41 @@ var Client = function () {
   self._error = false;
   self._queue = [];
   
-  function connectHbase (fn) { 
+  self.isConnected = function () {
+    return !!self.hbase && !!connection && connection.connected;
+  }
+  
+  self.connect = function () {
+    log.info('connecting to hbase');
     connection = thrift.createConnection(dbConfig.host, dbConfig.port, {
       transport : thrift.TFramedTransport,
-      protocol  : thrift.TBinaryProtocol
+      protocol  : thrift.TBinaryProtocol,
+      connect_timeout : 15000
     });
-
+    
     connection.on('connect', function() {
       self.hbase = thrift.createClient(HBase,connection);
       log.info('hbase connected');
-      connection.connected = true;
-      if (fn) setImmediate(fn);
     });
-  }
+            
+    connection.on('error', function (err) {
+      log.error('hbase error', err);
+    }); 
+    
+    connection.on('close', function() {
+      console.log('hbase close');
+      self.connect(); //attempt reconnect
+    });
+    
+    return new Promise (function(resolve, reject) {
+      connection.once('connect', function() {
+        resolve(true);
+      });
 
-  connectHbase();
-  
-  self.isConnected = function () {
-    return !!self.hbase && !!connection && connection.connected;
+      connection.once('error', function (err) {
+        reject(err);
+      });     
+    });
   }
   
   /**
@@ -143,11 +160,6 @@ Client.prototype.putRows = function (table, rows) {
   var name;
   var value;
   
-  if (!self.isConnected()) {
-    throw new Error('hbase not connected');
-    return;
-  }
-  
   //format rows
   for (rowKey in rows) { 
     columns = prepareColumns(rows[rowKey]);
@@ -192,11 +204,6 @@ Client.prototype.putRow = function (table, rowKey, data) {
   var columns = prepareColumns(data);
   var put;
   
-  if (!self.isConnected()) {
-    throw new Error('hbase not connected');
-    return;
-  }
-  
   if (!columns.length) {
     return;
   }
@@ -230,11 +237,6 @@ Client.prototype.saveLedger = function (ledger, callback) {
   var self = this;
   var data;
   var tables;
-
-  if (!self.isConnected()) {
-    throw new Error('hbase not connected');
-    return;
-  }
   
   //make a copy
   ledger = JSON.parse(JSON.stringify(ledger));
@@ -272,13 +274,8 @@ Client.prototype.saveLedger = function (ledger, callback) {
 Client.prototype.getLedgers = function (options, callback) {
   var self  = this;
   var count = options.stopIndex - options.startIndex;
-
-  if (!self.isConnected()) {
-    throw new Error('hbase not connected');
-    return;
-  }
   
-  var scan = new HBaseTypes.TScan({
+  var scan  = new HBaseTypes.TScan({
     startRow : pad(options.startIndex, LI_PAD),
     stopRow  : pad(options.stopIndex+1, LI_PAD)
   });
@@ -370,4 +367,4 @@ function pad(num, size) {
   return s;
 }
 
-module.exports = new Client();
+module.exports = Client;

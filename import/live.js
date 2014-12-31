@@ -8,6 +8,7 @@ var couchdb;
 var couchdbValidator;
 var postgres;
 var postgresValidator;
+var HBase;
 var hbase;
 
 var typeList = config.get('type') || 'postgres';
@@ -24,10 +25,12 @@ live.liveStream();
 //hbase importer
 if (types.hbase) {
   log.info('Saving Ledgers to HBase');
-  hbase = require('./hbase/client');
-  
-  live.on('ledger', function(ledger) {
-    hbase.saveLedger(ledger);
+  HBase = require('./hbase/client');
+  hbase = new HBase();
+  hbase.connect().then(function(){
+    live.on('ledger', function(ledger) {
+      hbase.saveLedger(ledger);
+    });
   });
 }
 
