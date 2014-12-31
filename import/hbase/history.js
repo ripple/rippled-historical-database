@@ -59,10 +59,10 @@ var HistoricalImport = function () {
     stopIndex = stop;
     cb        = callback;
     
-    if (!db._isConnected) {
-      db.onConnect = function() {
+    if (!db.isConnected()) {
+      db.connect(function(){
         self.start(start, stop, callback); 
-      }
+      });
       return;
     }
     

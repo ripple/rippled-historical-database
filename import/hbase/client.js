@@ -10,7 +10,7 @@ var HBaseTypes = require('../../lib/hbase/hbase_types');
 var HBaseRest  = require('hbase');
 var dbConfig   = config.get('hbase');  
 
-var PREFIX = "beta_";
+var PREFIX = "beta2_";
 var LI_PAD = 12;
 var rest = HBaseRest(config.get('hbase-rest'));
 
