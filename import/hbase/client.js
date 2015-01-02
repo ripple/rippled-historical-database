@@ -309,6 +309,10 @@ Client.prototype.getLedgers = function (options, callback) {
         results.push(r);
       });
       
+      self.hbase.closeScanner(id, function(err, resp) {
+        console.log(err, resp);
+      });
+      
       callback(null, results);
     });
   });
