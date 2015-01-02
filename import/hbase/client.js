@@ -154,11 +154,13 @@ Client.prototype.getRow = function (table, rowkey, columns) {
  */
 
 Client.prototype.putRows = function (table, rows) {
-  var self = this;
-  var data = [];
+  var self   = this;
+  var data   = [];
+  var arrays = [];
   var columns;
   var name;
   var value;
+  var chunk = 100;
   
   //format rows
   for (rowKey in rows) { 
@@ -180,18 +182,27 @@ Client.prototype.putRows = function (table, rows) {
   if (!data.length) {
     return null;
   }
-  
-  //promiseify
-  return new Promise (function(resolve, reject) {
-    self.hbase.putMultiple(PREFIX + table, data, function(err, resp) {
-      if (err) {
-        console.log(PREFIX + table, err, resp);
-        reject(err);
-      } else {
-        resolve(resp);
-      }
-    });  
+
+  for (var i=0, j=data.length; i<j; i+=chunk) {
+    arrays.push(data.slice(i,i+chunk));
+  }
+
+  return Promise.map(arrays, function(chunk) {
+    //promiseify
+    return new Promise (function(resolve, reject) {
+      self.hbase.putMultiple(PREFIX + table, chunk, function(err, resp) {
+        if (err) {
+          console.log(PREFIX + table, err, resp);
+          reject(err);
+        } else {
+          //console.log(PREFIX + table, "saved", chunk.length);
+          resolve(resp);
+        }
+      });  
+    });
   });
+  
+
 };
 
 /**
@@ -240,6 +251,7 @@ Client.prototype.saveLedger = function (ledger, callback) {
   
   //make a copy
   ledger = JSON.parse(JSON.stringify(ledger));
+  console.log("#transactions: ", ledger.transactions.length);
   
   if (self._error) {
     return log.info('Ledger not saved:', ledger.ledger_index);
@@ -310,7 +322,9 @@ Client.prototype.getLedgers = function (options, callback) {
       });
       
       self.hbase.closeScanner(id, function(err, resp) {
-        console.log(err, resp);
+        if (err) {
+          log.error('close scanner:', err);
+        }
       });
       
       callback(null, results);
