@@ -111,9 +111,6 @@ var Client = function () {
     });
   }
   
-  //ensure we have the proper tables before importing
-  //self._initTables();
-  
   /**
    * addTable
    * add a new table to HBase
@@ -129,6 +126,7 @@ var Client = function () {
 
       rest.getTable(PREFIX + table)
       .create({ColumnSchema : schema}, function(err, resp){ 
+        console.log(table, err, resp);
         if (err) {
           reject(err);
         } else {
