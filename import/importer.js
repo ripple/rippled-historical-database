@@ -16,7 +16,7 @@ var hashErrorLog = new (require('winston').Logger)({
   ]   
 });
 
-log.level(4);
+log.level(config.get('logLevel') || 2);
 
 var Importer = function () {
   var self   = this;
