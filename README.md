@@ -44,3 +44,24 @@ Backfilling history can be triggered from the last validated ledger, or a specif
 
 ##API Server
 
+Account Transaction History
+Retrieve Ripple transaction history for a specific account. All query string parameters are optional.  If none are included, the query returns the last 20 transactions for the specified account.
+
+GET /v1/accounts/{account}/transactions
+
+Parameter | Description | Values 
+---  | --- | ---
+type | ripple transaction type, accepts comma separated list | `OfferCreate`, `OfferCancel`, `Payment`, `TrustSet`, `AccountSet`, `TicketCreate`
+result | ripple transaction result | `tesSUCCESS`, `tecCLAIM`, `tecPATH_PARTIAL`, `tecUNFUNDED_ADD`, `tecUNFUNDED_OFFER`, `tecUNFUNDED_PAYMENT`, `tecFAILED_PROCESSING`, `tecDIR_FULL`, `tecINSUF_RESERVE_LINE`, `tecINSUF_RESERVE_OFFER`, `tecNO_DST`, `tecNO_DST_INSUF_XRP`, `tecNO_LINE_INSUF_RESERVE`, `tecNO_LINE_REDUNDANT`, `tecPATH_DRY`, `tecUNFUNDED`, `tecMASTER_DISABLED`, `tecNO_REGULAR_KEY`, `tecOWNERS`, `tecNO_ISSUER`, `tecNO_AUTH`, `tecNO_LINE`, `tecINSUFF_FEE`, `tecFROZEN`, `tecNO_TARGET`, `tecNO_PERMISSION`, `tecNO_ENTRY`, `tecINSUFFICIENT_RESERVE'
+start | start date and time of time range, ISO_8601 format | `2014-11-05T08:00:00-00:00`
+end | end date and time of time range, ISO_8601 format | `2014-11-05T14:00:00-00:00`
+ledger_min | earliest ledger index to query | integer
+ledger_max | latest ledger index to query | integer
+limit | number of transactions to return default is 20 | integer
+offset | offset returned results | integer
+descending | sort order of the query, defaults to true | boolean
+binary | return results in binary format, defaults to false | boolean
+
+Example:
+
+https://history-dev.ripple.com:7443/v1/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/transactions?type=Payment&start=2014-05-02&end=2014-10-02&limit=10&offset=20
