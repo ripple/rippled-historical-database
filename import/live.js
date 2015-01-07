@@ -1,11 +1,11 @@
 var config     = require('../config/import.config');
 var log        = require('../lib/log')('ledgerstream');
 var Importer   = require('./importer');
-var aggregator = require('../lib/aggregator');
 var live       = new Importer();
 var indexer;
 var couchdb;
 var couchdbValidator;
+var aggregator;
 var postgres;
 var postgresValidator;
 var HBase;
@@ -64,6 +64,10 @@ if (types.couchdb) {
   couchdb = require('./couchdb/client');
   couchdbValidator = new require('./couchdb/validate')();
   
+  if (config.get('aggregate')) {
+    aggregator = require('../lib/aggregator');
+  }
+  
   couchdbValidator.start();
   live.on('ledger', function(ledger) {
     //aggregator.digestLedger(ledger);
@@ -71,7 +75,9 @@ if (types.couchdb) {
     
     couchdb.saveLedger(ledger, function(err, resp){
       if (resp) indexer.pingCouchDB();
-      aggregator.digestLedger(ledger);
+      if (config.get('aggregate')) {
+        aggregator.digestLedger(ledger);
+      }
     });
   });
 }
