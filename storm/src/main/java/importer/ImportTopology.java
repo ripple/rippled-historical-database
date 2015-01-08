@@ -9,7 +9,7 @@ public class ImportTopology {
   public static void main(String[] args) throws Exception {
     TopologyBuilder builder = new TopologyBuilder();
     builder.setSpout("ledgerStream", new LedgerStreamSpout());
-    builder.setBolt("saveLedger", new SaveLedgerBolt(), 2).shuffleGrouping("ledgerStream");
+    builder.setBolt("transactions", new TransactionBolt(), 2).shuffleGrouping("ledgerStream");
 
     Config conf = new Config();
     //conf.setDebug(true);

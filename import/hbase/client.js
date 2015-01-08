@@ -1,6 +1,5 @@
 var config     = require('../../config/import.config');
 var log        = require('../../lib/log')('hbase');
-var Base       = require('ripple-lib').Base;
 var parser     = require('../../lib/ledgerParser');
 var moment     = require('moment');
 var Promise    = require('bluebird');
