@@ -15,7 +15,12 @@ public class TransactionBolt extends ShellBolt implements IRichBolt {
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declare(new Fields("close_time"));
+    declarer.declareStream("payments", new Fields("payment"));
+    declarer.declareStream("exchanges", new Fields("exchange"));
+    declarer.declareStream("balance_changes", new Fields("change"));
+    declarer.declareStream("accounts_created", new Fields("account"));
+    declarer.declareStream("affected_accounts", new Fields("account"));
+    declarer.declareStream("memos", new Fields("memo"));
   }
 
   @Override
