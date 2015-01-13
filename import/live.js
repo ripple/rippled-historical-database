@@ -28,7 +28,7 @@ if (types.hbase) {
   HBase = require('./hbase/client');
   hbase = new HBase();
   hbase.connect().then(function(){
-    
+
     //ensure we have the proper tables before importing
     //hbase._initTables();
     

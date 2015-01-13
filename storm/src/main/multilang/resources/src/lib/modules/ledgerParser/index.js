@@ -1,7 +1,6 @@
-var log  = require('../log')('Ledger_Parser');
 var SerializedObject = require('ripple-lib').SerializedObject;
-var binformat = require('../../node_modules/ripple-lib/src/js/ripple/binformat');
-var utils = require('../utils');
+var binformat        = require('ripple-lib').binformat;
+var utils            = require('../../utils');
 
 var EPOCH_OFFSET = 946684800;
 var LI_PAD       = 12;
@@ -340,7 +339,7 @@ Parser.parse = function(ledger) {
       transaction.meta = utils.toHex(meta);
       
     } catch (e) {
-      log.error(e, transaction.ledger_index, transaction.hash);
+      console.log(e, transaction.ledger_index, transaction.hash);
       return;
     }
     
@@ -391,13 +390,19 @@ Parser.parse = function(ledger) {
 
 Parser.parseTransaction = function (tx) {
   var data = { };
+  var payment;
   
   data.exchanges        = Parser.exchanges(tx);
   data.balanceChanges   = Parser.balanceChanges(tx);
   data.accountsCreated  = Parser.accountsCreated(tx);
   data.affectedAccounts = Parser.affectedAccounts(tx); 
   data.memos            = Parser.memos(tx); 
-  data.payment          = Parser.payment(tx);
+  data.payments         = [];
+  payment               = Parser.payment(tx);
+  
+  if (payment) {
+    data.payments.push(payment);
+  }
   
   return data;
 };

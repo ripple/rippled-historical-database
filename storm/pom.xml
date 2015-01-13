@@ -39,23 +39,7 @@
     <resources>
       <resource>
         <directory>${basedir}/src/main/multilang</directory>
-      </resource>
-      <resource>
-        <directory>../import</directory>
-        <targetPath>resources/import</targetPath>
-      </resource>
-      <resource>
-        <directory>../lib</directory>
-        <targetPath>resources/lib</targetPath>
       </resource> 
-      <resource>
-        <directory>../node_modules</directory>
-        <targetPath>resources/node_modules</targetPath>
-      </resource> 
-      <resource>
-        <directory>../config</directory>
-        <targetPath>resources/config</targetPath>
-      </resource>   
    </resources>
 
     <plugins>

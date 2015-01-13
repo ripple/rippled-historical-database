@@ -11,7 +11,7 @@ import java.util.Map;
 public class LedgerStreamSpout extends ShellSpout implements IRichSpout {
 
   public LedgerStreamSpout() {
-    super("node", "importer/ledgerStreamSpout.js");
+    super("node", "src/ledgerStreamSpout.js");
   }
 
   @Override
