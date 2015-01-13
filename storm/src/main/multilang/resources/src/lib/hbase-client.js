@@ -211,12 +211,15 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
     var row  = {
       base_amount       : ex.base.amount,
       counter_amount    : ex.counter.amount,
+      base_issuer       : ex.base.issuer,
+      counter_issuer    : ex.counter.issuer || undefined,
       rate              : ex.rate,
       'f:buyer'         : ex.buyer,
       'f:seller'        : ex.seller,
       'f:taker'         : ex.taker,
       'f:tx_hash'       : ex.tx_hash,
-      'f:executed_time' : ex.executed_time
+      'f:executed_time' : ex.executed_time,
+      'f:ledger_index'  : ex.ledger_index
     };
     
     tables.exchanges[key] = row;
@@ -233,24 +236,22 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       '|' + utils.padNumber(c.tx_index, I_PAD) +
       '|' + (c.node_index === 'fee' ? 'fee' : utils.padNumber(c.node_index, I_PAD));
     
-    tables.balance_changes[key] = {
+    var row = {
+      'f:currency'      : c.currency,
+      'f:issuer'        : c.issuer,
       'f:account'       : c.account,
       change            : c.change,
       final_balance     : c.final_balance,
       'f:change_type'   : c.type,
       'f:tx_hash'       : c.tx_hash,
       'f:executed_time' : c.time,
+      'f:ledger_index'  : c.ledger_index
     };
     
+    tables.balance_changes[key] = row;
+    
     key = c.account + '|' + key;
-    tables.lu_account_balance_changes[key] = {
-      change            : c.change,
-      final_balance     : c.final_balance,
-      'f:change_type'   : c.type,
-      'f:tx_hash'       : c.tx_hash,
-      'f:executed_time' : c.time,
-    };    
-      
+    tables.lu_account_balance_changes[key] = row;    
   });
   
   params.data.payments.forEach(function(p) {
@@ -270,7 +271,8 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       source_balance_changes      : p.source_balance_changes,
       destination_balance_changes : p.destination_balance_changes,
       'f:executed_time' : p.time,  
-      'f:tx_hash'       : p.tx_hash
+      'f:tx_hash'       : p.tx_hash,
+      'f:ledger_index'  : p.ledger_index
     }
     
     if (p.max_amount) {
@@ -301,7 +303,8 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       'f:parent'        : a.parent,
       balance           : a.balance,
       'f:tx_hash'       : a.tx_hash,
-      'f:executed_time' : a.executed_time
+      'f:executed_time' : a.executed_time,
+      'f:ledger_index'  : a.ledger_index
     };   
   });
   
@@ -332,7 +335,8 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       data_encoding       : m.data_encoding,
       format_encoding     : m.format_encoding,
       'f:tx_hash'         : m.tx_hash,
-      'f:executed_time'   : m.executed_time
+      'f:executed_time'   : m.executed_time,
+      'f:ledger_index'    : m.ledger_index
     };
     
     tables.lu_account_memos[m.account + '|' + key] = {
@@ -340,7 +344,8 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       'f:is_sender'     : true,
       'f:tag'           : m.source_tag,
       'f:tx_hash'       : m.tx_hash,
-      'f:executed_time' : m.executed_time
+      'f:executed_time' : m.executed_time,
+      'f:ledger_index'  : m.ledger_index
     }
     
     if (m.destination) {
@@ -349,7 +354,8 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
         'f:is_sender'     : false,
         'f:tag'           : m.destination_tag,
         'f:tx_hash'       : m.tx_hash,
-        'f:executed_time' : m.executed_time
+        'f:executed_time' : m.executed_time,
+        'f:ledger_index'  : m.ledger_index
       }
     } 
   });
@@ -364,8 +370,11 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       '|' + utils.padNumber(a.tx_index, I_PAD);  
     
     tables.lu_affected_account_transactions[key] = {
+      'f:type'          : a.tx_type,
+      'f:result'        : a.tx_result,
       tx_hash           : a.tx_hash,
       'f:executed_time' : a.time,
+      'f:ledger_index'  : a.ledger_index
     }
   });
   

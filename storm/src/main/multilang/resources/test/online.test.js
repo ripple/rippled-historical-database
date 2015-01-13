@@ -72,6 +72,7 @@ describe('ledgerStreamSpout', function () {
   });    
   
   it('should save incoming transactions', function(done) {
+    this.timeout(10000);
     Promise.map(stream.transactions, function(tx) {
       return new Promise (function(resolve, reject) {
         stream.hbase.saveTransaction(tx, function(err, resp) {
@@ -86,6 +87,7 @@ describe('ledgerStreamSpout', function () {
   });   
   
   it('should save parsed transaction data', function(done) {
+    this.timeout(10000);
     Promise.map(stream.parsed, function(data) {
       return new Promise (function(resolve, reject) {
         stream.hbase.saveParsedData(data, function(err, resp) {
@@ -99,7 +101,7 @@ describe('ledgerStreamSpout', function () {
     });
   }); 
   
-  /*
+  
   after(function(done) {
     this.timeout(30000);
     console.log('removing tables');
@@ -107,5 +109,4 @@ describe('ledgerStreamSpout', function () {
       done();
     });
   });
-  */
 });
