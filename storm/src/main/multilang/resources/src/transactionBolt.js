@@ -44,7 +44,7 @@ TransactionBolt.prototype.process = function(tup, done) {
     self.saveParsedData(parsed),
 
     //emit to aggregations
-    //self.processStreams(tx, data, tup.id),
+    self.processStreams(parsed, tup.id),
     
   ]).nodeify(function(err, resp){
     
@@ -53,7 +53,8 @@ TransactionBolt.prototype.process = function(tup, done) {
       self.fail(tup);
       
     } else {
-      self.ack(tup);
+      //self.ack(tup);
+      done();
     }
     
   });
@@ -109,19 +110,69 @@ TransactionBolt.prototype.saveParsedData = function (parsed) {
  * processStreams
  */
 
-TransactionBolt.prototype.processStreams = function (data, id) {
+TransactionBolt.prototype.processStreams = function (parsed, id) {
   var self = this;
   
-  if (data.payment) {
-    self.emit({
-      tuple         : [data.payment], 
-      anchorTupleId : id,
-      stream        : 'payments'
-    }, 
-    function(taskIds) {
-        self.log('payment sent to task ids - ' + taskIds);
+  return new Promise (function(resolve, reject) {
+    
+    //self.log(parsed.data.exchanges.length);
+    //self.log(parsed.data.payments.length);
+    //self.log(parsed.data.balance_changes.length);
+    //self.log(parsed.data.accounts_created.length);
+    
+    parsed.data.exchanges.forEach(function(exchange) {
+      var pair = exchange.base.currency + 
+          (exchange.base.issuer ? "." + exchange.base.issuer : '') +
+          '/' + exchange.counter.currency + 
+          (exchange.counter.issuer ? "." + exchange.counter.issuer : '');
+      
+      self.log(pair);
+      self.emit({
+        tuple         : [exchange, pair], 
+        anchorTupleId : id,
+        stream        : 'exchangeAggregation'
+      }, 
+      function(taskIds) {
+          self.log('exchange sent to task ids - ' + taskIds);
+      });  
     });
-  }
+
+    parsed.data.payments.forEach(function(payment) { 
+      self.emit({
+        tuple         : [payment], 
+        anchorTupleId : id,
+        stream        : 'paymentAggregation'
+      }, 
+      function(taskIds) {
+          self.log('payment sent to task ids - ' + taskIds);
+      });
+    });
+
+    parsed.data.balanceChanges.forEach(function(change) { 
+      self.emit({
+        tuple         : [change], 
+        anchorTupleId : id,
+        stream        : 'balanceChangeAggregation'
+      }, 
+      function(taskIds) {
+          self.log('balance_change sent to task ids - ' + taskIds);
+      });
+    });  
+
+    parsed.data.accountsCreated.forEach(function(account) { 
+      self.emit({
+        tuple         : [account], 
+        anchorTupleId : id,
+        stream        : 'accountsCreatedAggregation'
+      }, 
+      function(taskIds) {
+          self.log('account_created sent to task ids - ' + taskIds);
+      });
+    });
+    
+    self.log("done: " + parsed.ledgerIndex + "|" + parsed.txIndex);
+    resolve();
+  });
 };
 
 bolt = new TransactionBolt();

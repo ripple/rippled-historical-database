@@ -52,7 +52,6 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
     });
   }
   
-  console.log(timeout);
   setTimeout(done, timeout);
 };
 
