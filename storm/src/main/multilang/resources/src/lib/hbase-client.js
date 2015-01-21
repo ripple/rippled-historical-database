@@ -2,6 +2,7 @@ var Promise    = require('bluebird');
 var binformat  = require('ripple-lib').binformat;
 var utils      = require('./utils');
 var Hbase      = require('./modules/hbase-thrift');
+var moment = require('moment');
 
 var EPOCH_OFFSET = 946684800;
 var LI_PAD       = 12;
@@ -26,6 +27,99 @@ function HbaseClient() {
 
 HbaseClient.prototype = Object.create(Hbase.prototype);
 HbaseClient.prototype.constructor = HbaseClient;
+
+HbaseClient.prototype.getExchanges = function (options, callback) {
+  var keyBase = options.base.currency + '|' + (options.base.issuer || '') + 
+      '|' + options.counter.currency + '|' + (options.counter.issuer || '');
+  var startRow = keyBase + '|' + utils.formatTime(options.start);
+  var endRow   = keyBase + '|' + utils.formatTime(options.end); 
+  var table    = 'exchanges';
+  
+  if      (options.interval === '1minute')  table = 'agg_exchange_1minute';
+  else if (options.interval === '5minute')  table = 'agg_exchange_5minute';
+  else if (options.interval === '15minute') table = 'agg_exchange_15minute';
+  else if (options.interval === '30minute') table = 'agg_exchange_30minute';
+  else if (options.interval === '1hour')    table = 'agg_exchange_1hour';
+  else if (options.interval === '2hour')    table = 'agg_exchange_2hour';
+  else if (options.interval === '4hour')    table = 'agg_exchange_4hour';
+  else if (options.interval === '1day')     table = 'agg_exchange_1day';
+  else if (options.interval === '3day')     table = 'agg_exchange_3day';
+  else if (options.interval === '7day')     table = 'agg_exchange_7day';
+  else if (options.interval === '1month')   table = 'agg_exchange_1month';
+  else if (options.interval === '1year')    table = 'agg_exchange_1year';
+      
+  this.getScan({
+    table     : table,
+    startRow  : startRow,
+    stopRow   : endRow,
+    desending : true,
+    limit     : options.limit 
+    
+  }, function (err, rows) {
+  
+    if (table === 'exchanges') {
+      rows = formatExchanges(rows || []);
+    } else {
+      rows = formatAggregates(rows || []);
+    }
+  
+    callback (err, rows);
+  });
+  
+  
+  function formatExchanges (rows) {
+    rows.forEach(function(row, i) {
+      var key = row.rowkey.split('|');
+      rows[i].base = {
+        amount   : parseFloat(row.base_amount),
+        currency : key[0],
+      };
+
+      rows[i].counter = {
+        amount   : parseFloat(row.counter_amount),
+        currency : key[2],
+      };
+
+      if (row.base_issuer) {
+        rows[i].base.issuer = row.base_issuer;
+      }
+
+      if (row.counter_issuer) {
+        rows[i].counter.issuer = row.counter_issuer;
+      }
+
+      delete rows[i].base_amount;
+      delete rows[i].counter_amount;
+      delete rows[i].base_issuer;
+      delete rows[i].counter_issuer;
+
+      rows[i].rate             = parseFloat(row.rate);
+      rows[i].ledger_index     = parseInt(row.ledger_index, 10);
+      rows[i].tx_index         = parseInt(key[6], 10);
+      rows[i].node_index       = parseInt(key[7], 10);
+      rows[i].time             = utils.unformatTime(key[4]).unix();
+    });
+      
+    return rows;
+  }
+  
+  function formatAggregates (rows) {
+    rows.forEach(function(row, i) {
+      var key = row.rowkey.split('|');
+      rows[i].base_volume    = parseFloat(row.base_volume),
+      rows[i].counter_volume = parseFloat(row.counter_volume),
+      rows[i].count          = parseInt(row.count, 10);
+      rows[i].open           = parseFloat(row.open);
+      rows[i].high           = parseFloat(row.high);
+      rows[i].low            = parseFloat(row.low);
+      rows[i].close          = parseFloat(row.close);
+      rows[i].close_time     = parseInt(row.open_time, 10);
+      rows[i].open_time      = parseInt(row.close_time, 10);
+    });
+      
+    return rows;    
+  }
+};
 
 /**
  * saveLedger
@@ -209,17 +303,21 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
     var key2 = ex.buyer  + '|' + key;
     var key3 = ex.seller + '|' + key;
     var row  = {
-      base_amount       : ex.base.amount,
-      counter_amount    : ex.counter.amount,
-      base_issuer       : ex.base.issuer,
-      counter_issuer    : ex.counter.issuer || undefined,
-      rate              : ex.rate,
-      'f:buyer'         : ex.buyer,
-      'f:seller'        : ex.seller,
-      'f:taker'         : ex.taker,
-      'f:tx_hash'       : ex.tx_hash,
-      'f:executed_time' : ex.executed_time,
-      'f:ledger_index'  : ex.ledger_index
+      'f:base_currency'    : ex.base_currency,
+      'f:base_issuer'      : ex.base.issuer || undefined,      
+      base_amount          : ex.base.amount,
+      'f:counter_currency' : ex.counter.currency,      
+      'f:counter_issuer'   : ex.counter.issuer || undefined,
+      counter_amount       : ex.counter.amount,
+      rate                 : ex.rate,
+      'f:buyer'            : ex.buyer,
+      'f:seller'           : ex.seller,
+      'f:taker'            : ex.taker,
+      'f:tx_hash'          : ex.tx_hash,
+      'f:executed_time'    : ex.executed_time,
+      'f:ledger_index'     : ex.ledger_index,
+      tx_index             : ex.tx_index,
+      node_index           : ex.node_index
     };
     
     tables.exchanges[key] = row;
@@ -229,12 +327,13 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
   
   //add balance changes
   params.data.balanceChanges.forEach(function(c) {
-    var key = c.currency +
-      '|' + (c.issuer ||  '') +
-      '|' + utils.formatTime(c.time) + 
+    var suffix = '|' + utils.formatTime(c.time) + 
       '|' + utils.padNumber(c.ledger_index, LI_PAD) + 
       '|' + utils.padNumber(c.tx_index, I_PAD) +
       '|' + (c.node_index === 'fee' ? 'fee' : utils.padNumber(c.node_index, I_PAD));
+    
+    var key = c.currency + '|' + (c.issuer ||  '') + suffix;
+      
     
     var row = {
       'f:currency'      : c.currency,
@@ -245,7 +344,9 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       'f:change_type'   : c.type,
       'f:tx_hash'       : c.tx_hash,
       'f:executed_time' : c.time,
-      'f:ledger_index'  : c.ledger_index
+      'f:ledger_index'  : c.ledger_index,
+      tx_index          : c.tx_index,
+      node_index        : c.node_index
     };
     
     tables.balance_changes[key] = row;
@@ -255,8 +356,7 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
   });
   
   params.data.payments.forEach(function(p) {
-    var key = p.currency +
-      '|' + utils.formatTime(p.time) + 
+    var key = utils.formatTime(p.time) + 
       '|' + utils.padNumber(p.ledger_index, LI_PAD) + 
       '|' + utils.padNumber(p.tx_index, I_PAD);
     

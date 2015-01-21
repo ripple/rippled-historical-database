@@ -93,7 +93,7 @@ var OffersExercised = function (tx) {
       tx_hash      : tx.hash
     };
     
-    return (offer);
+    return orderPair(offer);
   }
   
   /**

@@ -7,7 +7,7 @@ var Hbase    = require('./hbase-client');
 var EPOCH_OFFSET = 946684800;
 
 /**
- * LedgerStreamSpout
+ * LedgerStream
  */
 
 function LedgerStream(options) {

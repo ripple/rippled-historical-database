@@ -113,9 +113,8 @@ HbaseClient.prototype._retryConnect = function() {
 };
 
 HbaseClient.prototype.getScan = function (options, callback) {
-  var self  = this;
-  var count = options.count || 1000;
-  var table = self._prefix + options.table;
+  var self     = this;
+  var table    = self._prefix + options.table;
   var scanOpts = { };
   var scan;
   
@@ -136,32 +135,14 @@ HbaseClient.prototype.getScan = function (options, callback) {
   self.hbase.scannerOpenWithScan(table, scan, null, function(err, id) {
 
     if (err) {
+      console.log(err);
       callback('unable to create scanner');
       return;
     }
     
-    self.hbase.scannerGetList(id, count, function (err, rows) {
-      var results = [];
-      var r;
+    getResults(id, options.limit, 0, function (err, rows) {
       
-      if (err) {
-        callback(err);
-        return;
-      }
-      
-      //format as json
-      rows.forEach(function(row) {
-        r = {};
-        r.rowkey = row.row;
-        
-        row.columnValues.forEach(function(column) {
-          r[column.qualifier] = column.value;
-        });
-
-        results.push(r);
-      });
-
-      callback(null, results);
+      callback(err, rows);
       
       //close the scanner
       self.hbase.scannerClose(id, function(err, resp) {
@@ -171,6 +152,54 @@ HbaseClient.prototype.getScan = function (options, callback) {
       });
     });
   });
+  
+  function getResults (id, limit, page, callback) {
+    var count = 1000;
+    
+    self.hbase.scannerGetList(id, count, function (err, rows) {
+      var results = [];
+      var key;
+      var parts;
+      var r;
+      
+      if (err) {
+        callback(err);
+        return;
+      }
+      
+      if (rows.length) {
+        
+        //format as json
+        rows.forEach(function(row) {
+          r = {};
+          r.rowkey = row.row;
+          for (key in row.columns) {
+            parts = key.split(':');
+            r[parts[1]] = row.columns[key].value;
+          }
+          
+          results.push(r);
+        }); 
+        
+        
+        //stop if we are at the limit
+        if (limit && page * count >= limit) {
+          callback (null, results);
+          
+        } else {
+          
+          //recursively get more results
+          getResults(id, limit, ++page, function(err, rows) {
+            results.push.apply(results, rows);
+            callback(null, results);    
+          });
+        } 
+      
+      } else {
+        callback (null, []);
+      }
+    });
+  }
 };
 
 /**
@@ -205,12 +234,12 @@ HbaseClient.prototype.putRows = function (table, rows) {
   
   //only send it if we have data
   if (!data.length) {
-    return null;
+    return Promise.resolve();
   }
   
   //check connection
   if (!self.isConnected()) {
-    return Promise.reject("not connected");
+    return Promise.reject('not connected');
   }
 
   //chunk data at no more than 100 rows
@@ -221,7 +250,7 @@ HbaseClient.prototype.putRows = function (table, rows) {
   //promiseify
   return Promise.map(arrays, function(chunk) {
     return new Promise (function(resolve, reject) {
-
+      self.log.info(table, '- saving ' + chunk.length + ' rows');
       self.hbase.mutateRows(self._prefix + table, chunk, null, function(err, resp) {
         if (err) {
           self.log.error(self._prefix + table, err, resp);
@@ -246,12 +275,12 @@ HbaseClient.prototype.putRow = function (table, rowKey, data) {
   var put;
   
   if (!columns.length) {
-    return;
+    return Promise.resolve();
   }
 
   //check connection
   if (!self.isConnected()) {
-    return Promise.reject("not connected");
+    return Promise.reject('not connected');
   }
   
   //promisify

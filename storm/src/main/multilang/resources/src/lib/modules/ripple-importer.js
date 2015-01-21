@@ -1,5 +1,5 @@
 var ripple  = require('ripple-lib');
-//var Ledger  = require('ripple-lib').Ledger;
+var Ledger  = require('../../../node_modules/ripple-lib/src/js/ripple/ledger').Ledger;
 var events  = require('events');
 var emitter = new events.EventEmitter();
 var winston = require('winston');

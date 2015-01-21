@@ -18,6 +18,18 @@ var tableList = [
   'lu_account_balance_changes',
   'lu_account_payments',     
   'lu_account_memos',  
+  'agg_exchange_1minute',
+  'agg_exchange_5minute',
+  'agg_exchange_15minute',
+  'agg_exchange_30minute',
+  'agg_exchange_1hour',
+  'agg_exchange_2hour',
+  'agg_exchange_4hour',
+  'agg_exchange_1day',
+  'agg_exchange_3day',
+  'agg_exchange_7day',
+  'agg_exchange_1month',
+  'agg_exchange_1year'
 ];
 
 var Client = function (options) {

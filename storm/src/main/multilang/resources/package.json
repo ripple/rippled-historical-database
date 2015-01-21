@@ -11,7 +11,7 @@
     "bluebird": "^2.6.4",
     "hbase": "^0.1.7",
     "moment": "^2.9.0",
-    "ripple-lib": "0.9.4",
+    "ripple-lib": "0.10.0-rc2",
     "thrift": "^0.9.2",
     "winston": "^0.8.3"
   },

@@ -15,6 +15,23 @@ module.exports.formatTime = function(time) {
 };
 
 /**
+ * unformatTime
+ */
+
+module.exports.unformatTime = function(time) {
+  var t = [
+    parseInt(time.slice(0, 4), 10),     //year
+    parseInt(time.slice(4, 6), 10) - 1, //month
+    parseInt(time.slice(6, 8), 10),     //day
+    parseInt(time.slice(8, 10), 10),    //hour
+    parseInt(time.slice(10, 12), 10),   //minute
+    parseInt(time.slice(12, 14), 10),   //second
+  ]
+    
+  return moment.utc(t);
+};
+
+/**
  * reverseTimestamp
  */
 

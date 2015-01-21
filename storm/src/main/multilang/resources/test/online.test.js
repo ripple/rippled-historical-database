@@ -3,6 +3,8 @@ var Stream  = require('../src/lib/ledgerStream');
 var Parser  = require('../src/lib/modules/ledgerParser');
 var Rest    = require('../src/lib/modules/hbase-rest');
 var Promise = require('bluebird');
+var fs      = require('fs');
+
 var PREFIX  = 'TEST_';
 var rest    = new Rest({
   prefix : PREFIX,
