@@ -8,6 +8,7 @@
   "author": "Ripple Labs, Inc.",
   "license": "ISC",
   "dependencies": {
+    "bignumber.js": "^2.0.0",
     "bluebird": "^2.6.4",
     "hbase": "^0.1.7",
     "moment": "^2.9.0",

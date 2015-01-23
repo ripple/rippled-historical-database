@@ -37,9 +37,53 @@ function ExchangeAggregation(options) {
     '|' + this.counter.currency      + 
     '|' + (this.counter.issuer || '');
   
-  //load exchanges from the
-  //current minute  
+  //remove older data every hour
+  this.purge = setInterval(function(){
+    self._ready = false;
 
+    var minute = moment.utc().startOf('hour').subtract(1, 'hour');
+    var hour   = moment.utc().startOf('day').subtract(1, 'day');
+    var day    = moment.utc().startOf('month').subtract(1, 'month');
+    var month  = moment.utc().startOf('year').subtract(1, 'year');
+    
+    //remove cached minutes
+    for (time in self.cached['minute']) {
+      if (minute.diff(time) > 0) {
+        delete self.cached['minute'][time];
+      }
+    }
+
+    //remove cached hours
+    for (time in self.cached['hour']) {
+      if (minute.diff(time) > 0) {
+        delete self.cached['hour'][time];
+      }
+    }
+    
+    //remove cached days
+    for (time in self.cached['day']) {
+      if (minute.diff(time) > 0) {
+        delete self.cached['day'][time];
+      }
+    }
+    
+    //remove cached months
+    for (time in self.cached['month']) {
+      if (minute.diff(time) > 0) {
+        delete self.cached['month'][time];
+      }
+    }
+    
+    if (minute.diff(self.earliest) > 0) {
+      self.earliest = minute;
+    }
+    
+    self._ready = true;
+
+  }, 60 * 60 * 1000);
+  
+  //load exchanges from
+  //the current minute  
   load(function(err, resp) {
     aggregate();
   });
@@ -316,7 +360,7 @@ ExchangeAggregation.prototype._aggregateInterval = function (multiple, period, i
 
 
     key = self.keyBase + '|' + utils.formatTime(start);
-    console.log(key, table);
+    self.log.info(key, table);
 
     reduced       = self._reduce(intervals, period);
     reduced.start = start.format();

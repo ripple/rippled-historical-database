@@ -29,6 +29,7 @@ ExchangesBolt.prototype.process = function(tup, done) {
   var parsed;
   
   if (!pairs[pair]) {
+    self.log('new pair: ' + pair);
     pairs[pair] = new Aggregation({
       base     : ex.base,
       counter  : ex.counter,
@@ -38,8 +39,9 @@ ExchangesBolt.prototype.process = function(tup, done) {
     });
   } 
   
+  self.log('new ex: ' + pair);
   pairs[pair].add(ex, function(err, resp) {
-    self.log(err, resp);
+    self.log(pair + ' aggregation finished');
     done();
   });  
 };

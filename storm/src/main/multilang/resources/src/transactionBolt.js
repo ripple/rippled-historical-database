@@ -126,7 +126,6 @@ TransactionBolt.prototype.processStreams = function (parsed, id) {
           '/' + exchange.counter.currency + 
           (exchange.counter.issuer ? "." + exchange.counter.issuer : '');
       
-      self.log(pair);
       self.emit({
         tuple         : [exchange, pair], 
         anchorTupleId : id,
@@ -137,6 +136,7 @@ TransactionBolt.prototype.processStreams = function (parsed, id) {
       });  
     });
 
+    /*
     parsed.data.payments.forEach(function(payment) { 
       self.emit({
         tuple         : [payment], 
@@ -170,6 +170,7 @@ TransactionBolt.prototype.processStreams = function (parsed, id) {
       });
     });
     
+    */
     self.log("done: " + parsed.ledgerIndex + "|" + parsed.txIndex);
     resolve();
   });
