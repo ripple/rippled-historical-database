@@ -1,4 +1,4 @@
-package importer;
+package ripple.importer;
 
 import backtype.storm.Config;
 import backtype.storm.topology.TopologyBuilder;
@@ -21,9 +21,9 @@ public class ImportTopology {
     //conf.setDebug(true);
 
     
-    if (false) {
+    if (args != null && args.length > 0) {
       conf.setNumWorkers(3);
-      StormSubmitter.submitTopologyWithProgressBar("ledger-import", conf, builder.createTopology());
+      StormSubmitter.submitTopologyWithProgressBar(args[0], conf, builder.createTopology());
     
     } else {
       

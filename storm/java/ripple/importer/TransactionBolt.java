@@ -1,4 +1,4 @@
-package importer;
+package ripple.importer;
 
 import java.util.Map;
 

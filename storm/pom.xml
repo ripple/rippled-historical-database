@@ -36,9 +36,10 @@
   </dependencies>
 
   <build>
+    <sourceDirectory>java</sourceDirectory>
     <resources>
       <resource>
-        <directory>${basedir}/src/main/multilang</directory>
+        <directory>${basedir}/multilang</directory>
       </resource> 
    </resources>
 

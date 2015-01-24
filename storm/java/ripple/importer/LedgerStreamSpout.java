@@ -1,4 +1,4 @@
-package importer;
+package ripple.importer;
 
 import backtype.storm.Config;
 import backtype.storm.spout.ShellSpout;
