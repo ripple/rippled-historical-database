@@ -430,6 +430,19 @@ ExchangeAggregation.prototype._reduce = function (rows, period) {
   var key;
 
   for (key in rows) {
+    
+    //excluding tiny amounts that exist from
+    //rounding errors in XRP
+    if (!period) {
+      if (this.base.currency === 'XRP' && 
+          rows[key].base_volume <= 0.0001) {
+        continue;
+      } else if (this.counter.currency === 'XRP' && 
+          rows[key].counter_volume <= 0.0001) {
+        continue;
+      } 
+    }
+    
     if (!reduced) {
       reduced = JSON.parse(JSON.stringify(rows[key]));
       continue;
