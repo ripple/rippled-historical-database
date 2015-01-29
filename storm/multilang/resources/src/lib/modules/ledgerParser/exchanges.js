@@ -72,7 +72,6 @@ var OffersExercised = function (tx) {
     }
 
     if ( typeof node.PreviousFields.TakerGets === "object" ) {
-      console.log(typeof node.PreviousFields.TakerGets.value);
       change = Amount.from_json(node.PreviousFields.TakerGets)
         .subtract(node.FinalFields.TakerGets)
         .applyInterest(new Date(tx.executed_time * 1000))

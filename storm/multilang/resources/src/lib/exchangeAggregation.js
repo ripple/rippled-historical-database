@@ -317,7 +317,7 @@ ExchangeAggregation.prototype._aggregateMinutes = function(incoming) {
       self.cached.minute[time].updated = false;
     }
   }
-      
+  
   //save to hbase
   return self.hbase.putRows('agg_exchange_1minute', self.updated.agg_exchange_1minute);  
 };
@@ -378,6 +378,10 @@ ExchangeAggregation.prototype._aggregateInterval = function (multiple, period, i
     }
   }
   
+  //if (period === 'hour') {
+  //  console.log(table, self.updated[table]);
+  //}
+
   //save to hbase
   return self.hbase.putRows(table, self.updated[table]);
 };
@@ -484,20 +488,22 @@ function formatExchange (ex) {
   var sort = utils.padNumber(ex.ledger_index, LI_PAD) + 
     '|' +  utils.padNumber(ex.tx_index, I_PAD) + 
     '|' +  utils.padNumber(ex.node_index, I_PAD);
-    
-    return {
-      open_time      : ex.time,
-      close_time     : ex.time,
-      open           : ex.rate,
-      close          : ex.rate,
-      high           : ex.rate,
-      low            : ex.rate,
-      base_volume    : ex.base.amount,
-      counter_volume : ex.counter.amount,
-      count          : 1,
-      sort_open      : sort,
-      sort_close     : sort
-    }
+  
+  var rate = parseFloat(ex.rate);
+  
+  return {
+    open_time      : ex.time,
+    close_time     : ex.time,
+    open           : rate,
+    close          : rate,
+    high           : rate,
+    low            : rate,
+    base_volume    : parseFloat(ex.base.amount),
+    counter_volume : parseFloat(ex.counter.amount),
+    count          : 1,
+    sort_open      : sort,
+    sort_close     : sort
+  }
 }
 
 module.exports = ExchangeAggregation;
