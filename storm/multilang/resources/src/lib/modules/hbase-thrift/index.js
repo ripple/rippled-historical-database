@@ -118,6 +118,11 @@ HbaseClient.prototype.getScan = function (options, callback) {
   var scanOpts = { };
   var scan;
   
+  //check connection
+  if (!self.isConnected()) {
+    return Promise.reject('not connected');
+  }
+  
   //default to reversed, 
   //invert stop and start index
   if (options.descending === false) {

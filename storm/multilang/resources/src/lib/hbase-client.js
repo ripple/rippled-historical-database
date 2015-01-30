@@ -49,11 +49,10 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
   else if (options.interval === '1year')    table = 'agg_exchange_1year';
       
   this.getScan({
-    table     : table,
-    startRow  : startRow,
-    stopRow   : endRow,
-    desending : true,
-    limit     : options.limit 
+    table      : table,
+    startRow   : startRow,
+    stopRow    : endRow,
+    limit      : options.limit 
     
   }, function (err, rows) {
   
@@ -121,6 +120,29 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
   }
 };
 
+HbaseClient.prototype.getLedgersByIndex = function (options, callback) {
+  var self  = this;
+  var count = options.stopIndex - options.startIndex;
+  
+  this.getScan({
+    table      : 'lu_ledgers_by_index',
+    startRow   : utils.padNumber(options.startIndex, LI_PAD),
+    stopRow    : utils.padNumber(options.stopIndex+1, LI_PAD),
+    descending : options.descending,
+    
+  }, function(err, resp) {
+  
+    if (resp && resp.length) {
+      resp.forEach(function(row, i) {
+        var rowkey = row.rowkey.split('|');
+        resp[i].ledger_index = parseInt(rowkey[0], 10);
+      });
+    }
+    
+    callback(err, resp);
+  });
+};
+
 /**
  * saveLedger
  */
@@ -182,91 +204,104 @@ HbaseClient.prototype.saveLedger = function (ledger, callback) {
  */
 
 HbaseClient.prototype.saveTransaction = function (tx, callback) {
-  
-  var self   = this;
-  var data   = [ ];
-  var type   = utils.padNumber(TX_TYPES[tx.TransactionType], E_PAD);
-  var result = utils.padNumber(TX_RESULTS[tx.tx_result], E_PAD); 
-  var ledgerIndex;
-  var key;
-  
-  //transactions by time
-  key = type + 
-    '|' + result + 
-    '|' + utils.formatTime(tx.executed_time) + 
-    '|' + utils.padNumber(tx.ledger_index, LI_PAD) + 
-    '|' + utils.padNumber(tx.tx_index, I_PAD);
+  this.saveTransactions([tx], callback);
+};
 
-  data.push({
-    table   : 'lu_transactions_by_time',
-    rowkey  : key,
-    columns : {
-      tx_hash           : tx.hash,
-      'f:executed_time' : tx.executed_time,
-      'f:ledger_index'  : tx.ledger_index,
-      'f:type'          : tx.TransactionType,
-      'f:result'        : tx.tx_result
-    }
-  });
+/**
+ * saveTransactions
+ */
+
+HbaseClient.prototype.saveTransactions = function (transactions, callback) {
+  var self = this;
+  var data = self.prepareTransactions(transactions);
+
+  tableNames = Object.keys(data);
   
-  //transactions by account sequence
-  key = tx.Account +
-    '|' + type +
-    '|' + result + 
-    '|' + utils.padNumber(tx.Sequence, S_PAD);
-
-  data.push({
-    table   : 'lu_account_transactions',
-    rowkey  : key,
-    columns : {
-      tx_hash           : tx.hash,
-      'f:executed_time' : tx.executed_time,
-      'f:ledger_index'  : tx.ledger_index,
-      'f:type'          : tx.TransactionType,
-      'f:result'        : tx.tx_result
-    }
-  });
-
-  ledger_index = tx.ledger_index;
-  
-  tx['f:Account']         = tx.Account;
-  tx['f:Sequence']        = tx.Sequence;
-  tx['f:tx_result']       = tx.tx_result;
-  tx['f:TransactionType'] = tx.TransactionType;
-  tx['f:executed_time']   = tx.executed_time;
-  tx['f:ledger_index']    = tx.ledger_index;
-  tx['f:ledger_hash']     = tx.ledger_hash;
-
-  delete tx.Account;
-  delete tx.Sequence;
-  delete tx.tx_result;
-  delete tx.TransactionType;
-  delete tx.executed_time;
-  delete tx.ledger_index;
-  delete tx.ledger_hash;
-
-  //add transaction
-  data.push({
-    table   : 'transactions',
-    rowkey  : tx.hash,
-    columns : tx
-  });
-  
-  Promise.map(data, function(row) {
-    return self.putRow(row.table, row.rowkey, row.columns);
+  Promise.map(tableNames, function(name) {
+    return self.putRows(name, data[name]);
   })
-  .nodeify(function(err, resp) {  
+  .nodeify(function(err, resp) {   
     if (err) {
-      self.log.error('error saving transaction:', ledger_index, tx.hash, err);
+      self.log.error('error saving transaction(s)');
     } else {
-      self.log.info('transaction saved:', ledger_index, tx.tx_index);
+      self.log.info(transactions.length + ' transaction(s) saved');
     }
     
     if (callback) {
       callback(err, resp);
     }
-  });   
+  });     
+};
+
+/*
+ * prepareTransactions
+ */
+
+HbaseClient.prototype.prepareTransactions = function (transactions) {
+  var data = { 
+    transactions : { },
+    lu_transactions_by_time : { },
+    lu_account_transactions : { },
+  };
   
+  transactions.forEach(function(tx) {
+    var type   = utils.padNumber(TX_TYPES[tx.TransactionType], E_PAD);
+    var result = utils.padNumber(TX_RESULTS[tx.tx_result], E_PAD); 
+    var ledgerIndex;
+    var key;
+
+    //transactions by time
+    key = type + 
+      '|' + result + 
+      '|' + utils.formatTime(tx.executed_time) + 
+      '|' + utils.padNumber(tx.ledger_index, LI_PAD) + 
+      '|' + utils.padNumber(tx.tx_index, I_PAD);
+
+    data.lu_transactions_by_time[key] = {
+      tx_hash           : tx.hash,
+      'f:executed_time' : tx.executed_time,
+      'f:ledger_index'  : tx.ledger_index,
+      'f:type'          : tx.TransactionType,
+      'f:result'        : tx.tx_result
+    }
+
+    //transactions by account sequence
+    key = tx.Account +
+      '|' + type +
+      '|' + result + 
+      '|' + utils.padNumber(tx.Sequence, S_PAD);
+
+    data.lu_account_transactions[key] = {
+      tx_hash           : tx.hash,
+      'f:executed_time' : tx.executed_time,
+      'f:ledger_index'  : tx.ledger_index,
+      'f:type'          : tx.TransactionType,
+      'f:result'        : tx.tx_result
+    }
+
+    ledger_index = tx.ledger_index;
+
+    tx['f:Account']         = tx.Account;
+    tx['f:Sequence']        = tx.Sequence;
+    tx['f:tx_result']       = tx.tx_result;
+    tx['f:TransactionType'] = tx.TransactionType;
+    tx['f:executed_time']   = tx.executed_time;
+    tx['f:ledger_index']    = tx.ledger_index;
+    tx['f:ledger_hash']     = tx.ledger_hash;
+
+    delete tx.Account;
+    delete tx.Sequence;
+    delete tx.tx_result;
+    delete tx.TransactionType;
+    delete tx.executed_time;
+    delete tx.ledger_index;
+    delete tx.ledger_hash;
+
+    //add transaction
+    data.transactions[tx.hash] = tx
+  });
+  
+  return data;
 };
 
 /**
@@ -485,9 +520,9 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
   })
   .nodeify(function(err, resp) {   
     if (err) {
-      self.log.error('error saving parsed data:', params.ledgerIndex, params.txIndex);
+      self.log.error('error saving parsed data');
     } else {
-      self.log.info('parsed data saved:', params.ledgerIndex, params.txIndex);
+      self.log.info('parsed data saved');
     }
     
     if (callback) {
