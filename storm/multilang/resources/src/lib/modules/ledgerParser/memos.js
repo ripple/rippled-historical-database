@@ -13,6 +13,9 @@ var Memos = function (tx) {
   
   if (tx.Memos) {
     tx.Memos.forEach(function(memo, i) {
+      
+      if (!memo.Memo) return;
+      
       var data = {
         account : tx.Account,
         memo_type    : memo.Memo.MemoType,
