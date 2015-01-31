@@ -362,19 +362,24 @@ ExchangeAggregation.prototype._aggregateInterval = function (multiple, period, i
     key = self.keyBase + '|' + utils.formatTime(start);
     self.log.info(key, table);
 
-    reduced       = self._reduce(intervals, period);
-    reduced.start = start.format();
-    self.updated[table][key] = reduced; 
-    //console.log(reduced);
+    reduced = self._reduce(intervals, period);
+    if (reduced) {
+      reduced.start = start.format();
+      self.updated[table][key] = reduced; 
+      //console.log(reduced);
+
+      //cache non-multiple intervals
+      if (multiple === 1 && period !== 'year') {
+
+        if (!self.cached[period][reduced.start]) {
+          self.cached[period][reduced.start] = { }
+        }
+
+        self.cached[period][reduced.start].reduced = reduced;
+      } 
     
-    //cache non-multiple intervals
-    if (multiple === 1 && period !== 'year') {
-      
-      if (!self.cached[period][reduced.start]) {
-        self.cached[period][reduced.start] = { }
-      }
-      
-      self.cached[period][reduced.start].reduced = reduced;
+    } else {
+      console.log("NOT REDUCED", table, key);
     }
   }
   
@@ -485,7 +490,10 @@ ExchangeAggregation.prototype._reduce = function (rows, period) {
     reduced.count          += row.count;   
   }
   
-  reduced.vwap = reduced.counter_volume / reduced.base_volume;
+  if (reduced) {
+    reduced.vwap = reduced.counter_volume / reduced.base_volume;
+  }
+  
   return reduced;
 }
 

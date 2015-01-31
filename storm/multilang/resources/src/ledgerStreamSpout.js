@@ -31,8 +31,7 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
   while (stream.ledgers.length) {
     stream.processNextLedger(function(err, resp) {
       if (err) {
-        console.log(err);
-        //TODO: log these as failed imports
+        self.log(err);        
       }
     });
   }
@@ -63,7 +62,7 @@ LedgerStreamSpout.prototype.ack = function(id, done) {
 
 LedgerStreamSpout.prototype.fail = function(id, done) {
   var self = this;
-  this.log('Received fail for - ' + id + '. Retrying.');
+  this.log('Received FAIL for - ' + id);
   //this.emit({tuple: this.pending[id], id:id}, function(taskIds) {
   //    self.log(self.pending[id] + ' sent to task ids - ' + taskIds);
   //});
