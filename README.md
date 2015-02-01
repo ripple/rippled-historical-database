@@ -64,4 +64,4 @@ binary | return results in binary format, defaults to false | boolean
 
 Example:
 
-https://history-dev.ripple.com:7443/v1/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/transactions?type=Payment&start=2014-05-02&end=2014-10-02&limit=10&offset=20
+https://history.ripple.com:7443/v1/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/transactions?type=Payment&start=2014-05-02&end=2014-10-02&limit=10&offset=20
