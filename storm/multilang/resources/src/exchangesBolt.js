@@ -37,9 +37,11 @@ ExchangesBolt.prototype.process = function(tup, done) {
       logLevel : config.logLevel,
       logFile  : config.logFile
     });
-  } 
   
-  self.log('new ex: ' + pair);
+  } else { 
+    self.log('new ex: ' + pair);
+  }
+  
   pairs[pair].add(ex, function(err, resp) {
     self.log(pair + ' aggregation finished');
     done();

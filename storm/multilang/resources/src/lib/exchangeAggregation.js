@@ -301,6 +301,7 @@ ExchangeAggregation.prototype._getHistory = function (time, period) {
 
 ExchangeAggregation.prototype._aggregateMinutes = function(incoming) {
   var self = this;
+  var reduced;
   
   //cache incoming transactions
   for (var i=0; i<incoming.length; i++) {
@@ -310,11 +311,20 @@ ExchangeAggregation.prototype._aggregateMinutes = function(incoming) {
   //aggregate updated minutes
   for (var time in self.cached.minute) {
     if (self.cached.minute[time].updated) {
-      key = self.keyBase + '|' + utils.formatTime(time);
-      self.cached.minute[time].reduced       = self._reduce(self.cached.minute[time].exchanges); 
-      self.cached.minute[time].reduced.start = time;
-      self.updated.agg_exchange_1minute[key] = self.cached.minute[time].reduced; 
-      self.cached.minute[time].updated = false;
+      key     = self.keyBase + '|' + utils.formatTime(time);
+      reduced = self._reduce(self.cached.minute[time].exchanges); 
+      
+      if (reduced) {
+        self.cached.minute[time].reduced       = reduced;      
+        self.cached.minute[time].reduced.start = time;
+        self.updated.agg_exchange_1minute[key] = self.cached.minute[time].reduced; 
+        self.cached.minute[time].updated = false;
+            
+      } else {
+        //this can be the case if the amounts
+        //are too small to be counted
+        self.log.error('NOT REDUCED', key, self.cached.minute[time]);
+      }
     }
   }
   
@@ -379,7 +389,7 @@ ExchangeAggregation.prototype._aggregateInterval = function (multiple, period, i
       } 
     
     } else {
-      console.log("NOT REDUCED", table, key);
+      self.log.error("NOT REDUCED", table, key);
     }
   }
   

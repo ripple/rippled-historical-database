@@ -26,7 +26,7 @@ TransactionBolt.prototype.process = function(tup, done) {
   var tx   = tup.values[0];
   var parsed;
   
-  self.log('transaction: ' + tx.hash);
+  //self.log('transaction: ' + tx.hash);
   
   //parse transaction
   parsed = {
@@ -76,7 +76,7 @@ TransactionBolt.prototype.saveTransaction = function (tx) {
         reject(err);
 
       } else {
-        self.log('transaction saved: ' + id);
+        //self.log('transaction saved: ' + id);
         resolve();
       }
     });  
@@ -99,7 +99,7 @@ TransactionBolt.prototype.saveParsedData = function (parsed) {
         reject(err);
 
       } else {
-        self.log('parsed data saved: ' + id);
+        //self.log('parsed data saved: ' + id);
         resolve();
       }
     });  
@@ -171,7 +171,7 @@ TransactionBolt.prototype.processStreams = function (parsed, id) {
     });
     
     */
-    self.log("done: " + parsed.ledgerIndex + "|" + parsed.txIndex);
+    
     resolve();
   });
 };
