@@ -16,19 +16,17 @@ You can also [install and run your own instance of the Historical Database](#run
 The `rippled` Historical Database provides a REST API, currently with only one API method:
 
 ## Get Account Transaction History ##
-[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/8dc88fc5a9de5f6bd12dd3589b586872fe283ad3/api/routes/accountTx.js "Source")
+[[Source]](https://github.com/ripple/rippled-historical-database/blob/8dc88fc5a9de5f6bd12dd3589b586872fe283ad3/api/routes/accountTx.js "Source")
 
 Retrieve a history of transactions that affected a specific account. This includes all transactions the account sent, payments the account received, and payments that rippled through the account.
 
-<div class='multicode'>
 
-*REST*
+**REST**
 
 ```
 GET /v1/accounts/{:address}/transactions
 ```
 
-</div>
 
 The following URL parameters are required by this API endpoint:
 
