@@ -12,8 +12,8 @@ app.use(cors());
 
 //define routes
 app.get('/v1/accounts/:address/transactions', routes.accountTx);
-
-
+app.get('/v1/ledger', routes.getLedger);
+app.get('/v1/accountBalances', routes.accountBalances);
 
 //start the server
 app.listen(config.get('port'));
