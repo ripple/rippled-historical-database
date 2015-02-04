@@ -226,28 +226,28 @@ ExchangeAggregation.prototype._getHistory = function (time, period) {
   time = moment.utc(time);
   
   if (period === 'minute') {
-    start    = time.startOf('minute').format();
-    end      = time.add(1, 'minute').format();
+    start    = time.startOf('minute').subtract(1, 'minute');
+    end      = moment.utc(time).add(2, 'minute');
     interval = undefined;
   
   } else if (period === 'hour') {
-    start    = time.startOf('hour').format();
-    end      = time.add(1, 'hour').format();
+    start    = time.startOf('hour').subtract(1, 'hour');
+    end      = moment.utc(time).add(2, 'hour');
     interval = 'minute'; 
     
   } else if (period === 'day') {
-    start    = time.startOf('day').format();
-    end      = time.add(1, 'day').format();
+    start    = time.startOf('day').subtract(1, 'day');
+    end      = moment.utc(time).add(2, 'day');
     interval = 'hour'; 
   
   } else if (period === 'month') {
-    start    = time.startOf('month').format();
-    end      = time.add(1, 'month').format();
+    start    = time.startOf('month').subtract(1, 'month');
+    end      = moment.utc(time).add(2, 'month');
     interval = 'day'; 
   
   } else if (period === 'year') {
-    start    = time.startOf('year').format();
-    end      = time.add(1, 'year').format();
+    start    = time.startOf('year').subtract(1, 'year');
+    end      = moment.utc(time).add(2, 'year');
     interval = 'month'; 
   
   } else {
@@ -393,9 +393,7 @@ ExchangeAggregation.prototype._aggregateInterval = function (multiple, period, i
     }
   }
   
-  //if (period === 'hour') {
-  //  console.log(table, self.updated[table]);
-  //}
+  //console.log(table, self.updated[table]);
 
   //save to hbase
   return self.hbase.putRows(table, self.updated[table]);
