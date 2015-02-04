@@ -109,7 +109,8 @@ var HistoricalImport = function () {
       if (resp) {
         if (resp.startIndex < GENESIS_LEDGER) {
           log.info("Genesis ledger reached:", GENESIS_LEDGER);  
-          return;
+          if (cb) cb();
+          return;     
           
         } else if (resp.stopIndex < GENESIS_LEDGER) {
           log.info("setting stop index to genesis ledger");
