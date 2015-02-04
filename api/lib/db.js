@@ -47,14 +47,14 @@ var DB = function(config) {
     if (ledgerQuery.error) {
       return callback(ledgerQuery);
     }
-    
+
     ledgerQuery.nodeify(function(err, ledgers){
       if (err) return callback(err);
       else if (ledgers.length === 0) callback({error: "No ledgers found.", code:400});
       else if (options.tx_return !== "none") {
         var ledger = parseLedger(ledgers[0]),
-            txQuery = prepareTxQuery(ledger_index),
             ledger_index = ledger.ledger_index;
+            txQuery = prepareTxQuery(ledger_index);
         if (txQuery.error){
           return callback(txQuery);
         }
