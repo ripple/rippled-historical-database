@@ -9,11 +9,11 @@ var accountTx = function (req, res, next) {
   
   log.info('ACCOUNT TX:', options.account); 
 
-  postgres.getAccountTransactions(options, function(err, transactions) {
+  postgres.getAccountTransactions(options, function(err, resp) {
     if (err) {
       errorResponse(err);   
     } else {
-      successResponse(transactions); 
+      successResponse(resp); 
     }
   });
   
@@ -66,14 +66,15 @@ var accountTx = function (req, res, next) {
   * return a successful response
   * @param {Object} transactions
   */  
-  function successResponse (transactions) {
+  function successResponse (data) {
     var result = {
       result       : 'success',
-      count        : transactions.length,
-      transactions : transactions
+      count        : data.transactions.length,
+      total        : data.total,
+      transactions : data.transactions
     };
     
-    log.info('ACCOUNT TX: Transactions Found:', transactions.length);  
+    log.info('ACCOUNT TX: Transactions Found:', data.transactions.length);  
     response.json(result).pipe(res);      
   };
 }
