@@ -55,21 +55,21 @@ function ExchangeAggregation(options) {
 
     //remove cached hours
     for (time in self.cached['hour']) {
-      if (minute.diff(time) > 0) {
+      if (hour.diff(time) > 0) {
         delete self.cached['hour'][time];
       }
     }
     
     //remove cached days
     for (time in self.cached['day']) {
-      if (minute.diff(time) > 0) {
+      if (day.diff(time) > 0) {
         delete self.cached['day'][time];
       }
     }
     
     //remove cached months
     for (time in self.cached['month']) {
-      if (minute.diff(time) > 0) {
+      if (month.diff(time) > 0) {
         delete self.cached['month'][time];
       }
     }
@@ -366,8 +366,6 @@ ExchangeAggregation.prototype._aggregateInterval = function (multiple, period, i
     
       time.add(1, interval);
     }
-    
-
 
     key = self.keyBase + '|' + utils.formatTime(start);
     self.log.info(key, table);
@@ -392,7 +390,7 @@ ExchangeAggregation.prototype._aggregateInterval = function (multiple, period, i
       self.log.error("NOT REDUCED", table, key);
     }
   }
-  
+
   //console.log(table, self.updated[table]);
 
   //save to hbase
