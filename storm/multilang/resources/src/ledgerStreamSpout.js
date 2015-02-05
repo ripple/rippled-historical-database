@@ -85,7 +85,7 @@ LedgerStreamSpout.prototype.fail = function(id, done) {
 
   if (++self.pending[id].attempts <= 10) {
     self.log('Received FAIL for - ' + id + ' Retrying, attempt #' + self.pending[id].attempts);
-    self.emit({tuple: self.pending[id].tx, id:id}, function(taskIds) {
+    self.emit({tuple: [self.pending[id].tx], id:id}, function(taskIds) {
         self.log('tx: ' + id + ' resent to - ' + taskIds);
     });
     
