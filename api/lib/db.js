@@ -32,6 +32,173 @@ var DB = function(config) {
     });
   };
   
+  /**
+  * 
+  * getTx
+  * get transaction for a specific tx_hash
+  * @param {Object} options
+  * @param {Function} callback
+  */ 
+
+  self.getTx = function (options, callback) {
+    var txQuery = prepareTxQuery();
+    if (txQuery.error) {
+      return callback(txQuery);
+    }
+
+    txQuery.nodeify(function(err, transactions){
+      if (err) return callback(err);
+      else handleResponse(transactions[0]);
+    });
+
+    function prepareTxQuery(){
+      var query = self.knex('transactions')
+          .where('transactions.tx_hash', self.knex.raw("decode('"+options.tx_hash+"', 'hex')"))
+          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
+          .select(self.knex.raw("encode(transactions.ledger_hash, 'hex') as ledger_hash"))
+          .select('transactions.ledger_index')
+          .select('transactions.executed_time')
+          .select('transactions.tx_type');
+
+      return query;
+    }
+
+    function handleResponse(transaction) {
+      if (!options.binary) {
+        transaction.tx = new SerializedObject(transaction.tx_raw).to_json();
+        transaction.meta = new SerializedObject(transaction.tx_meta).to_json();
+        delete transaction.tx_raw;
+        delete transaction.tx_meta;
+      }
+      callback(null, transaction);
+    }
+  };
+
+  /**
+  * 
+  * getLedger
+  * get ledger for a specific ledger_index, ledger_hash, or closing_time
+  * @param {Object} options
+  * @param {Function} callback
+  */ 
+
+  self.getLedger = function (options, callback) {
+
+    var ledgerQuery = prepareLedgerQuery();
+    if (ledgerQuery.error) {
+      return callback(ledgerQuery);
+    }
+
+    ledgerQuery.nodeify(function(err, ledgers){
+      if (err) return callback(err);
+      else if (ledgers.length === 0) callback({error: "No ledgers found.", code:400});
+      else if (options.tx_return !== "none") {
+        var ledger = parseLedger(ledgers[0]),
+            ledger_index = ledger.ledger_index;
+            txQuery = prepareTxQuery(ledger_index);
+        if (txQuery.error){
+          return callback(txQuery);
+        }
+        txQuery.nodeify(function(err, transactions) {
+          if (err) return callback(err);
+          else {
+            handleResponse(ledger, transactions);
+          }
+        });
+      }
+      else {
+        callback(null, parseLedger(ledgers[0]) );
+      }
+    });
+
+    function prepareLedgerQuery() {
+      var query = self.knex('ledgers')
+        .select(self.knex.raw("encode(ledgers.ledger_hash, 'hex') as ledger_hash"))
+        .select('ledger_index')
+        .select(self.knex.raw("encode(ledgers.parent_hash, 'hex') as parent_hash"))
+        .select('total_coins')
+        .select('closing_time')
+        .select('close_time_res')
+        .select(self.knex.raw("encode(ledgers.accounts_hash, 'hex') as accounts_hash"))
+        .select(self.knex.raw("encode(ledgers.transactions_hash, 'hex') as transactions_hash"))
+        .orderBy('ledgers.ledger_index', 'desc')
+        .orderBy('closing_time', 'desc')
+        .limit(1);
+      
+      if (!options.ledger_index && !options.datetime && !options.ledger_hash) {
+        query.where('ledgers.closing_time', '<=', moment().unix());
+      }
+      else {
+        if (options.ledger_index) 
+          query.where('ledgers.ledger_index', options.ledger_index);
+        if (options.datetime) {
+          var iso_datetime = moment.utc(options.datetime, moment.ISO_8601);
+          if (iso_datetime.isValid()) {
+            query.where('ledgers.closing_time', '<=', iso_datetime.unix());
+          }
+          else if (!isNaN(options.datetime)) {
+            query.where('ledgers.closing_time', '<=', options.datetime);
+          }
+          else return {error:'invalid datetime, format must be ISO 8601or Unix offset', code:400};
+        }
+        if (options.ledger_hash)
+          query.where('ledgers.ledger_hash', self.knex.raw("decode('"+options.ledger_hash+"', 'hex')"));
+      }
+      return query;
+    }
+
+    function prepareTxQuery(ledger_index) {
+      var query = self.knex('transactions')
+                  .where('transactions.ledger_index', ledger_index);
+
+      if (options.tx_return === 'hex')
+        query.select(self.knex.raw("encode(transactions.tx_hash, 'hex') as tx_hash"));
+      else if (options.tx_return === "binary")
+        query
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
+          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"));
+      else if (options.tx_return === 'json')
+        query.select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"));
+
+      return query;
+    }
+
+    function handleResponse(ledger, transactions) {
+      if (options.tx_return === "hex") {
+        var transaction_list = [];
+        for (var i=0; i<transactions.length; i++){
+          transaction_list.push(transactions[i].tx_hash);
+        }
+        ledger.transactions = transaction_list;
+      }
+      else if (options.tx_return === "binary") ledger.transactions = transactions;
+      else if (options.tx_return === "json") {
+        for (var i=0; i<transactions.length; i++){
+          var row = transactions[i];
+          row.tx = new SerializedObject(row.tx_raw).to_json();
+          row.meta = new SerializedObject(row.tx_meta).to_json();
+          delete row.tx_raw;
+          delete row.tx_meta;
+        }
+        ledger.transactions = transactions;
+      }
+      callback(null, ledger);
+    }
+
+    function parseLedger(ledger) {
+      ledger.ledger_index   = parseInt(ledger.ledger_index);
+      ledger.closing_time   = parseInt(ledger.closing_time);
+      ledger.close_time_res = parseInt(ledger.close_time_res);
+      ledger.total_coins    = parseInt(ledger.total_coins);
+      ledger.close_time     = ledger.closing_time;
+      delete ledger.closing_time;
+      return ledger;
+    }
+
+  };
+
  /**
   * 
   * getAccountTransactions
@@ -84,7 +251,7 @@ var DB = function(config) {
         .select('account_transactions.executed_time')
         .orderBy('account_transactions.ledger_index', descending ? 'desc' : 'asc')
         .orderBy('account_transactions.tx_seq', descending ? 'desc' : 'asc')
-        .limit(options.limit || 20)
+        .limit(options.limit || 20);
       
       if (options.offset) {
         query.offset(options.offset || 0); 
@@ -95,7 +262,7 @@ var DB = function(config) {
         start = moment.utc(options.start, moment.ISO_8601);
   
         if (start.isValid()) {
-          query.where('account_transactions.executed_time', '>=', start.unix())        
+          query.where('account_transactions.executed_time', '>=', start.unix());        
         } else {
           return {error:'invalid start time, format must be ISO 8601', code:400};
         }
@@ -185,17 +352,16 @@ var DB = function(config) {
         
         data.tx.hash = row.tx_hash.toUpperCase();
         data.tx.ledger_index  = parseInt(row.ledger_index, 10);
-        data.tx.executed_time = parseInt(row.executed_time, 10);  
-        data.tx.date          = data.tx.executed_time - EPOCH_OFFSET; 
+        data.tx.executed_time = parseInt(row.executed_time, 10);
+        data.tx.date          = data.tx.executed_time - EPOCH_OFFSET;
         transactions.push(data);
       });
       
       callback(null, transactions);
-    };
+    }
   };
   
-	return this;
+  return this;
 };
-
 
 module.exports = DB;
