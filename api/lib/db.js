@@ -73,7 +73,7 @@ var DB = function(config) {
       }
       callback(null, transaction);
     }
-  }
+  };
 
   /**
   * 
@@ -131,7 +131,7 @@ var DB = function(config) {
       }
       else {
         if (options.ledger_index) 
-          query.where('ledgers.ledger_index', options.ledger_index)
+          query.where('ledgers.ledger_index', options.ledger_index);
         if (options.datetime) {
           var iso_datetime = moment.utc(options.datetime, moment.ISO_8601);
           if (iso_datetime.isValid()) {
@@ -153,14 +153,14 @@ var DB = function(config) {
                   .where('transactions.ledger_index', ledger_index);
 
       if (options.tx_return === 'hex')
-        query.select(self.knex.raw("encode(transactions.tx_hash, 'hex') as tx_hash"))
+        query.select(self.knex.raw("encode(transactions.tx_hash, 'hex') as tx_hash"));
       else if (options.tx_return === "binary")
         query
           .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
-          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
+          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"));
       else if (options.tx_return === 'json')
         query.select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"));
 
       return query;
     }
@@ -197,7 +197,7 @@ var DB = function(config) {
       return ledger;
     }
 
-  }
+  };
 
  /**
   * 
@@ -251,7 +251,7 @@ var DB = function(config) {
         .select('account_transactions.executed_time')
         .orderBy('account_transactions.ledger_index', descending ? 'desc' : 'asc')
         .orderBy('account_transactions.tx_seq', descending ? 'desc' : 'asc')
-        .limit(options.limit || 20)
+        .limit(options.limit || 20);
       
       if (options.offset) {
         query.offset(options.offset || 0); 
@@ -262,7 +262,7 @@ var DB = function(config) {
         start = moment.utc(options.start, moment.ISO_8601);
   
         if (start.isValid()) {
-          query.where('account_transactions.executed_time', '>=', start.unix())        
+          query.where('account_transactions.executed_time', '>=', start.unix());        
         } else {
           return {error:'invalid start time, format must be ISO 8601', code:400};
         }
@@ -358,7 +358,7 @@ var DB = function(config) {
       });
       
       callback(null, transactions);
-    };
+    }
   };
   
   return this;

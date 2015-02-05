@@ -43,7 +43,7 @@ var getTx = function (req, res, next) {
     } else {
       response.json({result:'error', message:'unable to retrieve transactions'}).status(500).pipe(res);  
     }     
-  };
+  }
   
  /**
   * successResponse
@@ -58,8 +58,8 @@ var getTx = function (req, res, next) {
     
     log.info('TX: Transaction Found.');
     response.json(result).pipe(res);      
-  };
+  }
 
-}
+};
 
 module.exports = getTx;

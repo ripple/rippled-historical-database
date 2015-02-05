@@ -49,7 +49,7 @@ var getLedger = function (req, res, next) {
       options.tx_return = 'json';
     }
     return options;
-  };
+  }
 
  /**
   * errorResponse 
@@ -64,7 +64,7 @@ var getLedger = function (req, res, next) {
     } else {
       response.json({result:'error', message:'unable to retrieve transactions'}).status(500).pipe(res);  
     }     
-  };
+  }
   
  /**
   * successResponse
@@ -81,8 +81,8 @@ var getLedger = function (req, res, next) {
     else
       log.info('LEDGER: Ledger Found.');
     response.json(result).pipe(res);      
-  };
+  }
 
-}
+};
 
 module.exports = getLedger;

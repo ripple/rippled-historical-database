@@ -36,7 +36,7 @@ var accountBalances = function (req, res, next) {
     };
 
     return options;
-  };
+  }
 
   /**
   * getBalances
@@ -61,11 +61,11 @@ var accountBalances = function (req, res, next) {
       else {
         try {
           var balances = JSON.parse(body);
+          successResponse(balances);
         }
         catch(err) {
-          errorResponse({error: 'Could not parse json', code:400})
+          errorResponse({error: 'Could not parse json', code:400});
         }
-        successResponse(balances);
       }
     });
  }
@@ -83,7 +83,7 @@ var accountBalances = function (req, res, next) {
     } else {
       response.json({result:'error', message:'unable to retrieve balances'}).status(500).pipe(res);  
     }     
-  };
+  }
   
  /**
   * successResponse
@@ -93,8 +93,8 @@ var accountBalances = function (req, res, next) {
   function successResponse (balances) {
     log.info('ACCOUNT BALANCES: Balances Found:', balances.balances.length);
     response.json(balances).pipe(res);      
-  };
+  }
 
-}
+};
 
 module.exports = accountBalances;
