@@ -362,6 +362,10 @@ var DB = function(config) {
       rows.forEach(function(row) {
         var data = { };
         
+        data.hash         = row.tx_hash.toUpperCase();
+        data.ledger_index = parseInt(row.ledger_index, 10);
+        data.date         = moment.unix(parseInt(row.executed_time, 10)).utc().format();
+        
         if (options.binary) {
           data.tx   = row.tx_raw;
           data.meta = row.tx_meta;
@@ -374,12 +378,16 @@ var DB = function(config) {
             log.error(e);
             return callback({error:e, code:500});
           }          
-        }
         
-        data.tx.hash = row.tx_hash.toUpperCase();
-        data.tx.ledger_index  = parseInt(row.ledger_index, 10);
-        data.tx.executed_time = parseInt(row.executed_time, 10);
-        data.tx.date          = data.tx.executed_time - EPOCH_OFFSET;
+        
+          //NOTE: keeping these here for backwards compatability for
+          //the moment, to be removed!
+          data.tx.hash          = row.tx_hash.toUpperCase();
+          data.tx.ledger_index  = parseInt(row.ledger_index, 10);
+          data.tx.executed_time = parseInt(row.executed_time, 10);
+          data.tx.date          = data.tx.executed_time - EPOCH_OFFSET;
+        }
+                
         transactions.push(data);
       });
       
