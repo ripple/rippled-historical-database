@@ -26,8 +26,7 @@ var accountBalances = function (req, res, next) {
     var options = {
       ledger_index : req.query.ledger_index,
       ledger_hash  : req.query.ledger_hash,
-      closing_time : req.query.closing_time,
-      account      : req.query.account,
+      datetime     : req.query.datetime,
       currency     : req.query.currency,
       counterparty : req.query.counterparty,
       limit        : req.query.limit,

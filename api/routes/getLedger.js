@@ -76,8 +76,10 @@ var getLedger = function (req, res, next) {
       result : 'success',
       ledger : ledger
     };
-    
-    log.info('LEDGER: Ledger Found with', ledger.transactions.length, 'transactions.');
+    if (ledger.transactions)
+      log.info('LEDGER: Ledger Found with', ledger.transactions.length, 'transactions.');
+    else
+      log.info('LEDGER: Ledger Found.');
     response.json(result).pipe(res);      
   };
 

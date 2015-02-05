@@ -55,7 +55,12 @@ var DB = function(config) {
       var query = self.knex('transactions')
           .where('transactions.tx_hash', self.knex.raw("decode('"+options.tx_hash+"', 'hex')"))
           .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"));
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
+          .select(self.knex.raw("encode(transactions.ledger_hash, 'hex') as ledger_hash"))
+          .select('transactions.ledger_index')
+          .select('transactions.executed_time')
+          .select('transactions.tx_type');
+
       return query;
     }
 
