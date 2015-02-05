@@ -5,22 +5,36 @@ var response = require('response');
 
 var getLedger = function (req, res, next) {
 
-	var options = prepareOptions();
+  var options = prepareOptions();
 
-	postgres.getLedger(options, function(err, ledger){
-		if (err) {
-			errorResponse(err);
-		} else{
-			successResponse(ledger);
-		}
-	});
+  if (options.ledger_index) log.info('LEDGER:', options.ledger_index); 
+  else if (options.ledger_hash) log.info('LEDGER:', options.ledger_hash); 
+  else if (options.datetime) log.info('LEDGER:', options.datetime);
+  else log.info('LEDGER: latest');  
 
+  postgres.getLedger(options, function(err, ledger){
+    if (err) {
+      errorResponse(err);
+    } else{
+      successResponse(ledger);
+    }
+  });
+
+   /**
+  * prepareOptions
+  * parse request parameters to determine query options 
+  */
   function prepareOptions () {
     var options = {
       ledger_index : req.query.ledger_index,
       ledger_hash  : req.query.ledger_hash,
-      closing_time : req.query.datetime
+      datetime : req.query.datetime
     };
+
+    var ledger_param = req.params.ledger_param,
+        reg = /^\d+$/;
+    if (reg.test(ledger_param)) options.ledger_index = ledger_param;
+    else options.ledger_hash = ledger_param;
       
     if (!req.query.transactions) {
       options.tx_return = 'none';
@@ -62,7 +76,8 @@ var getLedger = function (req, res, next) {
       result : 'success',
       ledger : ledger
     };
-     
+    
+    log.info('LEDGER: Ledger Found with', ledger.transactions.length, 'transactions.');
     response.json(result).pipe(res);      
   };
 

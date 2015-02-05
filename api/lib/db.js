@@ -32,8 +32,45 @@ var DB = function(config) {
     });
   };
   
+  /**
+  * 
+  * getTx
+  * get transaction for a specific tx_hash
+  * @param {Object} options
+  * @param {Function} callback
+  */ 
 
-   /**
+  self.getTx = function (options, callback) {
+    var txQuery = prepareTxQuery();
+    if (txQuery.error) {
+      return callback(txQuery);
+    }
+
+    txQuery.nodeify(function(err, transactions){
+      if (err) return callback(err);
+      else handleResponse(transactions[0]);
+    });
+
+    function prepareTxQuery(){
+      var query = self.knex('transactions')
+          .where('transactions.tx_hash', self.knex.raw("decode('"+options.tx_hash+"', 'hex')"))
+          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"));
+      return query;
+    }
+
+    function handleResponse(transaction) {
+      if (!options.binary) {
+        transaction.tx = new SerializedObject(transaction.tx_raw).to_json();
+        transaction.meta = new SerializedObject(transaction.tx_meta).to_json();
+        delete transaction.tx_raw;
+        delete transaction.tx_meta;
+      }
+      callback(null, transaction);
+    }
+  }
+
+  /**
   * 
   * getLedger
   * get ledger for a specific ledger_index, ledger_hash, or closing_time
@@ -84,43 +121,41 @@ var DB = function(config) {
         .orderBy('closing_time', 'desc')
         .limit(1);
       
-      if (!options.ledger_index && !options.closing_time && !options.ledger_hash) {
+      if (!options.ledger_index && !options.datetime && !options.ledger_hash) {
         query.where('ledgers.closing_time', '<=', moment().unix());
       }
       else {
         if (options.ledger_index) 
           query.where('ledgers.ledger_index', options.ledger_index)
-        if (options.closing_time) {
-          var iso_closing_time = moment.utc(options.closing_time, moment.ISO_8601);
-          if (iso_closing_time.isValid()) {
-            query.where('ledgers.closing_time', '<=', iso_closing_time.unix());
+        if (options.datetime) {
+          var iso_datetime = moment.utc(options.datetime, moment.ISO_8601);
+          if (iso_datetime.isValid()) {
+            query.where('ledgers.closing_time', '<=', iso_datetime.unix());
           }
-          else if (!isNaN(options.closing_time)) {
-            query.where('ledgers.closing_time', '<=', options.closing_time);
+          else if (!isNaN(options.datetime)) {
+            query.where('ledgers.closing_time', '<=', options.datetime);
           }
-          else return {error:'invalid closing_time, format must be ISO 8601or Unix offset', code:400};
+          else return {error:'invalid datetime, format must be ISO 8601or Unix offset', code:400};
         }
         if (options.ledger_hash)
-          query.where('ledgers.ledger_hash', self.knex.raw("decode("+options.ledger_hash+", 'hex')"));
+          query.where('ledgers.ledger_hash', self.knex.raw("decode('"+options.ledger_hash+"', 'hex')"));
       }
       return query;
     }
 
     function prepareTxQuery(ledger_index) {
-      var query = self.knex('transactions');
+      var query = self.knex('transactions')
+                  .where('transactions.ledger_index', ledger_index);
 
       if (options.tx_return === 'hex')
         query.select(self.knex.raw("encode(transactions.tx_hash, 'hex') as tx_hash"))
-          .where('transactions.ledger_index', ledger_index);
       else if (options.tx_return === "binary")
         query
           .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
           .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-          .where('transactions.ledger_index', ledger_index);
       else if (options.tx_return === 'json')
         query.select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
           .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
-          .where('transactions.ledger_index', ledger_index);
 
       return query;
     }
@@ -137,8 +172,10 @@ var DB = function(config) {
       else if (options.tx_return === "json") {
         for (var i=0; i<transactions.length; i++){
           var row = transactions[i];
-          row.tx_raw = new SerializedObject(row.tx_raw).to_json();
-          row.tx_meta = new SerializedObject(row.tx_meta).to_json();
+          row.tx = new SerializedObject(row.tx_raw).to_json();
+          row.meta = new SerializedObject(row.tx_meta).to_json();
+          delete row.tx_raw;
+          delete row.tx_meta;
         }
         ledger.transactions = transactions;
       }
@@ -310,8 +347,8 @@ var DB = function(config) {
         
         data.tx.hash = row.tx_hash.toUpperCase();
         data.tx.ledger_index  = parseInt(row.ledger_index, 10);
-        data.tx.executed_time = parseInt(row.executed_time, 10);  
-        data.tx.date          = data.tx.executed_time - EPOCH_OFFSET; 
+        data.tx.executed_time = parseInt(row.executed_time, 10);
+        data.tx.date          = data.tx.executed_time - EPOCH_OFFSET;
         transactions.push(data);
       });
       
@@ -319,8 +356,7 @@ var DB = function(config) {
     };
   };
   
-	return this;
+  return this;
 };
-
 
 module.exports = DB;
