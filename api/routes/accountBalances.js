@@ -14,7 +14,7 @@ var accountBalances = function (req, res, next) {
     if (err) {
       errorResponse(err);
     } else {
-      getBalances(ledger.ledger_index, options.account);
+      getBalances(ledger, options.account);
     }
   });
 
@@ -26,7 +26,7 @@ var accountBalances = function (req, res, next) {
     var options = {
       ledger_index : req.query.ledger_index,
       ledger_hash  : req.query.ledger_hash,
-      datetime     : req.query.datetime,
+      date         : req.query.date,
       currency     : req.query.currency,
       counterparty : req.query.counterparty,
       limit        : req.query.limit,
@@ -43,7 +43,13 @@ var accountBalances = function (req, res, next) {
   * use ledger_index from getLedger api call
   * to get balances using ripple REST 
   */
- function getBalances(ledger_index, account) {
+ function getBalances(ledger, account) {
+    var ledger_index = ledger.ledger_index,
+        date         = ledger.close_time_human,
+        balances     = {},
+        body;
+    balances.date = date;
+
     if (!account) errorResponse({error: 'Must provide account.', code:400});
     var url = 'https://api.ripple.com/v1/accounts/'+account+'/balances';
     request({
@@ -60,7 +66,8 @@ var accountBalances = function (req, res, next) {
       if (err) errorResponse(err);
       else {
         try {
-          var balances = JSON.parse(body);
+          body = JSON.parse(body);
+          for (var attr in body) { balances[attr] = body[attr]; }
           successResponse(balances);
         }
         catch(err) {

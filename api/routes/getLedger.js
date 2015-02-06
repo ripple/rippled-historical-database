@@ -9,7 +9,7 @@ var getLedger = function (req, res, next) {
 
   if (options.ledger_index) log.info('LEDGER:', options.ledger_index); 
   else if (options.ledger_hash) log.info('LEDGER:', options.ledger_hash); 
-  else if (options.datetime) log.info('LEDGER:', options.datetime);
+  else if (options.date) log.info('LEDGER:', options.date);
   else log.info('LEDGER: latest');  
 
   postgres.getLedger(options, function(err, ledger){
@@ -28,26 +28,22 @@ var getLedger = function (req, res, next) {
     var options = {
       ledger_index : req.query.ledger_index,
       ledger_hash  : req.query.ledger_hash,
-      datetime : req.query.datetime
+      date         : req.query.date,
+      binary       : !req.query.binary || req.query.binary === 'false' ? false : true,
+      expand       : !req.query.expand || req.query.expand === 'false' ? false : true,
+      transactions : !req.query.transactions || req.query.transactions === 'false' ? false : true
     };
 
     var ledger_param = req.params.ledger_param,
         reg = /^\d+$/;
     if (reg.test(ledger_param)) options.ledger_index = ledger_param;
     else options.ledger_hash = ledger_param;
-      
-    if (!req.query.transactions) {
-      options.tx_return = 'none';
-    }
-    else if (req.query.transactions && !req.query.expand) {
-      options.tx_return = 'hex';
-    } 
-    else if (req.query.transactions && req.query.expand && req.query.binary) {
-      options.tx_return = 'binary';
-    }
-    else if (req.query.transactions && req.query.expand && !req.query.binary) {
-      options.tx_return = 'json';
-    }
+    
+    if (options.binary) options.tx_return = 'binary';
+    else if (options.expand) options.tx_return = 'json';
+    else if (options.transactions) options.tx_return = 'hex';
+    else options.tx_return = 'none';
+
     return options;
   }
 
