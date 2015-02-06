@@ -54,18 +54,20 @@ var DB = function(config) {
     function prepareTxQuery(){
       var query = self.knex('transactions')
           .where('transactions.tx_hash', self.knex.raw("decode('"+options.tx_hash+"', 'hex')"))
-          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
-          .select(self.knex.raw("encode(transactions.ledger_hash, 'hex') as ledger_hash"))
           .select('transactions.ledger_index')
           .select('transactions.executed_time')
-          .select('transactions.tx_type');
+          .select('transactions.tx_type')
+          .select(self.knex.raw("encode(transactions.ledger_hash, 'hex') as ledger_hash"))
+          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"));
 
       return query;
     }
 
     function handleResponse(transaction) {
       if (!options.binary) {
+        transaction.ledger_index = Number(transaction.ledger_index);
+        transaction.executed_time = Number(transaction.executed_time);
         transaction.tx = new SerializedObject(transaction.tx_raw).to_json();
         transaction.meta = new SerializedObject(transaction.tx_meta).to_json();
         delete transaction.tx_raw;
@@ -102,7 +104,6 @@ var DB = function(config) {
         txQuery = prepareTxQuery(ledger_index);
 
         if (options.tx_return !== "none") {
-          ledger.close_time_human = moment.unix(ledger.close_time).format();
           if (txQuery.error) return callback(txQuery);
           txQuery.nodeify(function(err, transactions) {
             if (err) return callback(err);
@@ -175,6 +176,7 @@ var DB = function(config) {
       else {
         for (var i=0; i<transactions.length; i++){
           var row = transactions[i];
+          row.ledger_index = Number(ledger_index);
           row.date = moment.unix(row.date).utc().format("YYYY-MM-DD HH:mm:ss");
           if (options.tx_return === "json") {
             row.tx = new SerializedObject(row.tx).to_json();
