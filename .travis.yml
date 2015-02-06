@@ -5,6 +5,5 @@ addons:
   postgresql: '9.3'
 script: npm test
 before_install:
-- bash ./init_db.sh
 notifications:
   email: false
