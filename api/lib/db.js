@@ -67,7 +67,7 @@ var DB = function(config) {
     function handleResponse(transaction) {
       if (!options.binary) {
         transaction.ledger_index = Number(transaction.ledger_index);
-        transaction.date = moment.unix(transaction.date).utc().format("YYYY-MM-DD HH:mm:ss");
+        transaction.date = moment.unix(transaction.date).utc().format();
         transaction.tx = new SerializedObject(transaction.tx_raw).to_json();
         transaction.meta = new SerializedObject(transaction.tx_meta).to_json();
         delete transaction.tx_raw;
@@ -177,7 +177,7 @@ var DB = function(config) {
         for (var i=0; i<transactions.length; i++){
           var row = transactions[i];
           row.ledger_index = Number(ledger_index);
-          row.date = moment.unix(row.date).utc().format("YYYY-MM-DD HH:mm:ss");
+          row.date = moment.unix(row.date).utc().format();
           if (options.tx_return === "json") {
             row.tx = new SerializedObject(row.tx).to_json();
             row.meta = new SerializedObject(row.meta).to_json();
@@ -194,7 +194,7 @@ var DB = function(config) {
       ledger.close_time_res   = parseInt(ledger.close_time_res);
       ledger.total_coins      = parseInt(ledger.total_coins);
       ledger.close_time       = ledger.closing_time;
-      ledger.close_time_human = moment.unix(ledger.close_time).utc().format("YYYY-MM-DD HH:mm:ss");
+      ledger.close_time_human = moment.unix(ledger.close_time).utc().format();
       delete ledger.closing_time;
       return ledger;
     }
