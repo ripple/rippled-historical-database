@@ -85,15 +85,17 @@ var DB = function(config) {
 
   self.getLedger = function (options, callback) {
 
-    var ledgerQuery = prepareLedgerQuery(),
-        ledger, ledger_index, txQuery;
+    var ledgerQuery = prepareLedgerQuery();
+    var ledger;
+    var ledger_index;
+    var txQuery;
     if (ledgerQuery.error) {
       return callback(ledgerQuery);
     }
 
     ledgerQuery.nodeify(function(err, ledgers){
       if (err) return callback(err);
-      else if (ledgers.length === 0) callback({error: "No ledgers found.", code:400});
+      else if (ledgers.length === 0) callback({error: "Ledger not found", code:404});
       else {
         ledger = parseLedger(ledgers[0]);
         ledger_index = ledger.ledger_index;
@@ -136,7 +138,7 @@ var DB = function(config) {
           if (iso_date.isValid()) {
             query.where('ledgers.closing_time', '<=', iso_date.unix());
           }
-          else if (!isNaN(options.date)) {
+          else if (/^\d+$/.test(options.date)) {
             query.where('ledgers.closing_time', '<=', options.date);
           }
           else return {error:'invalid date, format must be ISO 8601or Unix offset', code:400};
