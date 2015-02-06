@@ -83,15 +83,7 @@ LedgerStream.prototype.processNextLedger = function (callback) {
     ledger.transactions.push(tx.hash); 
   });
   
-  //save ledger to hbase
-  this.hbase.saveLedger(ledger, function(err, resp) {
-    if (err) {
-      self.log.error(err);
-      callback('unable to save ledger: ' + ledger.ledger_index);
-    } else {
-      callback(null, true);
-    }
-  }); 
+  callback(null, ledger);
 };
 
 /**

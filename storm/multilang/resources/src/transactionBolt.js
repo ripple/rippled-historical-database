@@ -132,7 +132,7 @@ TransactionBolt.prototype.processStreams = function (parsed, id) {
         stream        : 'exchangeAggregation'
       }, 
       function(taskIds) {
-          self.log('exchange sent to task ids - ' + taskIds);
+          self.log(pair + ' sent to task ids - ' + taskIds);
       });  
     });
 

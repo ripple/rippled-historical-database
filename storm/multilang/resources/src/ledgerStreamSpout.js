@@ -30,10 +30,19 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
   
   //process all ledgers
   while (stream.ledgers.length) {
-    stream.processNextLedger(function(err, resp) {
+    stream.processNextLedger(function(err, ledger) {
       if (err) {
         self.log(err);        
+        return;
       }
+      
+      self.pending[ledger.ledger_index] = {
+        ledger       : ledger,
+        transactions : { },
+        acks         : [ ]
+      };
+      
+      self.log('# pending ledgers: ' + Object.keys(self.pending).length);
     });
   }
     
@@ -48,7 +57,7 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
     
     //keep the transaction around
     //until its acked
-    self.pending[id] = {
+    self.pending[tx.ledger_index].transactions[tx.tx_index] = {
       attempts : 1,
       tx       : tx
     };
@@ -69,9 +78,32 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
  */
 
 LedgerStreamSpout.prototype.ack = function(id, done) {
-  this.log('Received ack for - ' + id);
-  delete this.pending[id];
-  done();
+  var self  = this;
+  var parts = id.split('|');
+  var data  = self.pending[parts[0]];
+  
+  self.log('Received ack for - ' + id);
+  data.acks.push(parts[1]);
+  
+  //if we've acked all transactions, save the ledger
+  if (data.acks.length == data.ledger.transactions.length) {
+    stream.hbase.saveLedger(data.ledger, function(err, resp) {
+      if (err) {
+        self.log.error(err);
+        self.log('unable to save ledger: ' + data.ledger.ledger_index);
+      
+      } else {
+        self.log('ledger saved: ' + data.ledger.ledger_index);
+      }
+      
+      //remove the pending ledger
+      delete self.pending[parts[0]];
+      done();
+    });    
+  
+  } else {
+    done();
+  }
 };
 
 /**
@@ -81,17 +113,21 @@ LedgerStreamSpout.prototype.ack = function(id, done) {
  */
 
 LedgerStreamSpout.prototype.fail = function(id, done) {
-  var self = this;
-
-  if (++self.pending[id].attempts <= 10) {
-    self.log('Received FAIL for - ' + id + ' Retrying, attempt #' + self.pending[id].attempts);
-    self.emit({tuple: [self.pending[id].tx], id:id}, function(taskIds) {
+  var self  = this;
+  var parts = id.split('|');
+  var data  = this.pending[parts[0]].transactions[parts[1]];  
+  
+  if (++data.attempts <= 10) {
+    self.log('Received FAIL for - ' + id + ' Retrying, attempt #' + data.attempts);
+    self.emit({tuple: [data.tx], id:id}, function(taskIds) {
         self.log('tx: ' + id + ' resent to - ' + taskIds);
     });
     
   } else {
     self.log('Received FAIL for - ' + id + ' - Stopping after 10 attempts');
-    delete self.pending[id];
+    
+    //remove the failed ledger
+    delete self.pending[parts[0]];
   }
   
   done();

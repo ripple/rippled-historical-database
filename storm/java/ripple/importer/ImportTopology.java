@@ -11,7 +11,7 @@ public class ImportTopology {
     TopologyBuilder builder = new TopologyBuilder();
     builder.setSpout("ledgerStream", new LedgerStreamSpout());
     
-    builder.setBolt("transactions", new TransactionBolt(), 4)
+    builder.setBolt("transactions", new TransactionBolt(), 2)
       .shuffleGrouping("ledgerStream");
     
     builder.setBolt("exchanges", new ExchangesBolt(), 4)

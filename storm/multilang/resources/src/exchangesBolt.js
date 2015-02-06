@@ -4,7 +4,7 @@ var Storm       = require('./lib/storm');
 var Hbase       = require('./lib/hbase-client');
 var Aggregation = require('./lib/exchangeAggregation');
 var BasicBolt   = Storm.BasicBolt;
-var pairs       = [ ];
+var pairs       = { };
 var bolt;
 
 function ExchangesBolt() {
@@ -37,7 +37,8 @@ ExchangesBolt.prototype.process = function(tup, done) {
       logLevel : config.logLevel,
       logFile  : config.logFile
     });
-  
+    self.log('#pairs: ' + Object.keys(pairs).length);
+    
   } else { 
     self.log('new ex: ' + pair);
   }

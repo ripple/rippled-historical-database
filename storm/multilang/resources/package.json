@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Realtime data stream importer",
   "scripts": {
-    "test": "./node_modules/mocha/bin/_mocha --reporter spec test/*.test.js"
+    "test": "./node_modules/mocha/bin/_mocha --reporter spec test/online.test.js"
   },
   "author": "Ripple Labs, Inc.",
   "license": "ISC",

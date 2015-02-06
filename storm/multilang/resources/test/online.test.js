@@ -29,6 +29,7 @@ var stream = new Stream({
   },
 });
 
+var testLedger;
 
 describe('ledgerStreamSpout', function () {
   before(function(done){
@@ -56,7 +57,8 @@ describe('ledgerStreamSpout', function () {
   
 
   it('should process an incoming ledger', function(done) {
-    stream.processNextLedger(function(err, resp) {
+    stream.processNextLedger(function(err, ledger) {
+      testLedger = ledger;
       done();
     });
   });  
@@ -102,6 +104,14 @@ describe('ledgerStreamSpout', function () {
       done();  
     });
   }); 
+  
+  it('should save the incoming ledger', function(done) {
+    this.timeout(10000);
+    stream.hbase.saveLedger(testLedger, function(err, resp) {
+      assert.ifError(err);
+      done();
+    }); 
+  });   
   
   
   after(function(done) {
