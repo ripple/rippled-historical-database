@@ -55,7 +55,7 @@ var DB = function(config) {
       var query = self.knex('transactions')
           .where('transactions.tx_hash', self.knex.raw("decode('"+options.tx_hash+"', 'hex')"))
           .select('transactions.ledger_index')
-          .select('transactions.executed_time')
+          .select('transactions.executed_time as date')
           .select('transactions.tx_type')
           .select(self.knex.raw("encode(transactions.ledger_hash, 'hex') as ledger_hash"))
           .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
@@ -67,7 +67,7 @@ var DB = function(config) {
     function handleResponse(transaction) {
       if (!options.binary) {
         transaction.ledger_index = Number(transaction.ledger_index);
-        transaction.executed_time = Number(transaction.executed_time);
+        transaction.date = moment.unix(transaction.date).utc().format("YYYY-MM-DD HH:mm:ss");
         transaction.tx = new SerializedObject(transaction.tx_raw).to_json();
         transaction.meta = new SerializedObject(transaction.tx_meta).to_json();
         delete transaction.tx_raw;
