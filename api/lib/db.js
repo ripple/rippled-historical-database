@@ -85,7 +85,8 @@ var DB = function(config) {
 
   self.getLedger = function (options, callback) {
 
-    var ledgerQuery = prepareLedgerQuery();
+    var ledgerQuery = prepareLedgerQuery(),
+        ledger, ledger_index, txQuery;
     if (ledgerQuery.error) {
       return callback(ledgerQuery);
     }
@@ -93,22 +94,20 @@ var DB = function(config) {
     ledgerQuery.nodeify(function(err, ledgers){
       if (err) return callback(err);
       else if (ledgers.length === 0) callback({error: "No ledgers found.", code:400});
-      else if (options.tx_return !== "none") {
-        var ledger = parseLedger(ledgers[0]),
-            ledger_index = ledger.ledger_index;
-            txQuery = prepareTxQuery(ledger_index);
-        if (txQuery.error){
-          return callback(txQuery);
-        }
-        txQuery.nodeify(function(err, transactions) {
-          if (err) return callback(err);
-          else {
-            handleResponse(ledger, transactions);
-          }
-        });
-      }
       else {
-        callback(null, parseLedger(ledgers[0]) );
+        ledger = parseLedger(ledgers[0]);
+        ledger_index = ledger.ledger_index;
+        txQuery = prepareTxQuery(ledger_index);
+
+        if (options.tx_return !== "none") {
+          ledger.close_time_human = moment.unix(ledger.close_time).format();
+          if (txQuery.error) return callback(txQuery);
+          txQuery.nodeify(function(err, transactions) {
+            if (err) return callback(err);
+            else handleResponse(ledger, transactions);
+          });
+        }
+        else callback(null, ledger);
       }
     });
 
@@ -126,21 +125,21 @@ var DB = function(config) {
         .orderBy('closing_time', 'desc')
         .limit(1);
       
-      if (!options.ledger_index && !options.datetime && !options.ledger_hash) {
+      if (!options.ledger_index && !options.date && !options.ledger_hash) {
         query.where('ledgers.closing_time', '<=', moment().unix());
       }
       else {
         if (options.ledger_index) 
           query.where('ledgers.ledger_index', options.ledger_index);
-        if (options.datetime) {
-          var iso_datetime = moment.utc(options.datetime, moment.ISO_8601);
-          if (iso_datetime.isValid()) {
-            query.where('ledgers.closing_time', '<=', iso_datetime.unix());
+        if (options.date) {
+          var iso_date = moment.utc(options.date, moment.ISO_8601);
+          if (iso_date.isValid()) {
+            query.where('ledgers.closing_time', '<=', iso_date.unix());
           }
-          else if (!isNaN(options.datetime)) {
-            query.where('ledgers.closing_time', '<=', options.datetime);
+          else if (!isNaN(options.date)) {
+            query.where('ledgers.closing_time', '<=', options.date);
           }
-          else return {error:'invalid datetime, format must be ISO 8601or Unix offset', code:400};
+          else return {error:'invalid date, format must be ISO 8601or Unix offset', code:400};
         }
         if (options.ledger_hash)
           query.where('ledgers.ledger_hash', self.knex.raw("decode('"+options.ledger_hash+"', 'hex')"));
@@ -150,17 +149,15 @@ var DB = function(config) {
 
     function prepareTxQuery(ledger_index) {
       var query = self.knex('transactions')
-                  .where('transactions.ledger_index', ledger_index);
+                  .where('transactions.ledger_index', ledger_index)
+                  .select(self.knex.raw("encode(transactions.tx_hash, 'hex') as hash"));
 
-      if (options.tx_return === 'hex')
-        query.select(self.knex.raw("encode(transactions.tx_hash, 'hex') as tx_hash"));
-      else if (options.tx_return === "binary")
+      if (options.tx_return === "binary" || options.tx_return === 'json')
         query
-          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
-          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"));
-      else if (options.tx_return === 'json')
-        query.select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"));
+          .select('transactions.executed_time as date')
+          .select('transactions.ledger_index')
+          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"));
 
       return query;
     }
@@ -169,30 +166,31 @@ var DB = function(config) {
       if (options.tx_return === "hex") {
         var transaction_list = [];
         for (var i=0; i<transactions.length; i++){
-          transaction_list.push(transactions[i].tx_hash);
+          transaction_list.push(transactions[i].hash);
         }
         ledger.transactions = transaction_list;
       }
-      else if (options.tx_return === "binary") ledger.transactions = transactions;
-      else if (options.tx_return === "json") {
+      else {
         for (var i=0; i<transactions.length; i++){
           var row = transactions[i];
-          row.tx = new SerializedObject(row.tx_raw).to_json();
-          row.meta = new SerializedObject(row.tx_meta).to_json();
-          delete row.tx_raw;
-          delete row.tx_meta;
+          row.date = moment.unix(row.date).utc().format("YYYY-MM-DD HH:mm:ss");
+          if (options.tx_return === "json") {
+            row.tx = new SerializedObject(row.tx).to_json();
+            row.meta = new SerializedObject(row.meta).to_json();
+          }
         }
         ledger.transactions = transactions;
-      }
+      }  
       callback(null, ledger);
     }
 
     function parseLedger(ledger) {
-      ledger.ledger_index   = parseInt(ledger.ledger_index);
-      ledger.closing_time   = parseInt(ledger.closing_time);
-      ledger.close_time_res = parseInt(ledger.close_time_res);
-      ledger.total_coins    = parseInt(ledger.total_coins);
-      ledger.close_time     = ledger.closing_time;
+      ledger.ledger_index     = parseInt(ledger.ledger_index);
+      ledger.closing_time     = parseInt(ledger.closing_time);
+      ledger.close_time_res   = parseInt(ledger.close_time_res);
+      ledger.total_coins      = parseInt(ledger.total_coins);
+      ledger.close_time       = ledger.closing_time;
+      ledger.close_time_human = moment.unix(ledger.close_time).utc().format("YYYY-MM-DD HH:mm:ss");
       delete ledger.closing_time;
       return ledger;
     }

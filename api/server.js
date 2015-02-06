@@ -12,7 +12,7 @@ app.use(cors());
 
 //define routes
 app.get('/v1/accounts/:address/transactions', routes.accountTx);
-app.get('/v1/ledger/:ledger_param?', routes.getLedger);
+app.get('/v1/ledgers/:ledger_param?', routes.getLedger);
 app.get('/v1/accounts/:address/balances', routes.accountBalances);
 app.get('/v1/transactions/:tx_hash', routes.getTx);
 
