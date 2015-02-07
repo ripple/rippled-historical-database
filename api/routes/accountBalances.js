@@ -43,39 +43,41 @@ var accountBalances = function (req, res, next) {
   * use ledger_index from getLedger api call
   * to get balances using ripple REST 
   */
- function getBalances(ledger, account) {
-    var ledger_index = ledger.ledger_index,
-        date         = ledger.close_time_human,
-        balances     = {},
-        body;
-    balances.date = date;
-
-    if (!account) errorResponse({error: 'Must provide account.', code:400});
+  
+  function getBalances(ledger, account) {
+    var ledger_index = ledger.ledger_index;
+    var date         = ledger.close_time_human;
+    var balances     = {};
     var url = 'https://api.ripple.com/v1/accounts/'+account+'/balances';
+    var body;
+    
+    balances.date = date;
+    if (!account) errorResponse({error: 'Must provide account.', code:400});
+    
     request({
-        url: url,
-        qs: {
-          currency: options.currency,
-          counterparty: options.counterparty,
-          limit: options.limit,
-          marker: options.marker,
-          ledger: ledger_index
-        }
-      }, 
-      function (err, res, body) {
-      if (err) errorResponse(err);
-      else {
-        try {
-          body = JSON.parse(body);
-          for (var attr in body) { balances[attr] = body[attr]; }
-          successResponse(balances);
-        }
-        catch(err) {
-          errorResponse({error: 'Could not parse json', code:400});
-        }
+      url: url,
+      json: true,
+      qs: {
+        currency: options.currency,
+        counterparty: options.counterparty,
+        limit: options.limit,
+        marker: options.marker,
+        ledger: ledger_index
       }
+    }, function (err, res, body) {
+      
+      if (err) {
+        errorResponse(err);
+        return
+      } 
+
+      for (var attr in body) { 
+        balances[attr] = body[attr]; 
+      }
+
+      successResponse(balances);
     });
- }
+  }
 
  /**
   * errorResponse 
@@ -98,7 +100,13 @@ var accountBalances = function (req, res, next) {
   * @param {Object} balances
   */  
   function successResponse (balances) {
-    log.info('ACCOUNT BALANCES: Balances Found:', balances.balances.length);
+    
+    if (balances.balances) {
+      log.info('ACCOUNT BALANCES: Balances Found:', balances.balances.length);
+    } else {
+      log.info('ACCOUNT BALANCES: Balances Found: 0');
+    }
+    
     response.json(balances).pipe(res);      
   }
 
