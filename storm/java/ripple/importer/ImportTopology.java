@@ -11,10 +11,10 @@ public class ImportTopology {
     TopologyBuilder builder = new TopologyBuilder();
     builder.setSpout("ledgerStream", new LedgerStreamSpout());
     
-    builder.setBolt("transactions", new TransactionBolt(), 2)
+    builder.setBolt("transactions", new TransactionBolt(), 6)
       .shuffleGrouping("ledgerStream");
     
-    builder.setBolt("exchanges", new ExchangesBolt(), 4)
+    builder.setBolt("exchanges", new ExchangesBolt(), 6)
       .fieldsGrouping("transactions", "exchangeAggregation", new Fields("pair"));
     
     Config conf = new Config();
@@ -27,7 +27,7 @@ public class ImportTopology {
     
     } else {
       
-      conf.setMaxTaskParallelism(3);
+      //conf.setMaxTaskParallelism(6);
       LocalCluster cluster = new LocalCluster();
       cluster.submitTopology("ledger-import", conf, builder.createTopology());
 
