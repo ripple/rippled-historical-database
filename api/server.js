@@ -15,6 +15,7 @@ app.get('/v1/accounts/:address/transactions', routes.accountTx);
 app.get('/v1/ledgers/:ledger_param?', routes.getLedger);
 app.get('/v1/accounts/:address/balances', routes.accountBalances);
 app.get('/v1/transactions/:tx_hash', routes.getTx);
+app.get('/v1/accounts/:address/payments', routes.getPayments);
 
 //start the server
 app.listen(config.get('port'));
