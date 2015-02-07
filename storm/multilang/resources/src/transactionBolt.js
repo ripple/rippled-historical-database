@@ -47,16 +47,7 @@ TransactionBolt.prototype.process = function(tup, done) {
     self.processStreams(parsed, tup.id),
     
   ]).nodeify(function(err, resp){
-    
-    if (err) {
-      self.log(err);
-      self.fail(tup);
-      
-    } else {
-      //self.ack(tup);
-      done();
-    }
-    
+    done(err);
   });
 };
 
