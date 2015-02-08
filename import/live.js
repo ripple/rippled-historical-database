@@ -27,13 +27,12 @@ if (types.hbase) {
   log.info('Saving Ledgers to HBase');
   HBase = require('./hbase/client');
   hbase = new HBase();
-  hbase.connect().then(function(){
 
     //ensure we have the proper tables before importing
     //hbase._initTables();
     
-    live.on('ledger', function(ledger) {
-      hbase.saveLedger(ledger);
+  live.on('ledger', function(ledger) {
+    hbase.saveLedger(ledger, function(err, resp) {
     });
   });
 }
