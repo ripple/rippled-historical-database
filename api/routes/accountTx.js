@@ -55,7 +55,6 @@ var accountTx = function (req, res, next) {
   * @param {Object} err
   */
   function errorResponse (err) {
-    console.log(err);
     if (err.code === 400) {
       log.error(err.error || err);
       response.json({result:'error', message:err.error}).status(400).pipe(res);  
