@@ -298,8 +298,21 @@ var DB = function(config) {
        //handle maxLedger - optional
       if (options.maxLedger) {
         query.where('account_transactions.ledger_index', '<=', options.maxLedger);        
-      }            
-      
+      }
+
+      //handle sequence - optional
+      if (options.sequence) {
+        query.where('transactions.account_seq', options.sequence); 
+      }
+      //handle min_sequence - optional
+      if (options.min_sequence) {
+        query.where('transactions.account_seq', '>=', options.min_sequence); 
+      }
+      //handle max_sequence - optional            
+      if (options.max_sequence) {
+        query.where('transactions.account_seq', '<=', options.max_sequence); 
+      }
+
       //specify a result - default to tesSUCCESS,
       //exclude the where if 'all' is specified
       //can be comma separated list

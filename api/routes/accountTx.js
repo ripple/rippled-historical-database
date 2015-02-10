@@ -23,26 +23,29 @@ var accountTx = function (req, res, next) {
   */
   function prepareOptions () {
     var options = {
-      account    : req.params.address,
-      limit      : req.query.limit || 20,
-      offset     : req.query.offset,
-      descending : req.query.descending === 'false' ? false : true,
-      start      : req.query.start,
-      end        : req.query.end,
-      minLedger  : req.query.ledger_min,
-      maxLedger  : req.query.ledger_max,
-      type       : req.query.type,
-      result     : req.query.result,
-      binary     : !req.query.binary || req.query.binary === 'false' ? false : true 
+      account      : req.params.address,
+      sequence     : req.params.sequence,
+      limit        : req.query.limit || 20,
+      offset       : req.query.offset,
+      descending   : req.query.descending === 'false' ? false : true,
+      start        : req.query.start,
+      end          : req.query.end,
+      minLedger    : req.query.ledger_min,
+      maxLedger    : req.query.ledger_max,
+      type         : req.query.type,
+      result       : req.query.result,
+      binary       : !req.query.binary || req.query.binary === 'false' ? false : true,
+      min_sequence : req.query.min_sequence,
+      max_sequence : req.query.max_sequence
     };
-    
+
     if (isNaN(options.limit)) {
       options.limit = 20;
         
     } else if (options.limit > 1000) {
       options.limit = 1000;  
     } 
-    
+
     return options;
   };
   
@@ -52,6 +55,7 @@ var accountTx = function (req, res, next) {
   * @param {Object} err
   */
   function errorResponse (err) {
+    console.log(err);
     if (err.code === 400) {
       log.error(err.error || err);
       response.json({result:'error', message:err.error}).status(400).pipe(res);  
