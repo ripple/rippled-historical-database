@@ -85,14 +85,11 @@ var accountBalances = function (req, res, next) {
   * @param {Object} err
   */
   function errorResponse (err) {
-    if (err.code === 400) {
+    if (err.code.toString()[0] === '4') {
       log.error(err.error || err);
-      response.json({result:'error', message:err.error}).status(400).pipe(res);  
-    } else if (err.code === 404) {
-      log.error(err.error || err);
-      response.json({result:'error', message:err.error}).status(404).pipe(res);
+      response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
-      response.json({result:'error', message:'unable to retrieve balances'}).status(500).pipe(res);  
+      response.json({result:'error', message:'unable to retrieve ledger'}).status(500).pipe(res);  
     }     
   }
   
