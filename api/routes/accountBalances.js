@@ -88,7 +88,9 @@ var accountBalances = function (req, res, next) {
     if (err.code === 400) {
       log.error(err.error || err);
       response.json({result:'error', message:err.error}).status(400).pipe(res);  
-       
+    } else if (err.code === 404) {
+      log.error(err.error || err);
+      response.json({result:'error', message:err.error}).status(404).pipe(res);
     } else {
       response.json({result:'error', message:'unable to retrieve balances'}).status(500).pipe(res);  
     }     

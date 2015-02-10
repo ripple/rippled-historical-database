@@ -97,7 +97,7 @@ var DB = function(config) {
 
     ledgerQuery.nodeify(function(err, ledgers){
       if (err) return callback(err);
-      else if (ledgers.length === 0) callback({error: "Ledger not found", code:404});
+      else if (ledgers.length === 0) callback({error: "ledger not found", code:404});
       else {
         ledger = parseLedger(ledgers[0]);
         ledger_index = ledger.ledger_index;
