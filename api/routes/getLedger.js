@@ -46,7 +46,7 @@ var getLedger = function (req, res, next) {
       else if (iso.isValid()) options.date = iso;
       else if (hexMatch.test(ledger_param) && ledger_param.length % 2 === 0) 
         options.ledger_hash = ledger_param;
-      else options.err = {error:"Invalid ledger identifier.", code:400};
+      else options.err = {error:"invalid ledger identifier", code:400};
     }
     
     if (options.binary) options.tx_return = 'binary';
