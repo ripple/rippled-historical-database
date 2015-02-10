@@ -1,4 +1,4 @@
-var hexMatch    = new RegExp('(0x)?[0-9a-f]+');
+var hexMatch    = new RegExp('^(0x)?[0-9A-Fa-f]+$');
 var base64Match = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
 var sjcl        = require('ripple-lib').sjcl;
 

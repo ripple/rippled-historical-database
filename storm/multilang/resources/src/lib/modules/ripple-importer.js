@@ -1,5 +1,4 @@
 var ripple  = require('ripple-lib');
-var Ledger  = require('../../../node_modules/ripple-lib/src/js/ripple/ledger').Ledger;
 var events  = require('events');
 var emitter = new events.EventEmitter();
 var winston = require('winston');
@@ -418,8 +417,7 @@ var Importer = function (options) {
       return false;     
     }
     
-    return true;
-    txHash = Ledger.from_json(ledger).calc_tx_hash().to_hex();
+    txHash = ripple.Ledger.from_json(ledger).calc_tx_hash().to_hex();
     
     if (txHash !== ledger.transaction_hash) {
       log.info('transactions do not hash to the expected value for ' + 

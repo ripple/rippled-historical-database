@@ -20,6 +20,7 @@ if (!fs.existsSync(path))fs.mkdirSync(path);
 live.liveStream();
 live.on('ledger', function (ledger) {  
   
+  return;
   //save ledger for tests
   var json     = JSON.stringify(ledger, null, 2);
   var filename = ledger.ledger_index + '.json';
