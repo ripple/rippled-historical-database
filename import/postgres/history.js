@@ -1,13 +1,18 @@
 var config   = require('../../config/import.config');
-var log      = require('../../lib/log')('postgres_history');
+var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var Importer = require('../../storm/multilang/resources/src/lib/modules/ripple-importer');
 var moment   = require('moment');
-var diff     = require('deep-diff');
-var Importer = require('../importer');
 var db       = require('./client');
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
 
+var log = new Logger({
+  scope : 'postgres history',
+  level : config.get('logLevel') || 0,
+  file  : config.get('logFile')
+});
+
 var HistoricalImport = function () {
-  this.importer = new Importer();
+  this.importer = new Importer({ripple : config.get('ripple')});
   this.count    = 0;
   this.total    = 0;
   this.section  = { };
@@ -204,7 +209,7 @@ var HistoricalImport = function () {
         }
       }    
       
-      if (index > end) {
+      if (index >= end) {
         startIndex = index;
         end        = index;
         ledgerHash = null;

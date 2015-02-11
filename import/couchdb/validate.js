@@ -1,7 +1,13 @@
-var config   = require('../../config/import.config');
-var log      = require('../../lib/log')('couchdb_validator');
+var config  = require('../../config/import.config');
+var Logger  = require('../../storm/multilang/resources/src/lib/modules/logger');
+var db      = require('./client');
 var HistoricalImport = require('./history');
-var db = require('./client');
+
+var log = new Logger({
+  scope : 'couchdb validator',
+  level : config.get('logLevel') || 0,
+  file  : config.get('logFile')
+});
 
 //if no earliest saved or earliest saved is greater than
 //the genesis ledger, start backfilling from earliest saved/validated

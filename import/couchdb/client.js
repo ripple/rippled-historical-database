@@ -1,5 +1,5 @@
 var config   = require('../../config/import.config');
-var log      = require('../../lib/log')('couchdb');
+var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
 var moment   = require('moment');
 var diff     = require('deep-diff');
 var ripple   = require('ripple-lib');
@@ -8,15 +8,20 @@ var https    = require('https');
 var queries  = 0;
 var dbConfig = config.get('couchdb');
 var nano     = require('nano')({
-    url : dbConfig.protocol +
-      '://' + dbConfig.username + 
-      ':'   + dbConfig.password + 
-      '@'   + dbConfig.host + 
-      ':'   + dbConfig.port + 
-      '/'   + dbConfig.database,
-    request_defaults : {timeout :90 * 1000}, //90 seconds max for couchDB 
-  });  
+  url : dbConfig.protocol +
+    '://' + dbConfig.username + 
+    ':'   + dbConfig.password + 
+    '@'   + dbConfig.host + 
+    ':'   + dbConfig.port + 
+    '/'   + dbConfig.database,
+  request_defaults : {timeout :90 * 1000}, //90 seconds max for couchDB 
+});  
 
+var log = new Logger({
+  scope : 'couchdb',
+  level : config.get('logLevel') || 0,
+  file  : config.get('logFile')
+});
 
 //this is the maximum number of concurrent requests to couchDB
 var maxSockets = config.get('maxSockets') || 200;

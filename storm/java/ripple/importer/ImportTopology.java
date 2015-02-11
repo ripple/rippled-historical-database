@@ -11,10 +11,10 @@ public class ImportTopology {
     TopologyBuilder builder = new TopologyBuilder();
     builder.setSpout("ledgerStream", new LedgerStreamSpout());
     
-    builder.setBolt("transactions", new TransactionBolt(), 6)
+    builder.setBolt("transactions", new TransactionBolt(), 20)
       .shuffleGrouping("ledgerStream");
     
-    builder.setBolt("exchanges", new ExchangesBolt(), 6)
+    builder.setBolt("exchanges", new ExchangesBolt(), 10)
       .fieldsGrouping("transactions", "exchangeAggregation", new Fields("pair"));
     
     Config conf = new Config();

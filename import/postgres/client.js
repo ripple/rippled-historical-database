@@ -1,7 +1,7 @@
 var config   = require('../../config/import.config');
+var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
 var Knex     = require('knex');
 var Promise  = require('bluebird');
-var log      = require('../../lib/log')('postgres');
 var moment   = require('moment');
 var UInt160  = require('ripple-lib').UInt160;
 var winston  = require('winston');
@@ -16,7 +16,11 @@ var hashErrorLog = new (require('winston').Logger)({
   ]   
 });
 
-log.level(config.get('logLevel') || 2);
+var log = new Logger({
+  scope : 'postgres',
+  level : config.get('logLevel') || 0,
+  file  : config.get('logFile')
+});
 
 //Main
 var DB = function(config) {
