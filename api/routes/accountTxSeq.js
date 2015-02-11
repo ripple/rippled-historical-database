@@ -12,6 +12,8 @@ var accountTxSeq = function (req, res, next) {
   postgres.getAccountTransactions(options, function(err, resp) {
     if (err) {
       errorResponse(err);   
+    } else if (resp.transactions.length === 0) {
+      errorResponse({error: "transaction not found", code:404})
     } else {
       successResponse(resp); 
     }
@@ -37,14 +39,13 @@ var accountTxSeq = function (req, res, next) {
   * @param {Object} err
   */
   function errorResponse (err) {
-    if (err.code === 400) {
+    if (err.code.toString()[0] === '4') {
       log.error(err.error || err);
-      response.json({result:'error', message:err.error}).status(400).pipe(res);  
-       
+      response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
-      response.json({result:'error', message:'unable to retrieve transactions'}).status(500).pipe(res);  
+      response.json({result:'error', message:'unable to retrieve transaction'}).status(500).pipe(res);  
     }     
-  };
+  }
   
  /**
   * successResponse
