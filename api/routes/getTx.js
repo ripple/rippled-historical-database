@@ -40,7 +40,7 @@ var getTx = function (req, res, next) {
       log.error(err.error || err);
       response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
-      response.json({result:'error', message:'unable to retrieve transactions'}).status(500).pipe(res);  
+      response.json({result:'error', message:'unable to retrieve transaction'}).status(500).pipe(res);  
     }     
   }
   
