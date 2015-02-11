@@ -9,7 +9,7 @@ var accountTxSeq = function (req, res, next) {
   
   log.info('ACCOUNT TX:', options.account); 
 
-  postgres.getAccountTransactions(options, function(err, resp) {
+  postgres.getAccountTxSeq(options, function(err, resp) {
     if (err) {
       errorResponse(err);   
     } else if (resp.transactions.length === 0) {

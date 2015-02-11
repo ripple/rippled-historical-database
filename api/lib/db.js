@@ -201,6 +201,170 @@ var DB = function(config) {
 
   };
 
+
+  self.getAccountTxSeq = function (options, callback) {
+    var result = prepareQuery();
+    if (result.error) {
+      callback(result);
+      return;
+    }
+    
+    if (options.sequence)
+      log.debug(new Date().toISOString(), 'getting transaction:', options.account, options.sequence);
+    else
+      log.debug(new Date().toISOString(), 'getting transactions:', options.account);
+
+    //execute the query      
+    result.query.nodeify(function(err, rows) {
+
+      if (options.sequence)
+        log.debug(new Date().toISOString(), 'transaction found'); 
+      else
+        log.debug(new Date().toISOString(), (rows ? rows.length : 0) + ' transactions found'); 
+
+            
+      if (err) {
+        log.error(err);
+        callback({error:err, code:500});
+        return;
+        
+      //get a count of all the rows that
+      //are found without a limit
+      } else if (rows.length) {
+        result.count.nodeify(function(err, resp) {
+          if (err) {
+            log.error(err);
+            callback({error:err, code:500});
+            return;  
+          } 
+          handleResponse(rows, parseInt(resp[0].count, 10));
+        });
+        
+      } else {
+        handleResponse(rows, 0);      
+      }
+    }); 
+
+    function prepareQuery () {
+      var descending = options.descending === false ? false : true;
+      var types;
+      var results;
+      var results;
+      var count;
+
+      var query = self.knex('transactions')
+        .where('transactions.account', options.account);
+
+      if (options.sequence)
+        query.where('transactions.account_seq', options.sequence);
+      else {
+
+        if (options.offset) {
+          query.offset(options.offset || 0); 
+        }
+
+        //handle min_sequence - optional
+        if (options.min_sequence) {
+          query.where('transactions.account_seq', '>=', options.min_sequence); 
+        }
+
+        //handle max_sequence - optional            
+        if (options.max_sequence) {
+          query.where('transactions.account_seq', '<=', options.max_sequence); 
+        }
+
+        //specify a result - default to tesSUCCESS,
+        //exclude the where if 'all' is specified
+        //can be comma separated list
+        if (options.result && options.result !== 'all') {
+          results = options.result.split(',');
+          query.where(function() {
+            var q = this;
+            results.forEach(function(result) {
+              q.orWhere('transactions.tx_result', result.trim());   
+            });
+          });
+          
+        } else if (!options.result) {
+          query.where('transactions.tx_result', 'tesSUCCESS');
+        } 
+        
+        //specify a type - optional
+        //can be comma separate list
+        if (options.type) {
+          types = options.type.split(',');
+          query.where(function() {
+            var q = this;
+            types.forEach(function(type) {
+              q.orWhere('transactions.tx_type', type.trim());   
+            });
+          });
+        }
+      }
+
+      count = query.clone();
+      count.count();
+
+      query.select(self.knex.raw("encode(transactions.tx_hash, 'hex') as hash"))
+        .select('transactions.ledger_index')
+        .select('transactions.executed_time')
+        .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
+        .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"))
+        .orderBy('transactions.ledger_index', descending ? 'desc' : 'asc')
+        .orderBy('transactions.tx_seq', descending ? 'desc' : 'asc')
+        .orderBy('transactions.executed_time', descending ? 'desc' : 'asc')
+        .limit(options.limit || 20)
+      
+      //log.debug(query.toString());
+      return {
+        count : count,
+        query : query
+      }; 
+    }
+
+       /**
+    * handleResponse 
+    * @param {Object} rows
+    * @param {Object} callback
+    */ 
+    function handleResponse (rows, total) {
+      
+      var transactions = [];
+
+      rows.forEach(function(row) {
+        var data = { };
+        
+        data.hash         = row.hash.toUpperCase();
+        data.ledger_index = parseInt(row.ledger_index, 10);
+        data.date         = moment.unix(parseInt(row.executed_time, 10)).utc().format();
+        
+        if (options.binary) {
+          data.tx   = row.tx;
+          data.meta = row.meta;
+          
+        } else {
+          try {
+            data.tx   = new SerializedObject(row.tx).to_json();
+            data.meta = new SerializedObject(row.meta).to_json();     
+          } catch (e) {
+            log.error(e);
+            return callback({error:e, code:500});
+          }          
+        }
+                
+        transactions.push(data);
+      });
+      
+      callback(null, {
+        transactions : transactions,
+        total        : total || 0
+      });
+    }
+
+  }
+
+
+
  /**
   * 
   * getAccountTransactions
@@ -298,19 +462,6 @@ var DB = function(config) {
        //handle maxLedger - optional
       if (options.maxLedger) {
         query.where('account_transactions.ledger_index', '<=', options.maxLedger);        
-      }
-
-      //handle sequence - optional
-      if (options.sequence) {
-        query.where('transactions.account_seq', options.sequence); 
-      }
-      //handle min_sequence - optional
-      if (options.min_sequence) {
-        query.where('transactions.account_seq', '>=', options.min_sequence); 
-      }
-      //handle max_sequence - optional            
-      if (options.max_sequence) {
-        query.where('transactions.account_seq', '<=', options.max_sequence); 
       }
 
       //specify a result - default to tesSUCCESS,

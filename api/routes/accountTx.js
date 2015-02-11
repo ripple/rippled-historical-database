@@ -9,13 +9,22 @@ var accountTx = function (req, res, next) {
   
   log.info('ACCOUNT TX:', options.account); 
 
-  postgres.getAccountTransactions(options, function(err, resp) {
-    if (err) {
-      errorResponse(err);   
-    } else {
-      successResponse(resp); 
-    }
-  });
+  if (options.min_sequence || options.max_sequence)
+    postgres.getAccountTxSeq(options, function(err, resp) {
+      if (err) {
+        errorResponse(err);   
+      } else {
+        successResponse(resp); 
+      }
+    });
+  else
+    postgres.getAccountTransactions(options, function(err, resp) {
+      if (err) {
+        errorResponse(err);   
+      } else {
+        successResponse(resp); 
+      }
+    });
   
  /**
   * prepareOptions
