@@ -3,7 +3,7 @@ var log      = require('../../lib/log')('api');
 var postgres = new require('../lib/db.js')(config.get('sql'));
 var response = require('response');
 
-var accountTx = function (req, res, next) {
+var accountTxSeq = function (req, res, next) {
 
   var options = prepareOptions();
   
@@ -24,26 +24,9 @@ var accountTx = function (req, res, next) {
   function prepareOptions () {
     var options = {
       account      : req.params.address,
-      limit        : req.query.limit || 20,
-      offset       : req.query.offset,
-      descending   : req.query.descending === 'false' ? false : true,
-      start        : req.query.start,
-      end          : req.query.end,
-      minLedger    : req.query.ledger_min,
-      maxLedger    : req.query.ledger_max,
-      type         : req.query.type,
-      result       : req.query.result,
-      binary       : !req.query.binary || req.query.binary === 'false' ? false : true,
-      min_sequence : req.query.min_sequence,
-      max_sequence : req.query.max_sequence
+      sequence     : req.params.sequence,
+      binary       : !req.query.binary || req.query.binary === 'false' ? false : true
     };
-
-    if (isNaN(options.limit)) {
-      options.limit = 20;
-        
-    } else if (options.limit > 1000) {
-      options.limit = 1000;  
-    } 
 
     return options;
   };
@@ -71,14 +54,12 @@ var accountTx = function (req, res, next) {
   function successResponse (data) {
     var result = {
       result       : 'success',
-      count        : data.transactions.length,
-      total        : data.total,
-      transactions : data.transactions
+      transaction : data.transactions[0]
     };
     
-    log.info('ACCOUNT TX: Transactions Found:', data.transactions.length);  
+    log.info('ACCOUNT TX: Transaction Found');  
     response.json(result).pipe(res);      
   };
 }
 
-module.exports = accountTx;
+module.exports = accountTxSeq;
