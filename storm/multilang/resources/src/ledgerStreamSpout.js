@@ -113,18 +113,22 @@ LedgerStreamSpout.prototype.ack = function(id, done) {
  */
 
 LedgerStreamSpout.prototype.fail = function(id, done) {
-  var self  = this;
-  var parts = id.split('|');
-  var data  = this.pending[parts[0]].transactions[parts[1]];  
+  var self   = this;
+  var parts  = id.split('|');
+  var data   = this.pending[parts[0]];
+  var txData = data ? data.transactions[parts[1]] : null;  
   
-  if (++data.attempts <= 10) {
-    self.log('Received FAIL for - ' + id + ' Retrying, attempt #' + data.attempts);
-    self.emit({tuple: [data.tx], id:id}, function(taskIds) {
+  if (!data) {
+    self.log('Received FAIL for - ' + id + ' Stopping, ledger failed');
+    
+  } else if (++txData.attempts <= 5) {
+    self.log('Received FAIL for - ' + id + ' Retrying, attempt #' + txData.attempts);
+    self.emit({tuple: [txData.tx], id:id}, function(taskIds) {
         self.log('tx: ' + id + ' resent to - ' + taskIds);
     });
     
   } else {
-    self.log('Received FAIL for - ' + id + ' - Stopping after 10 attempts');
+    self.log('Received FAIL for - ' + id + ' - Stopping after 5 attempts');
     
     //remove the failed ledger
     delete self.pending[parts[0]];

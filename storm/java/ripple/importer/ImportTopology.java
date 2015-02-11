@@ -23,6 +23,7 @@ public class ImportTopology {
     
     if (args != null && args.length > 0) {
       conf.setNumWorkers(3);
+      conf.setMessageTimeoutSecs(60);
       StormSubmitter.submitTopologyWithProgressBar(args[0], conf, builder.createTopology());
     
     } else {
