@@ -94,6 +94,17 @@ function checkNextLedger (lastValid, max) {
       return;
     }
     
+    if (!ledger) {
+      log.info('missing ledger', lastValid.ledger_index + 1);
+      log.info('trying again in 60 seconds.');
+      
+      setTimeout(function() {
+        startValidation();
+      }, 60*1000);    
+      
+      return;
+    }
+    
     ledger.transactions.forEach(function(tx, i) {
       var transaction = tx.tx;
       transaction.metaData = tx.meta;
