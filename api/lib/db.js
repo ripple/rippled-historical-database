@@ -240,10 +240,8 @@ var DB = function(config) {
           handleResponse(rows, parseInt(resp[0].count, 10));
         });
         
-      } else if (rows.length && options.sequence) {
-        handleResponse(rows, 1);
       } else {
-        handleResponse(rows, 0);      
+        handleResponse(rows, rows.length);      
       }
     }); 
     
