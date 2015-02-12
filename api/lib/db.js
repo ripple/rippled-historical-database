@@ -230,7 +230,7 @@ var DB = function(config) {
         
       //get a count of all the rows that
       //are found without a limit
-      } else if (rows.length) {
+      } else if (rows.length && !options.sequence) {
         result.count.nodeify(function(err, resp) {
           if (err) {
             log.error(err);
@@ -240,11 +240,13 @@ var DB = function(config) {
           handleResponse(rows, parseInt(resp[0].count, 10));
         });
         
+      } else if (rows.length && options.sequence) {
+        handleResponse(rows, 1);
       } else {
         handleResponse(rows, 0);      
       }
     }); 
-
+    
     function prepareQuery () {
       var descending = options.descending === false ? false : true;
       var types;
