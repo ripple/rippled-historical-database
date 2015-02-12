@@ -1,15 +1,22 @@
 var config   = require('../../config/import.config');
-var log      = require('../../lib/log')('couchdb_history');
+var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var Importer = require('../../storm/multilang/resources/src/lib/modules/ripple-importer');
+var indexer  = require('./indexer');
+var db       = require('./client');
 var moment   = require('moment');
 var diff     = require('deep-diff');
 var ripple   = require('ripple-lib');
-var Importer = require('../importer');
-var indexer  = require('./indexer');
-var db       = require('./client');
+
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
 
+var log = new Logger({
+  scope : 'couchdb history',
+  level : config.get('logLevel') || 0,
+  file  : config.get('logFile')
+});
+
 var HistoricalImport = function () {
-  this.importer = new Importer();
+  this.importer = new Importer({ripple : config.get('ripple')});
   this.count    = 0;
   this.total    = 0;
   this.section  = { };

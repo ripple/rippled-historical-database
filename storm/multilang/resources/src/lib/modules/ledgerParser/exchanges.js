@@ -1,6 +1,5 @@
-var log    = require('../log')('offers_exercised');
-var Amount = require('ripple-lib').Amount;
-var order  = ['XAU','XAG','BTC','XRP','EUR','GBP','AUD','NZD','USD','CAD','CHF','JPY','CNY'];
+var Amount    = require('ripple-lib').Amount;
+var BigNumber = require('bignumber.js');
 
 /**
  * OffersExercised;
@@ -44,6 +43,92 @@ var OffersExercised = function (tx) {
    */
   
   function parseOfferExercised (node, tx) {
+
+
+    var counterparty = node.FinalFields.Account;
+    var base;
+    var counter;
+    var exchangeRate;
+    var change;
+
+    if ( typeof node.PreviousFields.TakerPays === "object" ) {
+      change = Amount.from_json(node.PreviousFields.TakerPays)
+        .subtract(node.FinalFields.TakerPays)
+        .applyInterest(new Date(tx.executed_time * 1000))
+        .to_json().value;
+      
+      base = {
+        currency : node.PreviousFields.TakerPays.currency,
+        issuer   : node.PreviousFields.TakerPays.issuer,
+        amount   : change
+      }
+      
+    } else {
+      change = new BigNumber(node.PreviousFields.TakerPays).minus(node.FinalFields.TakerPays);
+      base   = {
+        currency : 'XRP',
+        amount   : change.dividedBy(1000000.0).toString()
+      }
+    }
+
+    if ( typeof node.PreviousFields.TakerGets === "object" ) {
+      change = Amount.from_json(node.PreviousFields.TakerGets)
+        .subtract(node.FinalFields.TakerGets)
+        .applyInterest(new Date(tx.executed_time * 1000))
+        .to_json().value;
+      
+      counter = {
+        currency : node.PreviousFields.TakerGets.currency,
+        issuer   : node.PreviousFields.TakerGets.issuer,
+        amount   : change
+      }
+      
+    } else {
+      change  = new BigNumber(node.PreviousFields.TakerGets).minus(node.FinalFields.TakerGets);
+      counter = {
+        currency : 'XRP',
+        amount   : change.dividedBy(1000000.0).toString()
+      }
+    }
+    
+    exchangeRate = Amount.from_quality(node.FinalFields.BookDirectory, base.currency, base.issuer, {
+      base_currency  : counter.currency  
+    })
+    .applyInterest(new Date(tx.executed_time * 1000))
+    .invert()
+    .to_json().value;
+   
+    
+    //this case is a patch for the circumstance where the demmurage currency is
+    //in takerGets.  The above does not handle this, and probably does not handle
+    //the case where both gets and pays are demmuraged.
+    if (!exchangeRate) {
+      exchangeRate = new BigNumber(counter.amount).dividedBy(base.amount).toString();
+    }
+
+  /*  
+    console.log('\n');
+    console.log(base.currency, counter.currency);
+    console.log(new BigNumber(counter.amount).dividedBy(base.amount).toString());
+    console.log(exchangeRate);
+    console.log('\n');
+  */
+    
+    var offer = {
+      base         : base,
+      counter      : counter,
+      rate         : exchangeRate,
+      buyer        : counterparty,
+      seller       : tx.Account,
+      taker        : tx.Account,
+      time         : tx.executed_time,
+      tx_index     : tx.tx_index,
+      ledger_index : tx.ledger_index,
+      node_index   : node.nodeIndex,
+      tx_hash      : tx.hash
+    };
+
+/*    
     var exchangeRate = Amount.from_quality(node.FinalFields.BookDirectory).to_json().value;
     var counterparty = node.FinalFields.Account;
     var base;
@@ -93,8 +178,8 @@ var OffersExercised = function (tx) {
       node_index   : node.nodeIndex,
       tx_hash      : tx.hash
     };
-    
-    return (offer);
+ */   
+    return orderPair(offer);
   }
   
   /**
@@ -109,11 +194,10 @@ var OffersExercised = function (tx) {
     var swap;
     
     if (c2 < c1) {
-      log.debug("swapped:", offer.base.currency, offer.counter.currency);
       swap          = offer.base;
       offer.base    = offer.counter;
       offer.counter = swap;
-      offer.rate    = 1 / offer.rate;
+      offer.rate    = new BigNumber(offer.rate).pow(-1).toString();
       swap          = offer.buyer;
       offer.buyer   = offer.seller;
       offer.seller  = swap;

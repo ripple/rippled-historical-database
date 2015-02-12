@@ -1,4 +1,9 @@
-var moment = require('moment');
+var moment           = require('moment');
+var SerializedObject = require('ripple-lib').SerializedObject;
+
+/**
+ * formatTime
+ */
 
 module.exports.formatTime = function(time) {
   if (typeof time === 'number') {
@@ -9,10 +14,51 @@ module.exports.formatTime = function(time) {
   return t.format('YYYYMMDDHHmmss');
 };
 
+/**
+ * unformatTime
+ */
+
+module.exports.unformatTime = function(time) {
+  var t = [
+    parseInt(time.slice(0, 4), 10),     //year
+    parseInt(time.slice(4, 6), 10) - 1, //month
+    parseInt(time.slice(6, 8), 10),     //day
+    parseInt(time.slice(8, 10), 10),    //hour
+    parseInt(time.slice(10, 12), 10),   //minute
+    parseInt(time.slice(12, 14), 10),   //second
+  ]
+    
+  return moment.utc(t);
+};
+
+/**
+ * reverseTimestamp
+ */
+
 module.exports.reverseTimestamp = function(time) {
   time = parseInt(module.exports.formatTime(time), 10);
   return 70000000000000 - time;
 };
+
+/**
+ * padNumber
+ */
+
+module.exports.padNumber = function (num, size) {
+  var s = num+"";
+  if (!size) size = 10;
+  while (s.length < size) s = "0" + s;
+  return s;
+};
+
+/**
+ * formatTime
+ * Convert json to binary/hex to store as raw data
+ */
+
+module.exports.toHex = function (input) {
+  return new SerializedObject.from_json(input).to_hex();
+}
 
 /*
  * getAlignedTime - uses the interval and multiple

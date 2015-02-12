@@ -1,4 +1,3 @@
-var log = require('../log')('payment');
 var XRP_ADJUST = 1000000.0;
 
 var Payments = function (tx) {

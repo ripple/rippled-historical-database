@@ -28,3 +28,5 @@ node_modules
 config/*.config.json
 persist/*
 .DS_Store
+storm/target
+storm/multilang/resources/test/ledgers/*

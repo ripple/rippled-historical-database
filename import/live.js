@@ -1,7 +1,14 @@
-var config     = require('../config/import.config');
-var log        = require('../lib/log')('ledgerstream');
-var Importer   = require('./importer');
-var live       = new Importer();
+var config   = require('../config/import.config');
+var Logger   = require('../storm/multilang/resources/src/lib/modules/logger');
+var Importer = require('../storm/multilang/resources/src/lib/modules/ripple-importer');
+
+var live     = new Importer({ripple : config.get('ripple')});
+var log      = new Logger({
+  scope : 'live import',
+  level : config.get('logLevel') || 0,
+  file  : config.get('logFile')
+});
+
 var indexer;
 var couchdb;
 var couchdbValidator;
@@ -27,13 +34,12 @@ if (types.hbase) {
   log.info('Saving Ledgers to HBase');
   HBase = require('./hbase/client');
   hbase = new HBase();
-  hbase.connect().then(function(){
-    
+
     //ensure we have the proper tables before importing
     //hbase._initTables();
     
-    live.on('ledger', function(ledger) {
-      hbase.saveLedger(ledger);
+  live.on('ledger', function(ledger) {
+    hbase.saveLedger(ledger, function(err, resp) {
     });
   });
 }

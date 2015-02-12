@@ -1,4 +1,3 @@
-var utils = require('../utils');
 var Meta  = require('ripple-lib').Meta;
 var Base  = require('ripple-lib').Base;
 
@@ -30,19 +29,6 @@ module.exports = function (tx) {
   }); 
   
   console.log(accounts);
-  
-  for(key in accounts) {
-    list.push({
-      account      : key,
-      roles        : accounts[key],
-      tx_result    : tx.tx_result,
-      tx_type      : tx.TransactionType,
-      time         : tx.executed_time,
-      ledger_index : tx.ledger_index,
-      tx_index     : tx.tx_index,
-      tx_hash      : tx.hash
-    });
-  }
 */
   
   accounts.forEach(function(account) {

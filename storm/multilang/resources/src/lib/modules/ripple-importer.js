@@ -1,27 +1,34 @@
-var config  = require('../config/import.config');
 var ripple  = require('ripple-lib');
-var Ledger  = require('../node_modules/ripple-lib/src/js/ripple/ledger').Ledger;
-var log     = require('../lib/log')('import');
 var events  = require('events');
 var emitter = new events.EventEmitter();
 var winston = require('winston');
+var Logger  = require('./logger');
 
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
 var TIMEOUT = 30 * 1000;
 
-var hashErrorLog = new (require('winston').Logger)({
-  transports: [
-    new (winston.transports.Console)(),
-    new (winston.transports.File)({ filename: './hashErrors.log' })
-  ]   
-});
+/** 
+ * Importer 
+ */
 
-log.level(config.get('logLevel') || 2);
-
-var Importer = function () {
+var Importer = function (options) {
   var self   = this;
-  var remote = new ripple.Remote(config.get('ripple'));
+  var remote = new ripple.Remote(options.ripple);
+  var log    = new Logger({
+    scope : 'importer',
+    level : options.logLevel || 0,
+    file  : options.logFile
+  });
   
+  //separate hash errors from main log
+  var hashErrorLog = new (require('winston').Logger)({
+    transports: [
+      new (winston.transports.Console)(),
+      new (winston.transports.File)({ filename: './hashErrors.log' })
+    ]   
+  });
+  
+  log.level(options.logLevel || 2);
   remote.connect();
   
   remote.on('connect', function() {
@@ -47,8 +54,29 @@ var Importer = function () {
    * liveStream
    * begin a live streaming thread
    */
+  
   self.liveStream = function () {
-    return new LiveStream();
+    if (this.stream) {
+      this._active = true;
+      return this.stream;
+    
+    } else {
+      this.stream = new LiveStream();
+    }
+    
+    
+    return this.stream;
+  };
+
+  /**
+   * stop
+   * stop live stream
+   */  
+  
+  self.stop = function () {
+    if (this._active) {
+      this._active = false;
+    }
   };
         
  /**
@@ -153,7 +181,7 @@ var Importer = function () {
     * requests if there is any free space
     */ 
     function updateQueue () {
-      var max    = config.get('queueLength');
+      var max    = 20;
       var num    = earliest - stopIndex;
       var length = Object.keys(queue).length;
       var count  = 0;
@@ -229,20 +257,19 @@ var Importer = function () {
   var LiveStream = function () {
     var latest; //latest ledger from rippled
     var first;  //first ledger from rippled  
+    self._active = true;
     
     log.info("import: starting live stream");
     remote.connect();
+  
+    remote.on('ledger_closed', function(resp, server) {
+      if (!self._active) return;
+      
+      log.info('['+new Date().toISOString()+']', 'ledger closed:', resp.ledger_index);       
+      getValidatedLedger(resp.ledger_index, server);
+    });
     
-    try {
-      remote.once('connect', function(){ 
-        remote.on('ledger_closed', function(resp, server) {
-          log.info('['+new Date().toISOString()+']', 'ledger closed:', resp.ledger_index);       
-          getValidatedLedger(resp.ledger_index, server);
-        });
-      });
-    } catch (e) {
-      console.log(e);
-    }
+
 
     function getValidatedLedger (index, server) {
       var options = {
@@ -294,7 +321,7 @@ var Importer = function () {
       return true;
     }
   };
-
+  
   /**
    * getLedger
    * @param {Object} options
@@ -302,9 +329,16 @@ var Importer = function () {
    */
   self.getLedger = function (options, callback) {
     var attempts = options.attempts || 0;
-    var params   = {
-      transactions : true, 
-      expand       : true
+    var params   = { }
+    
+    //default is return transactions
+    if (options.transactions !== false) {
+      params.transactions = true; 
+    }
+    
+    //default is expand transactions
+    if (options.expand !== false) {
+      params.expand = true;
     }
     
     if (options.index === 'validated') {
@@ -328,11 +362,15 @@ var Importer = function () {
       });
     }
     
+    /**
+     * requestLedger
+     */
+    
     function requestLedger(options, callback) {
       var index = options.validated ? 'validated' : options.ledger_index;
       
       try {
-        var request = remote.request_ledger(options, handleResponse).timeout(TIMEOUT, function(){
+        var request = remote.requestLedger(options, handleResponse).timeout(TIMEOUT, function(){
           log.warn('ledger request timed out after ' + (TIMEOUT/1000) + ' seconds:', index);
           retry(index, attempts, callback); 
         });
@@ -348,33 +386,44 @@ var Importer = function () {
         log.error("error requesting ledger:", index, e); 
         callback("error requesting ledger");
         return;
-      }      
-    }
-    
-    function handleResponse (err, resp) {
+      } 
+      
+      /**
+       * handleResponse
+       */
+      
+      function handleResponse (err, resp) {
 
-      if (err || !resp || !resp.ledger) {
-        log.error("error:", err ? err.message || err : null); 
-        retry(options.index, attempts, callback); 
-        return;
-      }    
-      
-      try {
-        var valid = isValid(resp.ledger);
-       
-      } catch (err) {
-        log.error("Error calculating transaction hash: "+resp.ledger.ledger_index +" "+ err);
-        hashErrorLog.error(resp.ledger.ledger_index, err.toString());
-        valid = true;
+        if (err || !resp || !resp.ledger) {
+          log.error("error:", err ? err.message || err : null); 
+          retry(options.index, attempts, callback); 
+          return;
+        }    
+
+        //if we didn't request transactions, 
+        //we can't calculate the transactions hash
+        if (!options.transactions || !options.expand) {
+          callback(null, resp.ledger); 
+          return;
+        }
+
+        try {
+          var valid = isValid(resp.ledger);
+
+        } catch (err) {
+          log.error("Error calculating transaction hash: "+resp.ledger.ledger_index +" "+ err);
+          hashErrorLog.error(resp.ledger.ledger_index, err.toString());
+          valid = true;
+        }
+
+        if (!valid) {
+          retry(options.index, attempts, callback); 
+          return;  
+        }
+
+        log.info('['+new Date().toISOString()+']', 'Got ledger: ' + resp.ledger.ledger_index);   
+        callback(null, resp.ledger); 
       }
-      
-      if (!valid) {
-        retry(options.index, attempts, callback); 
-        return;  
-      }
-    
-      log.info('['+new Date().toISOString()+']', 'Got ledger: ' + resp.ledger.ledger_index);   
-      callback(null, resp.ledger); 
     }
   };
   
@@ -390,7 +439,7 @@ var Importer = function () {
       return false;     
     }
     
-    txHash = Ledger.from_json(ledger).calc_tx_hash().to_hex();
+    txHash = ripple.Ledger.from_json(ledger).calc_tx_hash().to_hex();
     
     if (txHash !== ledger.transaction_hash) {
       log.info('transactions do not hash to the expected value for ' + 

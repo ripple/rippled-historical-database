@@ -1,8 +1,14 @@
 var config  = require('../../config/import.config');
-var log     = require('../../lib/log')('indexer');
+var Logger  = require('../../storm/multilang/resources/src/lib/modules/logger');
 var db      = require('./client');
 var _       = require('underscore');
 var async   = require('async');
+
+var log = new Logger({
+  scope : 'indexer',
+  level : config.get('logLevel') || 0,
+  file  : config.get('logFile')
+});
 
 /*
  * Indexer:  This module connects to couchDB and queries every view so

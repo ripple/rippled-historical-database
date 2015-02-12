@@ -1,7 +1,14 @@
 var config   = require('../../config/import.config');
-var log      = require('../../lib/log')('postgres_validator');
+var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
 var HistoricalImport = require('./history');
 var db = require('./client');
+
+var log = new Logger({
+  scope : 'postgres validator',
+  level : config.get('logLevel') || 0,
+  file  : config.get('logFile')
+});
+
 
 //if no earliest saved or earliest saved is greater than
 //the genesis ledger, start backfilling from earliest saved/validated
