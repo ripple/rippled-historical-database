@@ -4,6 +4,10 @@ var moment   = require('moment');
 var response = require('response');
 var postgres;
 
+var log = new Logger({
+  scope : 'validator'
+});
+
 var getLedger = function (req, res, next) {
 
   var options = prepareOptions();

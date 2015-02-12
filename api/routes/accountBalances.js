@@ -4,6 +4,10 @@ var request  = require('request');
 var response = require('response');
 var postgres;
 
+var log = new Logger({
+  scope : 'validator'
+});
+
 var accountBalances = function (req, res, next) {
 
   var options = prepareOptions();

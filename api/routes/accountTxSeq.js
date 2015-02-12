@@ -3,6 +3,10 @@ var log      = new Logger({scope : 'account tx sequence'});
 var response = require('response');
 var postgres;
 
+var log = new Logger({
+  scope : 'validator'
+});
+
 var accountTxSeq = function (req, res, next) {
 
   var options = prepareOptions();
