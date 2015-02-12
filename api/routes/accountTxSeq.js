@@ -3,34 +3,37 @@ var log      = require('../../lib/log')('api');
 var postgres = new require('../lib/db.js')(config.get('sql'));
 var response = require('response');
 
-var getTx = function (req, res, next) {
+var accountTxSeq = function (req, res, next) {
 
   var options = prepareOptions();
   
-  log.info('TX:', options.tx_hash); 
+  log.info('ACCOUNT TX:', options.account); 
 
-  postgres.getTx(options, function(err, ledger){
+  postgres.getAccountTxSeq(options, function(err, resp) {
     if (err) {
-      errorResponse(err);
-    } else{
-      successResponse(ledger);
+      errorResponse(err);   
+    } else if (resp.transactions.length === 0) {
+      errorResponse({error: "transaction not found", code:404})
+    } else {
+      successResponse(resp); 
     }
   });
-
-   /**
+  
+ /**
   * prepareOptions
   * parse request parameters to determine query options 
   */
   function prepareOptions () {
     var options = {
-      tx_hash : req.params.tx_hash,
-      binary  : !req.query.binary || req.query.binary === 'false' ? false : true 
+      account      : req.params.address,
+      sequence     : req.params.sequence,
+      binary       : !req.query.binary || req.query.binary === 'false' ? false : true
     };
 
     return options;
-  }
-
-  /**
+  };
+  
+ /**
   * errorResponse 
   * return an error response
   * @param {Object} err
@@ -49,16 +52,15 @@ var getTx = function (req, res, next) {
   * return a successful response
   * @param {Object} transactions
   */  
-  function successResponse (transaction) {
+  function successResponse (data) {
     var result = {
       result       : 'success',
-      transaction : transaction
+      transaction : data.transactions[0]
     };
     
-    log.info('TX: Transaction Found.');
+    log.info('ACCOUNT TX: Transaction Found');  
     response.json(result).pipe(res);      
-  }
+  };
+}
 
-};
-
-module.exports = getTx;
+module.exports = accountTxSeq;

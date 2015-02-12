@@ -9,13 +9,22 @@ var accountTx = function (req, res, next) {
   
   log.info('ACCOUNT TX:', options.account); 
 
-  postgres.getAccountTransactions(options, function(err, resp) {
-    if (err) {
-      errorResponse(err);   
-    } else {
-      successResponse(resp); 
-    }
-  });
+  if (options.min_sequence || options.max_sequence)
+    postgres.getAccountTxSeq(options, function(err, resp) {
+      if (err) {
+        errorResponse(err);   
+      } else {
+        successResponse(resp); 
+      }
+    });
+  else
+    postgres.getAccountTransactions(options, function(err, resp) {
+      if (err) {
+        errorResponse(err);   
+      } else {
+        successResponse(resp); 
+      }
+    });
   
  /**
   * prepareOptions
@@ -24,7 +33,6 @@ var accountTx = function (req, res, next) {
   function prepareOptions () {
     var options = {
       account      : req.params.address,
-      sequence     : req.params.sequence,
       limit        : req.query.limit || 20,
       offset       : req.query.offset,
       descending   : req.query.descending === 'false' ? false : true,
@@ -55,14 +63,13 @@ var accountTx = function (req, res, next) {
   * @param {Object} err
   */
   function errorResponse (err) {
-    if (err.code === 400) {
+    if (err.code.toString()[0] === '4') {
       log.error(err.error || err);
-      response.json({result:'error', message:err.error}).status(400).pipe(res);  
-       
+      response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
       response.json({result:'error', message:'unable to retrieve transactions'}).status(500).pipe(res);  
     }     
-  };
+  }
   
  /**
   * successResponse
