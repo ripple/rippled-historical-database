@@ -355,10 +355,10 @@ HbaseClient.prototype.getTransaction = function (tx_hash, callback) {
   var self = this;
   var transaction = { };
   
-  self.getRow(self._prefix + 'transactions', tx_hash, function(err, tx) {
+  self.getRow('transactions', tx_hash, function(err, tx) {
     
     if (err) {
-      callback(err, resp);
+      callback(err, tx);
       return;
     }
     

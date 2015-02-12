@@ -30,19 +30,42 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
   
   //process all ledgers
   while (stream.ledgers.length) {
-    stream.processNextLedger(function(err, ledger) {
+    stream.processNextLedger(function(err, row) {
       if (err) {
         self.log(err);        
         return;
       }
       
-      self.pending[ledger.ledger_index] = {
-        ledger       : ledger,
-        transactions : { },
-        acks         : [ ]
-      };
-      
-      self.log('# pending ledgers: ' + Object.keys(self.pending).length);
+      //if there are no transactions
+      //just save the ledger
+      if (!row.ledger.transactions.length) {
+        stream.hbase.saveLedger(row.ledger, function(err, resp) {
+          if (err) {
+            self.log.error(err);
+            self.log('unable to save ledger: ' + row.ledger.ledger_index);
+
+          } else {
+            self.log('ledger saved: ' + row.ledger.ledger_index);
+          } 
+          
+          //execute callback if it exists
+          if (row.cb) {
+            row.cb(err, resp);
+          }
+        });
+        
+      //otherwise, wait till all transactions
+      //are acked to save the ledger
+      } else {
+        self.pending[row.ledger.ledger_index] = {
+          cb           : row.cb,
+          ledger       : row.ledger,
+          transactions : { },
+          acks         : [ ]
+        };
+
+        self.log('# pending ledgers: ' + Object.keys(self.pending).length);
+      }
     });
   }
     
@@ -94,6 +117,11 @@ LedgerStreamSpout.prototype.ack = function(id, done) {
       
       } else {
         self.log('ledger saved: ' + data.ledger.ledger_index);
+      }
+      
+      //execute callback, if it exists
+      if (self.pending[parts[0]].cb) {
+        self.pending[parts[0]].cb(err, resp);
       }
       
       //remove the pending ledger

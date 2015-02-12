@@ -307,7 +307,7 @@ HbaseClient.prototype.getRow = function (table, rowkey, callback) {
   
   self.hbase.getRow(self._prefix + table, rowkey, null, function (err, rows) {
     var row = null;
-    
+
     if (rows) {
       rows = formatRows(rows);
       row  = rows[0];

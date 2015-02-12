@@ -12,6 +12,7 @@ var rest    = new Rest({
   port   : 20550 
 });
 
+
 var stream = new Stream({
   "logLevel" : 3,
   "hbase" : {
@@ -33,7 +34,7 @@ var testLedger;
 
 describe('ledgerStreamSpout', function () {
   before(function(done){
-    this.timeout(30000);
+    this.timeout(60000);
 
     rest.initTables(function(err, resp) {
       assert.ifError(err);
@@ -42,7 +43,7 @@ describe('ledgerStreamSpout', function () {
       //wait for a ledger with transactions
       var interval = setInterval(function() {
         if (stream.ledgers.length) {
-          if (!stream.ledgers[0].transactions.length) {
+          if (!stream.ledgers[0].ledger.transactions.length) {
             stream.ledgers.shift();
             return;
           }
@@ -57,8 +58,8 @@ describe('ledgerStreamSpout', function () {
   
 
   it('should process an incoming ledger', function(done) {
-    stream.processNextLedger(function(err, ledger) {
-      testLedger = ledger;
+    stream.processNextLedger(function(err, row) {
+      testLedger = row.ledger;
       done();
     });
   });  
@@ -115,7 +116,8 @@ describe('ledgerStreamSpout', function () {
   
   
   after(function(done) {
-    this.timeout(30000);
+    this.timeout(60000);
+    stream.stop();
     console.log('removing tables');
     rest.removeTables(function(err, resp) {
       done();
