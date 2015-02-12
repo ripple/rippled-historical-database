@@ -329,9 +329,16 @@ var Importer = function (options) {
    */
   self.getLedger = function (options, callback) {
     var attempts = options.attempts || 0;
-    var params   = {
-      transactions : true, 
-      expand       : true
+    var params   = { }
+    
+    //default is return transactions
+    if (options.transactions !== false) {
+      params.transactions = true; 
+    }
+    
+    //default is expand transactions
+    if (options.expand !== false) {
+      params.expand = true;
     }
     
     if (options.index === 'validated') {
@@ -355,11 +362,15 @@ var Importer = function (options) {
       });
     }
     
+    /**
+     * requestLedger
+     */
+    
     function requestLedger(options, callback) {
       var index = options.validated ? 'validated' : options.ledger_index;
       
       try {
-        var request = remote.request_ledger(options, handleResponse).timeout(TIMEOUT, function(){
+        var request = remote.requestLedger(options, handleResponse).timeout(TIMEOUT, function(){
           log.warn('ledger request timed out after ' + (TIMEOUT/1000) + ' seconds:', index);
           retry(index, attempts, callback); 
         });
@@ -375,33 +386,44 @@ var Importer = function (options) {
         log.error("error requesting ledger:", index, e); 
         callback("error requesting ledger");
         return;
-      }      
-    }
-    
-    function handleResponse (err, resp) {
+      } 
+      
+      /**
+       * handleResponse
+       */
+      
+      function handleResponse (err, resp) {
 
-      if (err || !resp || !resp.ledger) {
-        log.error("error:", err ? err.message || err : null); 
-        retry(options.index, attempts, callback); 
-        return;
-      }    
-      
-      try {
-        var valid = isValid(resp.ledger);
-       
-      } catch (err) {
-        log.error("Error calculating transaction hash: "+resp.ledger.ledger_index +" "+ err);
-        hashErrorLog.error(resp.ledger.ledger_index, err.toString());
-        valid = true;
+        if (err || !resp || !resp.ledger) {
+          log.error("error:", err ? err.message || err : null); 
+          retry(options.index, attempts, callback); 
+          return;
+        }    
+
+        //if we didn't request transactions, 
+        //we can't calculate the transactions hash
+        if (!options.transactions || !options.expand) {
+          callback(null, resp.ledger); 
+          return;
+        }
+
+        try {
+          var valid = isValid(resp.ledger);
+
+        } catch (err) {
+          log.error("Error calculating transaction hash: "+resp.ledger.ledger_index +" "+ err);
+          hashErrorLog.error(resp.ledger.ledger_index, err.toString());
+          valid = true;
+        }
+
+        if (!valid) {
+          retry(options.index, attempts, callback); 
+          return;  
+        }
+
+        log.info('['+new Date().toISOString()+']', 'Got ledger: ' + resp.ledger.ledger_index);   
+        callback(null, resp.ledger); 
       }
-      
-      if (!valid) {
-        retry(options.index, attempts, callback); 
-        return;  
-      }
-    
-      log.info('['+new Date().toISOString()+']', 'Got ledger: ' + resp.ledger.ledger_index);   
-      callback(null, resp.ledger); 
     }
   };
   

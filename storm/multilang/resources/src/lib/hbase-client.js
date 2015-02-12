@@ -2,7 +2,8 @@ var Promise    = require('bluebird');
 var binformat  = require('ripple-lib').binformat;
 var utils      = require('./utils');
 var Hbase      = require('./modules/hbase-thrift');
-var moment = require('moment');
+var moment     = require('moment');
+var SerializedObject = require('ripple-lib').SerializedObject;
 
 var EPOCH_OFFSET = 946684800;
 var LI_PAD       = 12;
@@ -27,6 +28,12 @@ function HbaseClient() {
 
 HbaseClient.prototype = Object.create(Hbase.prototype);
 HbaseClient.prototype.constructor = HbaseClient;
+
+/**
+ * getExchanges
+ * query exchanges and
+ * aggregated exchanges
+ */
 
 HbaseClient.prototype.getExchanges = function (options, callback) {
   var keyBase = options.base.currency + '|' + (options.base.issuer || '') + 
@@ -65,6 +72,9 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     callback (err, rows);
   });
   
+  /**
+   * formatExchanges
+   */
   
   function formatExchanges (rows) {
     rows.forEach(function(row, i) {
@@ -102,6 +112,10 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     return rows;
   }
   
+  /**
+   * formatAggregates
+   */
+  
   function formatAggregates (rows) {
     rows.forEach(function(row, i) {
       var key = row.rowkey.split('|');
@@ -120,6 +134,10 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
   }
 };
 
+/**
+ * getLedgersByIndex
+ */
+
 HbaseClient.prototype.getLedgersByIndex = function (options, callback) {
   var self  = this;
   var count = options.stopIndex - options.startIndex;
@@ -127,8 +145,9 @@ HbaseClient.prototype.getLedgersByIndex = function (options, callback) {
   this.getScan({
     table      : 'lu_ledgers_by_index',
     startRow   : utils.padNumber(options.startIndex, LI_PAD),
-    stopRow    : utils.padNumber(options.stopIndex+1, LI_PAD),
+    stopRow    : utils.padNumber(options.stopIndex + 1, LI_PAD),
     descending : options.descending,
+    limit      : options.limit
     
   }, function(err, resp) {
   
@@ -136,10 +155,127 @@ HbaseClient.prototype.getLedgersByIndex = function (options, callback) {
       resp.forEach(function(row, i) {
         var rowkey = row.rowkey.split('|');
         resp[i].ledger_index = parseInt(rowkey[0], 10);
+        resp[i].close_time = parseInt(resp[i].close_time, 10);
       });
-    }
+      
+      if (options.transactions) {
+        Promise.map(resp, function(row) {
+          self.getLedger({
+            ledger_hash  : row.ledger_hash,
+            transactions : true,
+            
+          }, function (err, ledger) {
+          
+          });
+          
+        }).nodeify(function(err, resp) {
+          console.log(err, resp);
+        });
+        return;
+      }
+    } 
     
     callback(err, resp);
+  });
+};
+
+/**
+ * getLedger
+ */
+
+HbaseClient.prototype.getLedger = function (options, callback) {
+  var self = this;
+  var ledger_hash = options.ledger_hash;
+  
+  //get by hash
+  if (options.ledger_hash) {
+    getLedgerByHash(options.ledger_hash);
+    
+  //get by index  
+  } else if (options.ledger_index) {
+    self.getLedgersByIndex({
+      startIndex : options.ledger_index,
+      stopIndex : options.ledger_index
+    }, function (err, resp) {
+      
+      if (err || !resp || !resp.length) {
+        callback(err, null);
+        return;
+      } 
+      
+      //use the ledger hash to get the ledger
+      getLedgerByHash(resp[0].ledger_hash);
+    });
+  }
+  
+  
+  function getLedgerByHash (hash) {
+    var transactions = [];
+    
+    self.getRow('ledgers', hash, function(err, ledger) {
+      
+      if (err || !ledger) {
+        callback(err, null);
+        return;
+      } 
+
+      ledger.ledger_index = parseInt(ledger.ledger_index, 10);
+      ledger.close_time   = parseInt(ledger.close_time, 10);
+      ledger.transactions = JSON.parse(ledger.transactions);   
+      
+      //get transactions
+      if (ledger.transactions.length && options.transactions) {
+        transactions        = ledger.transactions;
+        ledger.transactions = [];
+                
+        Promise.map(transactions, function (tx_hash) {
+          return new Promise(function(resolve, reject) {
+            self.getTransaction(tx_hash, function(err, tx) {
+              if (err) reject(err);
+              else     resolve(tx);
+            });
+          });
+        }).nodeify(function(err, resp) {
+          ledger.transactions = resp;
+          callback(err, ledger);
+        });
+      
+      //return the ledger as is  
+      } else {
+        callback(null, ledger);
+      }
+    });
+  }
+};
+
+/**
+ * getTransaction
+ */
+
+HbaseClient.prototype.getTransaction = function (tx_hash, callback) {
+  var self = this;
+  var transaction = { };
+  
+  self.getRow(self._prefix + 'transactions', tx_hash, function(err, tx) {
+    
+    if (err) {
+      callback(err, resp);
+      return;
+    }
+    
+    try {
+      transaction.hash         = tx_hash;
+      transaction.date         = moment.unix(tx.executed_time).utc().format();
+      transaction.ledger_index = parseInt(tx.ledger_index, 10);
+      
+      transaction.tx   = new SerializedObject(tx.raw).to_json();
+      transaction.meta = new SerializedObject(tx.meta).to_json(); 
+    
+    } catch (e) {
+      callback(e);
+    }
+    
+    callback(null, transaction);
   });
 };
 

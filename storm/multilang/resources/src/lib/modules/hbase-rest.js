@@ -29,7 +29,9 @@ var tableList = [
   'agg_exchange_3day',
   'agg_exchange_7day',
   'agg_exchange_1month',
-  'agg_exchange_1year'
+  'agg_exchange_1year',
+  'agg_trade_volume',
+  'control'
 ];
 
 var Client = function (options) {

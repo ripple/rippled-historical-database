@@ -3,6 +3,8 @@ var thrift     = require('thrift');
 var HBase      = require('./gen/Hbase');
 var HBaseTypes = require('./gen/Hbase_types');
 var Logger     = require('../logger');
+
+
 /**
  * HbaseClient
  * HBase client class
@@ -58,7 +60,7 @@ HbaseClient.prototype.connect = function () {
   });
             
   self._connection.on('error', function (err) {
-    self.log.info('hbase error', err);
+    self.log.error('hbase error', err);
   }); 
     
   self._connection.on('close', function() {
@@ -71,6 +73,7 @@ HbaseClient.prototype.connect = function () {
   //time, fail the promise
   return new Promise (function(resolve, reject) {
     self._connection.once('connect', function() {
+      self.hbase = thrift.createClient(HBase,self._connection);
       resolve(true);
     });
 
@@ -105,6 +108,7 @@ HbaseClient.prototype._retryConnect = function() {
   : (30 * 1000);
 
   function connectionRetry() {
+    self.log.info('retry connect');
     self.connect();
   }
 
@@ -120,19 +124,20 @@ HbaseClient.prototype.getScan = function (options, callback) {
   
   //check connection
   if (!self.isConnected()) {
-    return Promise.reject('not connected');
+    callback('not connected');
+    return;
   }
   
   //default to reversed, 
   //invert stop and start index
   if (options.descending === false) {
-    scanOpts.startRow = options.stopRow;
-    scanOpts.stopRow  = options.startRow;
+    scanOpts.startRow = options.stopRow.toString();
+    scanOpts.stopRow  = options.startRow.toString();
     scanOpts.reversed = true;
   
   } else {
-    scanOpts.stopRow  = options.stopRow;
-    scanOpts.startRow = options.startRow;    
+    scanOpts.stopRow  = options.stopRow.toString();
+    scanOpts.startRow = options.startRow.toString();   
   }
   
   scan = new HBaseTypes.TScan(scanOpts);
@@ -140,12 +145,12 @@ HbaseClient.prototype.getScan = function (options, callback) {
   self.hbase.scannerOpenWithScan(table, scan, null, function(err, id) {
 
     if (err) {
-      console.log(err);
+      self.log.error(err);
       callback('unable to create scanner');
       return;
     }
     
-    getResults(id, options.limit, 0, function (err, rows) {
+    getResults(id, options.limit, 1, function (err, rows) {
       
       callback(err, rows);
       
@@ -159,7 +164,7 @@ HbaseClient.prototype.getScan = function (options, callback) {
   });
   
   function getResults (id, limit, page, callback) {
-    var count = 1000;
+    var count = limit && limit < 1000 ? limit : 1000;
     
     self.hbase.scannerGetList(id, count, function (err, rows) {
       var results = [];
@@ -175,17 +180,7 @@ HbaseClient.prototype.getScan = function (options, callback) {
       if (rows.length) {
         
         //format as json
-        rows.forEach(function(row) {
-          r = {};
-          r.rowkey = row.row;
-          for (key in row.columns) {
-            parts = key.split(':');
-            r[parts[1]] = row.columns[key].value;
-          }
-          
-          results.push(r);
-        }); 
-        
+        results = formatRows(rows);
         
         //stop if we are at the limit
         if (limit && page * count >= limit) {
@@ -292,7 +287,7 @@ HbaseClient.prototype.putRow = function (table, rowKey, data) {
   return new Promise (function(resolve, reject) {
     self.hbase.mutateRow(self._prefix + table, rowKey, columns, null, function(err, resp) {
       if (err) {
-        self.log.info(self._prefix + table, err, resp);
+        self.log.error(self._prefix + table, err, resp);
         reject(err);
       } else {
         resolve(resp);
@@ -300,6 +295,27 @@ HbaseClient.prototype.putRow = function (table, rowKey, data) {
     });   
   });
 }
+
+HbaseClient.prototype.getRow = function (table, rowkey, callback) { 
+  var self = this;
+  
+  //check connection
+  if (!self.isConnected()) {
+    callback('not connected');
+    return;
+  }
+  
+  self.hbase.getRow(self._prefix + table, rowkey, null, function (err, rows) {
+    var row = null;
+    
+    if (rows) {
+      rows = formatRows(rows);
+      row  = rows[0];
+    }
+    
+    callback(err, row);
+  });
+};
 
 /**
  * prepareColumns
@@ -348,8 +364,23 @@ HbaseClient.prototype._prepareColumns = function (data) {
       value     : value
     });
   }
+};
+
+                    
+function formatRows(data) {
+  var rows = [];
+  data.forEach(function(row) {
+    r = {};
+    r.rowkey = row.row;
+    for (key in row.columns) {
+      parts = key.split(':');
+      r[parts[1]] = row.columns[key].value;
+    }
+
+    rows.push(r);
+  }); 
+  
+  return rows;
 }
-
-
 
 module.exports = HbaseClient;
