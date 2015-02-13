@@ -1,8 +1,7 @@
-var config   = require('../../config/api.config');
 var log      = require('../../lib/log')('api');
-var postgres = new require('../lib/db.js')(config.get('sql'));
-var moment  = require('moment');
+var moment   = require('moment');
 var response = require('response');
+var postgres;
 
 var getLedger = function (req, res, next) {
 
@@ -90,4 +89,7 @@ var getLedger = function (req, res, next) {
 
 };
 
-module.exports = getLedger;
+module.exports = function(db) {
+  postgres = db;
+  return getLedger;
+};

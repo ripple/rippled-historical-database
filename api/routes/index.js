@@ -1,5 +1,11 @@
-module.exports.accountBalances = require('./accountBalances');
-module.exports.accountTx       = require('./accountTx');
-module.exports.getLedger       = require('./getLedger');
-module.exports.getTx           = require('./getTx');
-module.exports.accountTxSeq    = require('./accountTxSeq');
+var Routes = { };
+
+module.exports = function (options) {
+  Routes.accountBalances = require('./accountBalances')(options.postgres);
+  Routes.accountTx       = require('./accountTx')(options.postgres);
+  Routes.getLedger       = require('./getLedger')(options.postgres);
+  Routes.getTx           = require('./getTx')(options.postgres);
+  Routes.accountTxSeq    = require('./accountTxSeq')(options.postgres);
+  
+  return Routes;
+};

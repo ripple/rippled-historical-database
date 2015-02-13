@@ -1,10 +1,11 @@
-var config     = require('../config/api.config.js');
-var log        = require('../lib/log')('api');
+var config     = require('../config/api.config');
 var express    = require('express');
 var bodyParser = require('body-parser');
-var routes     = require('./routes');
-var db         = new require('./lib/db.js')(config.get('sql'));
 var cors       = require('cors');
+var postgres   = require('./lib/db')(config.get('sql'));
+var routes     = require('./routes')({
+  postgres : postgres
+});
 
 var app = express();
 app.use(bodyParser.json());
@@ -19,5 +20,5 @@ app.get('/v1/transactions/:tx_hash', routes.getTx);
 
 //start the server
 app.listen(config.get('port'));
-log.info('Ripple Data API running on port ' + config.get('port'));
+console.log('Ripple Data API running on port ' + config.get('port'));
 

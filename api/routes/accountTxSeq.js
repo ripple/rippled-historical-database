@@ -1,7 +1,6 @@
-var config   = require('../../config/api.config');
 var log      = require('../../lib/log')('api');
-var postgres = new require('../lib/db.js')(config.get('sql'));
 var response = require('response');
+var postgres;
 
 var accountTxSeq = function (req, res, next) {
 
@@ -63,4 +62,7 @@ var accountTxSeq = function (req, res, next) {
   };
 }
 
-module.exports = accountTxSeq;
+module.exports = function(db) {
+  postgres = db;
+  return accountTxSeq;
+};

@@ -5,7 +5,7 @@ var moment  = require('moment');
 var sjcl    = require('ripple-lib').sjcl;
 
 var EPOCH_OFFSET = 946684800;
-log.level(4);
+log.level(3);
 
 var SerializedObject = require('ripple-lib').SerializedObject;
 var UInt160 = require('ripple-lib').UInt160;
@@ -563,8 +563,8 @@ var DB = function(config) {
       });
     }
   };
-  
-  return this;
 };
 
-module.exports = DB;
+module.exports = function (config) {
+  return new DB(config);
+};
