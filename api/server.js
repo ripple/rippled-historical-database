@@ -8,7 +8,8 @@ var Server = function (options) {
   var app    = express();
   var db     = new Postgres(options.postgres);
   var routes = Routes({postgres : db});
-
+  var server;
+  
   app.use(bodyParser.json());
   app.use(cors());
 
@@ -20,8 +21,15 @@ var Server = function (options) {
   app.get('/v1/transactions/:tx_hash', routes.getTx);
 
   //start the server
-  app.listen(options.port);
-  console.log('Ripple Data API running on port ' + options.port);
+  server = app.listen(options.port);
+  console.log('Ripple Data API running on port: ' + options.port);
+  
+  this.close = function () {
+    if (server) {
+      server.close();
+      console.log('closing API on port: ' + options.port);
+    }
+  };
 };
 
 module.exports = Server;
