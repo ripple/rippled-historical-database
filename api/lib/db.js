@@ -13,8 +13,8 @@ var UInt160 = require('ripple-lib').UInt160;
 var DB = function(config) {
   var self  = this;
   self.knex = Knex.initialize({
-      client     : config.dbtype,
-      connection : config.db
+      client     : 'postgres',
+      connection : config
   });
 
  /**
@@ -565,6 +565,4 @@ var DB = function(config) {
   };
 };
 
-module.exports = function (config) {
-  return new DB(config);
-};
+module.exports = DB;

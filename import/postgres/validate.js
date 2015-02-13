@@ -1,7 +1,8 @@
 var config   = require('../../config/import.config');
 var log      = require('../../lib/log')('postgres_validator');
 var HistoricalImport = require('./history');
-var db = require('./client');
+var Postgres = require('./client');
+var db       = new Postgres(config.get('postgres'));
 
 //if no earliest saved or earliest saved is greater than
 //the genesis ledger, start backfilling from earliest saved/validated

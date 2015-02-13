@@ -1,6 +1,7 @@
 var config     = require('../config/import.config');
 var log        = require('../lib/log')('ledgerstream');
 var Importer   = require('./importer');
+var Postgres   = require('./postgres/client');
 var live       = new Importer();
 var indexer;
 var couchdb;
@@ -42,7 +43,7 @@ if (types.hbase) {
 //postgres importer
 if (types.postgres) {
   log.info('Saving Ledgers to Postgres');
-  postgres = new require('./postgres/client');
+  postgres = new Postgres(config.get('postgres'));
   postgresValidator = new require('./postgres/validate')();
   
   postgresValidator.start();

@@ -4,8 +4,8 @@
   "description": "SQL database storing historical data from Rippled.",
   "scripts": {
     "postinstall": "node install.js",
-    "test": "mocha -R spec test/test.js",
-    "start": "nodemon api/server.js"
+    "test": "test/test.sh",
+    "start": "nodemon api/index.js"
   },
   "author": "",
   "license": "ISC",
