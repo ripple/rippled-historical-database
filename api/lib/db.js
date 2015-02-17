@@ -397,9 +397,9 @@ var DB = function(config) {
       //are found without a limit
       } else if (rows.length) {
         result.count.nodeify(function(err, resp) {
-          if (err) {
+          if (err || !resp.length) {
             log.error(err);
-            callback({error:err, code:500});
+            callback({error:err || 'error counting transactions', code:500});
             return;  
           } 
       
@@ -427,10 +427,6 @@ var DB = function(config) {
       var query = self.knex('account_transactions')
         .innerJoin('transactions', 'account_transactions.tx_hash', 'transactions.tx_hash')
         .where('account_transactions.account', options.account)
-      
-      if (options.offset) {
-        query.offset(options.offset || 0); 
-      }
   
       //handle start date/time - optional
       if (options.start) {
@@ -504,6 +500,10 @@ var DB = function(config) {
         .orderBy('account_transactions.ledger_index', descending ? 'desc' : 'asc')
         .orderBy('account_transactions.tx_seq', descending ? 'desc' : 'asc')
         .limit(options.limit || 20)
+      
+      if (options.offset) {
+        query.offset(options.offset || 0); 
+      }
       
       log.debug(query.toString());
       return {
