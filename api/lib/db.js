@@ -56,23 +56,29 @@ var DB = function(config) {
           .where('transactions.tx_hash', self.knex.raw("decode('"+options.tx_hash+"', 'hex')"))
           .select('transactions.ledger_index')
           .select('transactions.executed_time as date')
-          .select('transactions.tx_type')
-          .select(self.knex.raw("encode(transactions.ledger_hash, 'hex') as ledger_hash"))
-          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"));
+          .select(self.knex.raw("encode(transactions.tx_hash, 'hex') as hash"))
+          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"));
 
       return query;
     }
 
     function handleResponse(transaction) {
+      transaction.hash = transaction.hash.toUpperCase();
+      transaction.ledger_index = Number(transaction.ledger_index);
+      transaction.date = moment.unix(transaction.date).utc().format();
+      
       if (!options.binary) {
-        transaction.ledger_index = Number(transaction.ledger_index);
-        transaction.date = moment.unix(transaction.date).utc().format();
-        transaction.tx = new SerializedObject(transaction.tx_raw).to_json();
-        transaction.meta = new SerializedObject(transaction.tx_meta).to_json();
-        delete transaction.tx_raw;
-        delete transaction.tx_meta;
+        try {
+          transaction.tx   = new SerializedObject(transaction.tx).to_json();
+          transaction.meta = new SerializedObject(transaction.meta).to_json();   
+        } catch (e) {
+          log.error(e);
+          callback({error:e, code:500});
+          return;
+        }   
       }
+      
       callback(null, transaction);
     }
   };
@@ -310,9 +316,7 @@ var DB = function(config) {
         .select('transactions.executed_time')
         .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
         .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"))
-        .orderBy('transactions.ledger_index', descending ? 'desc' : 'asc')
         .orderBy('transactions.tx_seq', descending ? 'desc' : 'asc')
-        .orderBy('transactions.executed_time', descending ? 'desc' : 'asc')
         .limit(options.limit || 20)
       
       //log.debug(query.toString());
@@ -491,8 +495,8 @@ var DB = function(config) {
       var count = query.clone();
       count.count();
       
-      query.select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-        .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
+      query.select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
+        .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"))
         .select(self.knex.raw("encode(account_transactions.tx_hash, 'hex') as tx_hash"))      
         .select('account_transactions.ledger_index')
         .select('account_transactions.tx_seq')
@@ -533,13 +537,13 @@ var DB = function(config) {
         data.date         = moment.unix(parseInt(row.executed_time, 10)).utc().format();
         
         if (options.binary) {
-          data.tx   = row.tx_raw;
-          data.meta = row.tx_meta;
+          data.tx   = row.tx;
+          data.meta = row.meta;
           
         } else {
           try {
-            data.tx   = new SerializedObject(row.tx_raw).to_json();
-            data.meta = new SerializedObject(row.tx_meta).to_json();     
+            data.tx   = new SerializedObject(row.tx).to_json();
+            data.meta = new SerializedObject(row.meta).to_json();     
           } catch (e) {
             log.error(e);
             return callback({error:e, code:500});
