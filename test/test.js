@@ -26,6 +26,8 @@ describe('ETL and API:', function() {
     });
   });
   
+  /*** import ledgers into Postgres ***/
+  
   it('should save ledgers and transactions into the database', function(done) {
     Promise.map(files, function(filename) {
       return new Promise(function(resolve, reject) {
@@ -40,6 +42,8 @@ describe('ETL and API:', function() {
       done();
     });
   });
+  
+  /*** run mulitple API's ***/
   
   it('should run up to 40 API servers simultaneously', function(done) {
     var count = 100;
@@ -68,7 +72,10 @@ describe('ETL and API:', function() {
     });
   }); 
   
+  /*** ledgers API endpoint ***/
+  
   describe('/v1/ledgers', function() {
+    
     it('should return the latest ledger: /v1/ledgers', function(done) {
       var url = 'http://localhost:' + port + '/v1/ledgers';
       request({
@@ -242,5 +249,204 @@ describe('ETL and API:', function() {
         done();
       }); 
     });
+  });
+  
+  /*** accounts:/account/transactions API endpoint ***/
+  
+  describe('/v1/accounts/:account/transactions', function() {
+
+    
+    it('should return the last 20 transactions', function(done) {
+      var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
+      var url = 'http://localhost:' + port + '/v1/accounts/' + account + '/transactions';
+      
+      request({
+        url: url,
+        json: true,
+      }, 
+      function (err, res, body) {
+        assert.ifError(err);
+        assert.strictEqual(typeof body, 'object');
+        assert.strictEqual(body.result, 'success');
+        assert.strictEqual(body.count, 20);
+        assert.strictEqual(body.total, 21);
+        assert.strictEqual(body.transactions.length, 20);
+        body.transactions.forEach(function(tx) {
+          assert.strictEqual(typeof tx.meta, 'object');
+          assert.strictEqual(typeof tx.tx, 'object');
+        });        
+        done();
+      });
+    }); 
+    
+    it('should return limit the returned transactions to 5', function(done) {
+      var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
+      var url = 'http://localhost:' + port + '/v1/accounts/' + account + '/transactions';
+      
+      request({
+        url: url,
+        json: true,
+        qs: {
+          limit : 5,
+          offset : 5
+        }
+      }, 
+      function (err, res, body) {
+        assert.ifError(err);
+        assert.strictEqual(typeof body, 'object');
+        assert.strictEqual(body.result, 'success');
+        assert.strictEqual(body.count, 5);
+        assert.strictEqual(body.total, 21);
+        assert.strictEqual(body.transactions.length, 5);
+        done();
+      });
+    });  
+    
+    
+    it('should return return only specified transaction types', function(done) {
+      var account = 'rLYjdzUVrA5prATG1r5ZTmsUQCohkD8tFz';
+      var url = 'http://localhost:' + port + '/v1/accounts/' + account + '/transactions';
+      
+      request({
+        url: url,
+        json: true,
+        qs: {
+          type : 'OfferCreate,OfferCancel',
+        }
+      }, 
+      function (err, res, body) {
+        assert.ifError(err);
+        assert.strictEqual(typeof body, 'object');
+        assert.strictEqual(body.result, 'success');
+        body.transactions.forEach(function(tx) {
+          assert(['OfferCreate','OfferCancel'].indexOf(tx.tx.TransactionType) !== -1);
+        });
+        done();
+      });
+    }); 
+    
+    it('should return return only specified transaction results', function(done) {
+      var account = 'rfZ4YjC4CyaKFx9cgzYNKk4E2zTXRJif26';
+      var result  = 'tecUNFUNDED_OFFER';
+      var url = 'http://localhost:' + port + '/v1/accounts/' + account + '/transactions';
+      
+      request({
+        url: url,
+        json: true,
+        qs: {
+          limit : 5,
+          result : result,
+        }
+      }, 
+      function (err, res, body) {
+        assert.ifError(err);
+        assert.strictEqual(typeof body, 'object');
+        assert.strictEqual(body.result, 'success');
+        body.transactions.forEach(function(tx) {
+          assert.strictEqual(tx.meta.TransactionResult, result);
+        });
+        done();
+      });
+    });
+    
+    it('should return transactions for a given date range', function(done) {
+      var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
+      var url = 'http://localhost:' + port + '/v1/accounts/' + account + '/transactions';
+      
+      request({
+        url: url,
+        json: true,
+        qs: {
+          start : '2015-01-14 18:27:10',
+          end   : '2015-01-14 18:27:20',
+        }
+      }, 
+      function (err, res, body) {
+        assert.ifError(err);
+        assert.strictEqual(typeof body, 'object');
+        assert.strictEqual(body.result, 'success');
+        assert.strictEqual(body.count, 8);
+        assert.strictEqual(body.total, 8);
+        assert.strictEqual(body.transactions.length, 8);
+        done();
+      });
+    });
+
+    it('should return transactions for a given date range', function(done) {
+      var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
+      var url = 'http://localhost:' + port + '/v1/accounts/' + account + '/transactions';
+      var max = 11119607;
+      var min = 11119603;
+      
+      request({
+        url: url,
+        json: true,
+        qs: {
+          ledger_min : min,
+          ledger_max : max,
+        }
+      }, 
+      function (err, res, body) {
+        assert.ifError(err);
+        assert.strictEqual(typeof body, 'object');
+        assert.strictEqual(body.result, 'success');
+        assert.strictEqual(body.transactions.length, 11);
+        body.transactions.forEach(function(tx) {
+          assert(tx.ledger_index >= min);
+          assert(tx.ledger_index <= max);
+        });
+        done();
+      });
+    });
+    
+    it('should return return results in binary form', function(done) {
+      var account = 'rfZ4YjC4CyaKFx9cgzYNKk4E2zTXRJif26';
+      var url = 'http://localhost:' + port + '/v1/accounts/' + account + '/transactions';
+      
+      request({
+        url: url,
+        json: true,
+        qs: {
+          limit : 5,
+          binary : true
+        }
+      }, 
+      function (err, res, body) {
+        assert.ifError(err);
+        assert.strictEqual(typeof body, 'object');
+        assert.strictEqual(body.result, 'success');
+        body.transactions.forEach(function(tx) {
+          assert.strictEqual(typeof tx.meta, 'string');
+          assert.strictEqual(typeof tx.tx, 'string');
+        });
+        done();
+      });
+    }); 
+    
+    it('should return results in ascending order', function(done) {
+      var account = 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q';
+      var url  = 'http://localhost:' + port + '/v1/accounts/' + account + '/transactions';
+      var last = 0;
+      
+      request({
+        url: url,
+        json: true,
+        qs: {
+          descending:false,
+          limit:100
+        }
+      }, 
+      function (err, res, body) {
+        assert.ifError(err);
+        assert.strictEqual(typeof body, 'object');
+        assert.strictEqual(body.result, 'success');
+        //assert.strictEqual(body.transactions.length, 20);
+        body.transactions.forEach(function(tx) {          
+          assert(last <= tx.ledger_index);   
+          last = tx.ledger_index;
+        });        
+        done();
+      });
+    }); 
   });
 });
