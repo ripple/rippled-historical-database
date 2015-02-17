@@ -448,5 +448,55 @@ describe('ETL and API:', function() {
         done();
       });
     }); 
+    
+    it('should return a specific account transaction for a given sequence #', function(done) {
+      var account  = 'rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg';
+      var sequence = 11370364; 
+      var url = 'http://localhost:' + port + '/v1/accounts/' + account + '/transactions/' + sequence;
+      
+      request({
+        url: url,
+        json: true
+      }, 
+      function (err, res, body) {
+        assert.ifError(err);
+        assert.strictEqual(typeof body, 'object');
+        assert.strictEqual(body.result, 'success');
+        assert.strictEqual(typeof body.transaction, 'object');
+        assert.strictEqual(typeof body.transaction.date, 'string');
+        assert.strictEqual(typeof body.transaction.ledger_index, 'number');
+        assert.strictEqual(typeof body.transaction.hash, 'string');
+        assert.strictEqual(body.transaction.tx.Sequence, sequence);  
+        done();
+      });
+    });  
+    
+    it('should return a account transactions by sequence', function(done) {
+      var account  = 'rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg';
+      var url = 'http://localhost:' + port + '/v1/accounts/' + account + '/transactions';
+      var max  = 11370364; 
+      var min  = 11370357;
+      var last = max + 1;
+      request({
+        url: url,
+        json: true,
+        qs: {
+          min_sequence : min,
+          max_sequence : max,
+        }
+      }, 
+      function (err, res, body) {
+        assert.ifError(err);
+        assert.strictEqual(typeof body, 'object');
+        assert.strictEqual(body.result, 'success');
+        body.transactions.forEach(function(tx) {          
+          assert.strictEqual(tx.tx.Sequence, last-1);
+          assert(tx.tx.Sequence <= max);
+          assert(tx.tx.Sequence >= min);
+          last = tx.tx.Sequence;
+        }); 
+        done();
+      });
+    });       
   });
 });
