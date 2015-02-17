@@ -29,6 +29,53 @@ function HbaseClient() {
 HbaseClient.prototype = Object.create(Hbase.prototype);
 HbaseClient.prototype.constructor = HbaseClient;
 
+
+/**
+ * getPayments
+ * query payments
+*/
+
+HbaseClient.prototype.getPayments = function (options, callback) {
+  var keyBase = options.account;
+  var table   = 'lu_account_payments';
+  var startRow;
+  var endRow;
+
+  if (options.start)
+    startRow = keyBase + '|' + utils.formatTime(options.start);
+  else startRow = keyBase + '|1';
+  if (options.end)
+    endRow   = keyBase + '|' + utils.formatTime(options.end);
+  else endRow = keyBase + '|9';
+
+  this.getScan({
+    table    : table,
+    startRow : startRow,
+    stopRow  : endRow,
+    limit    : options.limit
+  }, function (err, rows) {
+    callback(err, formatPayments(rows));
+  });
+
+  function formatPayments(rows) {
+    rows.forEach(function(row, i) {
+      var key = row.rowkey.split('|');
+
+      rows[i].account          = key[0];
+      rows[i].executed_time    = parseInt(row.executed_time, 10);
+      rows[i].ledger_index     = parseInt(row.ledger_index, 10);
+      rows[i].tx_index         = key[3];
+
+      delete rows[i].rowkey;
+
+      rows[i].destination_balance_changes = JSON.parse(row.destination_balance_changes);
+      rows[i].source_balance_changes      = JSON.parse(row.source_balance_changes);
+    });
+
+    return rows;
+  }
+}
+
 /**
  * getExchanges
  * query exchanges and

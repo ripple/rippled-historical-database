@@ -101,7 +101,7 @@ var accountTx = function (req, res, next) {
     
     log.info('ACCOUNT TX: Transactions Found:', data.transactions.length);  
     response.json(result).pipe(res);      
-  };
+  }
 }
 
 module.exports = function(db) {

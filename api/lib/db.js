@@ -201,7 +201,7 @@ var DB = function(config) {
           }
         }
         ledger.transactions = transactions;
-      }  
+      }
       callback(null, ledger);
     }
 
