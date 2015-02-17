@@ -4,7 +4,18 @@ var postgres;
 
 var accountTx = function (req, res, next) {
 
+  var intMatch = /^\d+$/;
   var options = prepareOptions();
+  
+  if (options.minLedger && !intMatch.test(options.minLedger)) {
+    errorResponse({error: 'invalid ledger_min', code:400});
+    return;
+  }
+  
+  if (options.maxLedger && !intMatch.test(options.maxLedger)) {
+    errorResponse({error: 'invalid ledger_max', code:400});
+    return;
+  }  
   
   log.info('ACCOUNT TX:', options.account); 
 

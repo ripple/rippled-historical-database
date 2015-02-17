@@ -64,6 +64,12 @@ var DB = function(config) {
     }
 
     function handleResponse(transaction) {
+      
+      if (!transaction) {
+        callback({error:'transaction not found', code:404});
+        return;
+      }
+      
       transaction.hash = transaction.hash.toUpperCase();
       transaction.ledger_index = Number(transaction.ledger_index);
       transaction.date = moment.unix(transaction.date).utc().format();
@@ -392,8 +398,9 @@ var DB = function(config) {
     result.query.nodeify(function(err, rows) {
       log.debug(new Date().toISOString(), (rows ? rows.length : 0) + ' transactions found'); 
             
+      
       if (err) {
-        log.error(err);
+        log.error(err.toString());
         callback({error:err, code:500});
         return;
         
