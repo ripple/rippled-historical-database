@@ -3,10 +3,6 @@ var log      = new Logger({scope : 'get tx'});
 var response = require('response');
 var postgres;
 
-var log = new Logger({
-  scope : 'validator'
-});
-
 var getTx = function (req, res, next) {
   var hexMatch = new RegExp('^(0x)?[0-9A-Fa-f]+$');
   var options  = {

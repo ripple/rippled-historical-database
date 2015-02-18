@@ -5,10 +5,6 @@ var sjcl    = require('ripple-lib').sjcl;
 var Logger  = require('../../storm/multilang/resources/src/lib/modules/logger');
 var log     = new Logger({scope : 'postgres'});
 
-var log = new Logger({
-  scope : 'validator'
-});
-
 var EPOCH_OFFSET = 946684800;
 log.level(3);
 

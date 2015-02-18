@@ -3,10 +3,6 @@ var log      = new Logger({scope : 'account tx'});
 var response = require('response');
 var postgres;
 
-var log = new Logger({
-  scope : 'validator'
-});
-
 var accountTx = function (req, res, next) {
 
   var intMatch = /^\d+$/;
