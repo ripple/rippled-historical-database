@@ -450,8 +450,7 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
   var tables     = {
     exchanges            : { },
     lu_account_exchanges : { },
-    balance_changes      : { },
-    lu_account_balance_changes : { },
+    account_balance_changes : { },
     payments             : { },
     lu_account_payments  : { },
     accounts_created     : { },
@@ -503,9 +502,8 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       '|' + utils.padNumber(c.tx_index, I_PAD) +
       '|' + (c.node_index === 'fee' ? 'fee' : utils.padNumber(c.node_index, I_PAD));
     
-    var key = c.currency + '|' + (c.issuer ||  '') + suffix;
+    var key;
       
-    
     var row = {
       'f:currency'      : c.currency,
       'f:issuer'        : c.issuer,
@@ -520,10 +518,9 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       node_index        : c.node_index
     };
     
-    tables.balance_changes[key] = row;
-    
-    key = c.account + '|' + key;
-    tables.lu_account_balance_changes[key] = row;    
+    key = c.account + suffix;
+    tables.account_balance_changes[c.account + suffix] = row;
+    tables.account_balance_changes[c.issuer  + suffix] = row;
   });
   
   params.data.payments.forEach(function(p) {
