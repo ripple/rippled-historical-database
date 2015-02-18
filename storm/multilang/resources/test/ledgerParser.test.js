@@ -1,6 +1,15 @@
-var Parser = require('../src/lib/modules/ledgerParser');
-var fs     = require('fs');
-var assert = require('assert');
+var Parser   = require('../src/lib/modules/ledgerParser');
+var Importer = require('../src/lib/modules/ripple-importer');
+var fs       = require('fs');
+var live     = new Importer({
+  ripple : {
+    "trace"                 : false,
+    "allow_partial_history" : false,
+    "servers" : [
+      { "host" : "s-west.ripple.com", "port" : 443, "secure" : true },
+      { "host" : "s-east.ripple.com", "port" : 443, "secure" : true }
+    ]
+  }});
 
 var path         = __dirname + '/transactions/';
 var EPOCH_OFFSET = 946684800;
@@ -29,5 +38,15 @@ tx.metaData = tx.meta;
 tx.executed_time = tx.date + EPOCH_OFFSET;
 parsed = Parser.parseTransaction(tx);
 
-console.log(parsed);
+//console.log(parsed);
 
+//start import stream
+live.backFill(10000000, 10000100);
+live.on('ledger', function(ledger) {
+  console.log(ledger.ledger_index);
+  
+  ledger.transactions.forEach(function(tx) {
+    parsed = Parser.parseTransaction(tx);
+    console.log(parsed);
+  });
+});

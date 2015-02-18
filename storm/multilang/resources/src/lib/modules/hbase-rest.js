@@ -98,7 +98,7 @@ var Client = function (options) {
         schema.push({name : family});
       });
 
-      rest.getTable(prefix + table)
+      rest.table(prefix + table)
       .create({ColumnSchema : schema}, function(err, resp) { 
         log.info(prefix + table, err, resp);
         if (err) {
@@ -117,7 +117,7 @@ var Client = function (options) {
   
   function removeTable (table) {
     return new Promise (function(resolve, reject) {
-      rest.getTable(prefix + table)
+      rest.table(prefix + table)
       .delete(function(err, resp) { 
         log.info(prefix + table, err, resp);
         if (err) {
