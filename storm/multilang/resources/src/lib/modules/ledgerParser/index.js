@@ -26,6 +26,7 @@ Parser.balanceChanges   = require('./balanceChanges');
 Parser.accountsCreated  = require('./accountsCreated');
 Parser.memos            = require('./memos');
 Parser.payment          = require('./payment');
+Parser.fromClient       = require('./fromClient');
 
 Parser.parseLedger = function(ledger) {
   var data = {
@@ -68,8 +69,11 @@ Parser.parseLedger = function(ledger) {
     transaction.tx_index        = transaction.metaData.TransactionIndex;
     transaction.tx_result       = transaction.metaData.TransactionResult;
     
+    //set 'client' string, if its present in a memo
+    transaction.client = Parser.fromClient(transaction);
+
     data.transactions.push(transaction);
-    
+
     data.exchanges        = data.exchanges.concat(Parser.exchanges(transaction));
     data.balanceChanges   = data.balanceChanges.concat(Parser.balanceChanges(transaction));
     data.accountsCreated  = data.accountsCreated.concat(Parser.accountsCreated(transaction));

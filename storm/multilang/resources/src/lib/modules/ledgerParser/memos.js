@@ -9,7 +9,6 @@ var Memos = function (tx) {
 //  if ( tx.metaData.TransactionResult !== "tesSUCCESS" ) {
 //    return list;
 //  }
-
   
   if (tx.Memos) {
     tx.Memos.forEach(function(memo, i) {
@@ -18,14 +17,68 @@ var Memos = function (tx) {
       
       var data = {
         account : tx.Account,
-        memo_type    : memo.Memo.MemoType,
-        memo_data    : memo.Memo.MemoData,
       };
       
-      if (memo.Memo.MemoFormat) {
-        data.memo_format = memo.Memo.MemoFormat;
+      //MemoData
+      if(memo.Memo.MemoData) {
+        data.memo_data = memo.Memo.MemoData;
+
+        //attempt to decode from base64 or hex
+        try {
+          if (hexMatch.test(memo.Memo.MemoData)) {
+            data.decoded_data  = decodeHex(memo.Memo.MemoData);
+            data.data_encoding = 'hex';
+
+          } else if (base64Match.test(memo.Memo.MemoData)) {
+            data.decoded_data  = decodeBase64(memo.Memo.MemoData);
+            data.data_encoding = 'base64';
+          }
+
+        } catch (e) {
+          //unable to decode
+        }
       }
-      
+
+      //MemoFormat
+      if (memo.Memo.MemoFormat) {
+
+        //attempt to decode from base64 or hex
+        try {
+          data.memo_format = memo.Memo.MemoFormat;
+          if (hexMatch.test(memo.Memo.MemoFormat)) {
+            data.decoded_format  = decodeHex(memo.Memo.MemoFormat);
+            data.format_encoding = 'hex';
+
+          } else if (base64Match.test(memo.Memo.MemoFormat)) {
+            data.decoded_format  = decodeBase64(memo.Memo.MemoFormat);
+            data.format_encoding = 'base64';
+          }
+
+        } catch (e) {
+          //unable to decode
+        }
+      }
+
+      //MemoType
+      if (memo.Memo.MemoType) {
+
+        //attempt to decode from base64 or hex
+        try {
+          data.memo_type = memo.Memo.MemoType;
+          if (hexMatch.test(memo.Memo.MemoType)) {
+            data.decoded_type  = decodeHex(memo.Memo.MemoType);
+            data.type_encoding = 'hex';
+
+          } else if (base64Match.test(memo.Memo.MemoType)) {
+            data.decoded_type  = decodeBase64(memo.Memo.MemoType);
+            data.type_encoding = 'base64';
+          }
+
+        } catch (e) {
+          //unable to decode
+        }
+      }
+
       if (tx.Destination) {
         data.destination = tx.Destination;
       }
@@ -39,38 +92,6 @@ var Memos = function (tx) {
       }
       
       
-      //attempt to decode from base64 or hex
-      try {
-        if (hexMatch.test(data.memo_data)) {
-          data.decoded_data = decodeHex(data.memo_data);
-          data.data_encoding = 'hex';
-
-        } else if (base64Match.test(data.memo_data)) {
-          data.decoded_data = decodeBase64(data.memo_data);  
-          data.data_encoding = 'base64';
-        }
-
-        if (hexMatch.test(data.memo_type)) {
-          data.decoded_type = decodeHex(data.memo_type);
-          data.type_encoding = 'hex';
-
-        } else if (base64Match.test(data.memo_type)) {
-          data.decoded_type = decodeBase64(data.memo_type);  
-          data.type_encoding = 'base64';
-        } 
-        
-        if (data.memo_format && hexMatch.test(data.memo_format)) {
-          data.decoded_format = decodeHex(data.memo_fromat);
-          data.format_encoding = 'hex';
-
-        } else if (data.memo_format && base64Match.test(data.memo_format)) {
-          data.decoded_format = decodeBase64(data.memo_format);  
-          data.formata_encoding = 'base64';
-        }          
-      } catch (e) {
-        //unable to decode
-      }
-      
       data.time         = tx.executed_time;
       data.ledger_index = tx.ledger_index; 
       data.tx_index     = tx.tx_index;
@@ -80,7 +101,7 @@ var Memos = function (tx) {
       list.push(data);
     });
   }
-  
+
   return list;
 };
 

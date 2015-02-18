@@ -26,7 +26,8 @@ TransactionBolt.prototype.process = function(tup, done) {
   var tx   = tup.values[0];
   var parsed;
   
-  //self.log('transaction: ' + tx.hash);
+  //set 'client' string
+  tx.client = Parser.fromClient(tx);
   
   //parse transaction
   parsed = {

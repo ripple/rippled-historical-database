@@ -156,6 +156,7 @@ var Payments = function (tx) {
   payment.tx_index     = tx.tx_index;
   payment.time         = tx.executed_time;
   payment.tx_hash      = tx.hash;
+  payment.client       = tx.client;
   
   return payment;
 }

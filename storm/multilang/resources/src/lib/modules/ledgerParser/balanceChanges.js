@@ -179,7 +179,8 @@ var BalanceChanges = function (tx) {
       ledger_index  : tx.ledger_index,
       tx_index      : tx.tx_index,      
       node_index    : node.nodeIndex,
-      tx_hash       : tx.hash
+      tx_hash       : tx.hash,
+      client        : tx.client
     }
     
     

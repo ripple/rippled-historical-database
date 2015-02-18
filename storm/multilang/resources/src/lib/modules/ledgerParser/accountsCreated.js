@@ -16,7 +16,8 @@ var AccountsCreated = function (tx) {
         time    : tx.executed_time,
         ledger_index : tx.ledger_index,
         tx_index : tx.tx_index,
-        tx_hash  : tx.hash
+        tx_hash  : tx.hash,
+        client   : tx.client
       });
     }
   });
