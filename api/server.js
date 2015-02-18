@@ -1,7 +1,7 @@
 var express    = require('express');
 var bodyParser = require('body-parser');
 var Hbase      = require('../storm/multilang/resources/src/lib/hbase-client');
-var hbase      = new Hbase(config.get('hbase'));
+var config     = require('../config/api.config');
 var cors       = require('cors');
 var Postgres   = require('./lib/db');
 var Routes     = require('./routes');
@@ -9,9 +9,12 @@ var Routes     = require('./routes');
 var Server = function (options) {
   var app    = express();
   var db     = new Postgres(options.postgres);
-  var routes = Routes({postgres : db});
+  var hb     = new Hbase(options.hbase);
+  var routes = Routes({postgres : db, hbase : hb});
   var server;
   
+  hb.connect();
+
   app.use(bodyParser.json());
   app.use(cors());
 

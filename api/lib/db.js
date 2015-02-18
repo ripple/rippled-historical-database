@@ -112,6 +112,8 @@ var DB = function(config) {
       return callback(ledgerQuery);
     }
 
+    console.log(ledgerQuery.toString());
+
     ledgerQuery.nodeify(function(err, ledgers){
       if (err) return callback(err);
       else if (ledgers.length === 0) callback({error: "ledger not found", code:404});
