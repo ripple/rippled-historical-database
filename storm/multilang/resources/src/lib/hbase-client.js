@@ -82,8 +82,6 @@ HbaseClient.prototype.getAccountBalanceChanges = function (options, callback) {
   var startRow;
   var endRow;
 
-  
-
   if (!options.currency) callback({error:"must provide a currency", code:400});
   else {
     startRow = keyBase + '|';
@@ -97,8 +95,10 @@ HbaseClient.prototype.getAccountBalanceChanges = function (options, callback) {
       startRow += options.currency + '|';
       if (options.issuer) {
         startRow += options.issuer + '|';
-
+        endRow = startRow;
         if (options.start) startRow += utils.formatTime(options.start) + '|';
+        if (options.end) endRow = startRow + utils.formatTime(options.end) + '|';
+        else endRow += '9';
       } else endRow = startRow + 'z';
     }
 
