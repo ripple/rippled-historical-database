@@ -7,26 +7,29 @@ var log = new Logger({
   scope : 'validator'
 });
 
-var accountPayments = function(hbase) {
+var accountBalances = function(hbase) {
   self = this;
 
-self.getPayments = function (req, res, next) {
+self.getChanges = function (req, res, next) {
   var options = prepareOptions();
   
-  hbase.getPayments(options, function(err, payments) {
+  hbase.getAccountBalanceChanges(options, function(err, payments) {
     if (err) errorResponse(err);
     else if 
-      (payments.length === 0) errorResponse({error: "no payments found", code: 404});
+      (payments.length === 0) errorResponse({error: "no balance changes found", code: 404});
     else successResponse(payments);
   });
 
   function prepareOptions() {
     var options = {
-      account : req.params.address,
-      start   : req.query.start,
-      end     : req.query.end,
-      limit   : req.query.limit
+      account  : req.params.address,
+      currency : req.query.currency,
+      issuer   : req.query.issuer,
+      limit    : req.query.limit,
+      start    : req.query.start,
+      end      : req.query.end
     }
+
     return options;
   }
 
@@ -40,7 +43,7 @@ self.getPayments = function (req, res, next) {
       log.error(err.error || err);
       response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
-      response.json({result:'error', message:'unable to retrieve payments'}).status(500).pipe(res);  
+      response.json({result:'error', message:'unable to retrieve balance changes'}).status(500).pipe(res);  
     }     
   }
 
@@ -49,11 +52,11 @@ self.getPayments = function (req, res, next) {
   * return a successful response
   * @param {Object} payments
   */  
-  function successResponse (payments) {
+  function successResponse (changes) {
     var result = {
-      result   : "sucess",
-      count    : payments.length,
-      payments : payments
+      result          : "sucess",
+      count           : changes.length,
+      balance_changes : changes
     };
 
     response.json(result).pipe(res);      
@@ -65,6 +68,6 @@ self.getPayments = function (req, res, next) {
 }
 
 module.exports = function(db) {
-  ap = accountPayments(db);
-  return ap.getPayments;
+  abc = accountBalances(db);
+  return abc.getChanges;
 };

@@ -76,6 +76,57 @@ HbaseClient.prototype.getPayments = function (options, callback) {
   }
 }
 
+HbaseClient.prototype.getAccountBalanceChanges = function (options, callback) {
+  var keyBase = options.account;
+  var table = 'lu_account_balance_changes';
+  var startRow;
+  var endRow;
+
+  if (!options.currency) callback({error:"must provide a currency", code:400});
+  else {
+    startRow = keyBase + '|';
+    endRow = keyBase + '|';
+
+    if (options.currency === "XRP") startRow += 'XRP||';
+    else if (options.currency) {
+      startRow += options.currency + '|';
+      if (options.issuer) {
+        startRow += options.issuer + '|';
+        if (options.end) endRow = startRow + utils.formatTime(options.end) + '|';
+        else endRow = startRow + '9';
+        if (options.start) startRow += utils.formatTime(options.start) + '|';
+      } else endRow = startRow + 'z';
+    }
+
+    console.log(startRow);
+    console.log(endRow);
+
+    this.getScan({
+      table    : table,
+      startRow : startRow,
+      stopRow  : endRow,
+      limit    : options.limit
+    }, function (err, rows) {
+      callback(err, formatChanges(rows));
+    });
+  }
+
+  function formatChanges(rows) {
+    rows.forEach(function(row, i) {
+      var key = row.rowkey.split('|');
+
+      rows[i].tx_index       = parseInt(row.tx_index);
+      rows[i].executed_time  = parseInt(row.executed_time, 10);
+      rows[i].ledger_index   = parseInt(row.ledger_index, 10);
+      rows[i].node_index     = parseInt(row.node_index, 10);
+
+      delete rows[i].rowkey;
+    });
+
+    return rows;
+  }
+}
+
 /**
  * getExchanges
  * query exchanges and
