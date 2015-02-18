@@ -12,12 +12,14 @@ var accountBalances = function(hbase) {
 
 self.getChanges = function (req, res, next) {
   var options = prepareOptions();
+
+  log.info("ACCOUNT BALANCE CHANGE:", options.account);
   
-  hbase.getAccountBalanceChanges(options, function(err, payments) {
+  hbase.getAccountBalanceChanges(options, function(err, changes) {
     if (err) errorResponse(err);
     else if 
-      (payments.length === 0) errorResponse({error: "no balance changes found", code: 404});
-    else successResponse(payments);
+      (changes.length === 0) errorResponse({error: "no balance changes found", code: 404});
+    else successResponse(changes);
   });
 
   function prepareOptions() {
@@ -50,7 +52,7 @@ self.getChanges = function (req, res, next) {
   /**
   * successResponse
   * return a successful response
-  * @param {Object} payments
+  * @param {Object} balance changes
   */  
   function successResponse (changes) {
     var result = {

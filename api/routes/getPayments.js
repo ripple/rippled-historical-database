@@ -12,6 +12,8 @@ var accountPayments = function(hbase) {
 
 self.getPayments = function (req, res, next) {
   var options = prepareOptions();
+
+  log.info("PAYMENTS: " + options.account);
   
   hbase.getPayments(options, function(err, payments) {
     if (err) errorResponse(err);

@@ -82,24 +82,25 @@ HbaseClient.prototype.getAccountBalanceChanges = function (options, callback) {
   var startRow;
   var endRow;
 
+  
+
   if (!options.currency) callback({error:"must provide a currency", code:400});
   else {
     startRow = keyBase + '|';
     endRow = keyBase + '|';
 
-    if (options.currency === "XRP") startRow += 'XRP||';
+    if (options.currency === "XRP") {
+      startRow += 'XRP||';
+      endRow = startRow + '9';
+    }
     else if (options.currency) {
       startRow += options.currency + '|';
       if (options.issuer) {
         startRow += options.issuer + '|';
-        if (options.end) endRow = startRow + utils.formatTime(options.end) + '|';
-        else endRow = startRow + '9';
+
         if (options.start) startRow += utils.formatTime(options.start) + '|';
       } else endRow = startRow + 'z';
     }
-
-    console.log(startRow);
-    console.log(endRow);
 
     this.getScan({
       table    : table,

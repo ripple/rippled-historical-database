@@ -108,11 +108,10 @@ var DB = function(config) {
     var ledger;
     var ledger_index;
     var txQuery;
+    
     if (ledgerQuery.error) {
       return callback(ledgerQuery);
     }
-
-    console.log(ledgerQuery.toString());
 
     ledgerQuery.nodeify(function(err, ledgers){
       if (err) return callback(err);
