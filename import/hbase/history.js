@@ -177,13 +177,17 @@ var HistoricalImport = function () {
       }
       
       for (var i=0; i<ledgers.length; i++) {
-        if (ledgers[i].ledger_index !== startIndex) {
+        if (ledgers[i].ledger_index === startIndex + 1) {
+          log.info('duplicate ledger index:', ledgers[i].ledger_index);
+          return;
+          
+        } else if (ledgers[i].ledger_index !== startIndex) {
           log.info('missing ledger at:', startIndex);
           log.info("gap ends at:", ledgers[i].ledger_index);
           callback(null, {startIndex:startIndex, stopIndex:ledgers[i].ledger_index});
           return;
         
-        } if (ledgerHash && ledgerHash !== ledgers[i].ledger_hash) {
+        } else if (ledgerHash && ledgerHash !== ledgers[i].ledger_hash) {
           log.info('incorrect ledger hash at:', startIndex);
           callback(null, {startIndex:startIndex, stopIndex:startIndex});
           return;         
