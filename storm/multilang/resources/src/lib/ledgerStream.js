@@ -48,13 +48,13 @@ function LedgerStream(options) {
 
 //start live importer
 LedgerStream.prototype.start = function () {
-  this.validator.start();
+  //this.validator.start();
   this.live.liveStream();
 };
 
 //stop live importer
 LedgerStream.prototype.stop = function () {
-  this.validator.stop();
+  //this.validator.stop();
   this.live.stop();
 };
 

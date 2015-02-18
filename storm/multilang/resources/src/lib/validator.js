@@ -80,11 +80,8 @@ var Validator = function (config) {
         return;
       }
 
-      lastValid = ledger ? ledger : {
-        ledger_index : GENESIS_LEDGER - 1,
-        ledger_hash  : null,
-        parent_hash  : null
-      };
+      lastValid = ledger ? ledger : { };
+      if (!lastValid.ledger_index) lastValid.ledger_index = GENESIS_LEDGER - 1;
 
       lastValid.ledger_index = parseInt(lastValid.ledger_index, 10);
 

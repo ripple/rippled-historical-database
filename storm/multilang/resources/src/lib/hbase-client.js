@@ -335,6 +335,9 @@ HbaseClient.prototype.getLedger = function (options, callback) {
             });
           });
         }).nodeify(function(err, resp) {
+          
+          //order by transaction index
+          resp.sort(compare);      
           ledger.transactions = resp;
           callback(err, ledger);
         });
@@ -344,6 +347,14 @@ HbaseClient.prototype.getLedger = function (options, callback) {
         callback(null, ledger);
       }
     });
+  }
+  
+  function compare(a,b) {
+    if (a.meta.TransactionIndex < b.meta.TransactionIndex)
+       return -1;
+    if (a.meta.TransactionIndex  > b.meta.TransactionIndex )
+      return 1;
+    return 0;
   }
 };
 
