@@ -1,7 +1,8 @@
 var config   = require('../../config/import.config');
 var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
 var HistoricalImport = require('./history');
-var db = require('./client');
+var Postgres = require('./client');
+var db       = new Postgres(config.get('postgres'));
 
 var log = new Logger({
   scope : 'postgres validator',

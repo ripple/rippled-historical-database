@@ -1,8 +1,8 @@
-var config   = require('../../config/api.config');
-var log      = require('../../lib/log')('api');
-var postgres = new require('../lib/db.js')(config.get('sql'));
-var moment  = require('moment');
+var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var log      = new Logger({scope : 'get ledger'});
+var moment   = require('moment');
 var response = require('response');
+var postgres;
 
 var getLedger = function (req, res, next) {
 
@@ -49,8 +49,8 @@ var getLedger = function (req, res, next) {
       else options.err = {error:"invalid ledger identifier", code:400};
     }
     
-    if (options.binary) options.tx_return = 'binary';
-    else if (options.expand) options.tx_return = 'json';
+    if (options.expand) options.tx_return = 'json';
+    else if (options.binary) options.tx_return = 'binary';
     else if (options.transactions) options.tx_return = 'hex';
     else options.tx_return = 'none';
 
@@ -63,8 +63,8 @@ var getLedger = function (req, res, next) {
   * @param {Object} err
   */
   function errorResponse (err) {
+    log.error(err.error || err);
     if (err.code.toString()[0] === '4') {
-      log.error(err.error || err);
       response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
       response.json({result:'error', message:'unable to retrieve ledger'}).status(500).pipe(res);  
@@ -90,4 +90,7 @@ var getLedger = function (req, res, next) {
 
 };
 
-module.exports = getLedger;
+module.exports = function(db) {
+  postgres = db;
+  return getLedger;
+};

@@ -1,6 +1,8 @@
+
 var config   = require('../config/import.config');
 var Logger   = require('../storm/multilang/resources/src/lib/modules/logger');
 var Importer = require('../storm/multilang/resources/src/lib/modules/ripple-importer');
+var Postgres = require('../import/postgres/client');
 
 var live     = new Importer({ripple : config.get('ripple')});
 var log      = new Logger({
@@ -48,7 +50,7 @@ if (types.hbase) {
 //postgres importer
 if (types.postgres) {
   log.info('Saving Ledgers to Postgres');
-  postgres = new require('./postgres/client');
+  postgres = new Postgres(config.get('postgres'));
   postgresValidator = new require('./postgres/validate')();
   
   postgresValidator.start();

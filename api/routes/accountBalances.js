@@ -1,8 +1,8 @@
-var config   = require('../../config/api.config');
-var log      = require('../../lib/log')('api');
-var postgres = new require('../lib/db.js')(config.get('sql'));
+var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var log      = new Logger({scope : 'account balances'});
 var request  = require('request');
 var response = require('response');
+var postgres;
 
 var accountBalances = function (req, res, next) {
 
@@ -111,4 +111,7 @@ var accountBalances = function (req, res, next) {
 
 };
 
-module.exports = accountBalances;
+module.exports = function(db) {
+  postgres = db;
+  return accountBalances;
+};

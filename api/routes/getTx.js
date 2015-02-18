@@ -1,14 +1,22 @@
-var config   = require('../../config/api.config');
-var log      = require('../../lib/log')('api');
-var postgres = new require('../lib/db.js')(config.get('sql'));
+var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var log      = new Logger({scope : 'get tx'});
 var response = require('response');
+var postgres;
 
 var getTx = function (req, res, next) {
+  var hexMatch = new RegExp('^(0x)?[0-9A-Fa-f]+$');
+  var options  = {
+    tx_hash : req.params.tx_hash,
+    binary  : !req.query.binary || req.query.binary === 'false' ? false : true 
+  };
 
-  var options = prepareOptions();
-  
+  if (!hexMatch.test(options.tx_hash) || options.tx_hash.length % 2 !== 0) {
+    errorResponse({error: 'invalid hash', code:400});
+    return;
+  }
+    
   log.info('TX:', options.tx_hash); 
-
+  
   postgres.getTx(options, function(err, ledger){
     if (err) {
       errorResponse(err);
@@ -17,27 +25,15 @@ var getTx = function (req, res, next) {
     }
   });
 
-   /**
-  * prepareOptions
-  * parse request parameters to determine query options 
-  */
-  function prepareOptions () {
-    var options = {
-      tx_hash : req.params.tx_hash,
-      binary  : !req.query.binary || req.query.binary === 'false' ? false : true 
-    };
-
-    return options;
-  }
-
   /**
   * errorResponse 
   * return an error response
   * @param {Object} err
   */
   function errorResponse (err) {
-    if (err.code.toString()[0] === '4') {
-      log.error(err.error || err);
+    log.error(err.error || err);
+    
+    if (err.code && err.code.toString()[0] === '4') {
       response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
       response.json({result:'error', message:'unable to retrieve transaction'}).status(500).pipe(res);  
@@ -61,4 +57,7 @@ var getTx = function (req, res, next) {
 
 };
 
-module.exports = getTx;
+module.exports = function(db) {
+  postgres = db;
+  return getTx;
+};

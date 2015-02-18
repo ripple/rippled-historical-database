@@ -1,11 +1,22 @@
-var config   = require('../../config/api.config');
-var log      = require('../../lib/log')('api');
-var postgres = new require('../lib/db.js')(config.get('sql'));
+var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var log      = new Logger({scope : 'account tx'});
 var response = require('response');
+var postgres;
 
 var accountTx = function (req, res, next) {
 
+  var intMatch = /^\d+$/;
   var options = prepareOptions();
+  
+  if (options.minLedger && !intMatch.test(options.minLedger)) {
+    errorResponse({error: 'invalid ledger_min', code:400});
+    return;
+  }
+  
+  if (options.maxLedger && !intMatch.test(options.maxLedger)) {
+    errorResponse({error: 'invalid ledger_max', code:400});
+    return;
+  }  
   
   log.info('ACCOUNT TX:', options.account); 
 
@@ -89,4 +100,7 @@ var accountTx = function (req, res, next) {
   };
 }
 
-module.exports = accountTx;
+module.exports = function(db) {
+  postgres = db;
+  return accountTx;
+};

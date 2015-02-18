@@ -1,11 +1,12 @@
 var Knex    = require('knex');
 var Promise = require('bluebird');
-var log     = require('../../lib/log')('postgres');
 var moment  = require('moment');
 var sjcl    = require('ripple-lib').sjcl;
+var Logger  = require('../../storm/multilang/resources/src/lib/modules/logger');
+var log     = new Logger({scope : 'postgres'});
 
 var EPOCH_OFFSET = 946684800;
-log.level(4);
+log.level(3);
 
 var SerializedObject = require('ripple-lib').SerializedObject;
 var UInt160 = require('ripple-lib').UInt160;
@@ -13,8 +14,8 @@ var UInt160 = require('ripple-lib').UInt160;
 var DB = function(config) {
   var self  = this;
   self.knex = Knex.initialize({
-      client     : config.dbtype,
-      connection : config.db
+      client     : 'postgres',
+      connection : config
   });
 
  /**
@@ -56,23 +57,35 @@ var DB = function(config) {
           .where('transactions.tx_hash', self.knex.raw("decode('"+options.tx_hash+"', 'hex')"))
           .select('transactions.ledger_index')
           .select('transactions.executed_time as date')
-          .select('transactions.tx_type')
-          .select(self.knex.raw("encode(transactions.ledger_hash, 'hex') as ledger_hash"))
-          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"));
+          .select(self.knex.raw("encode(transactions.tx_hash, 'hex') as hash"))
+          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"));
 
       return query;
     }
 
     function handleResponse(transaction) {
-      if (!options.binary) {
-        transaction.ledger_index = Number(transaction.ledger_index);
-        transaction.date = moment.unix(transaction.date).utc().format();
-        transaction.tx = new SerializedObject(transaction.tx_raw).to_json();
-        transaction.meta = new SerializedObject(transaction.tx_meta).to_json();
-        delete transaction.tx_raw;
-        delete transaction.tx_meta;
+      
+      if (!transaction) {
+        callback({error:'transaction not found', code:404});
+        return;
       }
+      
+      transaction.hash = transaction.hash.toUpperCase();
+      transaction.ledger_index = Number(transaction.ledger_index);
+      transaction.date = moment.unix(transaction.date).utc().format();
+      
+      if (!options.binary) {
+        try {
+          transaction.tx   = new SerializedObject(transaction.tx).to_json();
+          transaction.meta = new SerializedObject(transaction.meta).to_json();   
+        } catch (e) {
+          log.error(e);
+          callback({error:e, code:500});
+          return;
+        }   
+      }
+      
       callback(null, transaction);
     }
   };
@@ -310,9 +323,7 @@ var DB = function(config) {
         .select('transactions.executed_time')
         .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
         .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"))
-        .orderBy('transactions.ledger_index', descending ? 'desc' : 'asc')
         .orderBy('transactions.tx_seq', descending ? 'desc' : 'asc')
-        .orderBy('transactions.executed_time', descending ? 'desc' : 'asc')
         .limit(options.limit || 20)
       
       //log.debug(query.toString());
@@ -388,8 +399,9 @@ var DB = function(config) {
     result.query.nodeify(function(err, rows) {
       log.debug(new Date().toISOString(), (rows ? rows.length : 0) + ' transactions found'); 
             
+      
       if (err) {
-        log.error(err);
+        log.error(err.toString());
         callback({error:err, code:500});
         return;
         
@@ -397,9 +409,9 @@ var DB = function(config) {
       //are found without a limit
       } else if (rows.length) {
         result.count.nodeify(function(err, resp) {
-          if (err) {
+          if (err || !resp.length) {
             log.error(err);
-            callback({error:err, code:500});
+            callback({error:err || 'error counting transactions', code:500});
             return;  
           } 
       
@@ -427,10 +439,6 @@ var DB = function(config) {
       var query = self.knex('account_transactions')
         .innerJoin('transactions', 'account_transactions.tx_hash', 'transactions.tx_hash')
         .where('account_transactions.account', options.account)
-      
-      if (options.offset) {
-        query.offset(options.offset || 0); 
-      }
   
       //handle start date/time - optional
       if (options.start) {
@@ -495,8 +503,8 @@ var DB = function(config) {
       var count = query.clone();
       count.count();
       
-      query.select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx_raw"))
-        .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as tx_meta"))
+      query.select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
+        .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"))
         .select(self.knex.raw("encode(account_transactions.tx_hash, 'hex') as tx_hash"))      
         .select('account_transactions.ledger_index')
         .select('account_transactions.tx_seq')
@@ -504,6 +512,10 @@ var DB = function(config) {
         .orderBy('account_transactions.ledger_index', descending ? 'desc' : 'asc')
         .orderBy('account_transactions.tx_seq', descending ? 'desc' : 'asc')
         .limit(options.limit || 20)
+      
+      if (options.offset) {
+        query.offset(options.offset || 0); 
+      }
       
       log.debug(query.toString());
       return {
@@ -533,13 +545,13 @@ var DB = function(config) {
         data.date         = moment.unix(parseInt(row.executed_time, 10)).utc().format();
         
         if (options.binary) {
-          data.tx   = row.tx_raw;
-          data.meta = row.tx_meta;
+          data.tx   = row.tx;
+          data.meta = row.meta;
           
         } else {
           try {
-            data.tx   = new SerializedObject(row.tx_raw).to_json();
-            data.meta = new SerializedObject(row.tx_meta).to_json();     
+            data.tx   = new SerializedObject(row.tx).to_json();
+            data.meta = new SerializedObject(row.meta).to_json();     
           } catch (e) {
             log.error(e);
             return callback({error:e, code:500});
@@ -563,8 +575,6 @@ var DB = function(config) {
       });
     }
   };
-  
-  return this;
 };
 
 module.exports = DB;

@@ -2,7 +2,9 @@ var config   = require('../../config/import.config');
 var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
 var Importer = require('../../storm/multilang/resources/src/lib/modules/ripple-importer');
 var moment   = require('moment');
-var db       = require('./client');
+var diff     = require('deep-diff');
+var Postgres = require('./client');
+
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
 
 var log = new Logger({
@@ -17,12 +19,14 @@ var HistoricalImport = function () {
   this.total    = 0;
   this.section  = { };
   var self = this;
+  var db   = new Postgres(config.get('postgres'));
   var stopIndex;
   var cb;
   
  /**
   * handle ledgers from the importer
-  */  
+  */
+  
   this.importer.on('ledger', function(ledger) {
     db.saveLedger(ledger, function(err, resp) {
       self.count++;
@@ -178,13 +182,13 @@ var HistoricalImport = function () {
         
         if (params.start) {
           log.info("gap ends at:", check);
-          callback(null, {startIndex:params.start, stopIndex:check});
+          callback(null, {startIndex:params.start, stopIndex:check+1});
           return;
 
         } else if (check < index) {
           log.info("missing ledger at:", index); 
           log.info("gap ends at:", check);
-          callback(null, {startIndex:index, stopIndex:check});
+          callback(null, {startIndex:index, stopIndex:check+1});
           return;
           
         } else if (check > index) {
