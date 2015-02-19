@@ -27,50 +27,50 @@ var Validator = function (config) {
     level : config.logLevel || 0,
     file  : config.logFile
   });
-  
+
   var max;
   var lastValid;
   var working;
   var timer;
-  
+
   hbase.connect();
-  
+
   this.start = function () {
-    
+
     if (!hbase.isConnected()) {
       setTimeout(function() {
         self.start();
       }, 1000);
     }
-    
+
     if (!timer) {
       timer = setTimeout(function() {
-        startValidation(); 
+        startValidation();
       }, 60*1000);
     }
-    
+
     working = false;
     startValidation();
   }
-  
+
   this.stop = function () {
     if (timer) {
       clearTimeout(timer);
     }
-    
+
     working = false;
   }
-  
+
 
   /**
    * startValidation
    */
 
   function startValidation() {
-    
+
     if (working) return;
     working = true;
-    
+
     log.info('starting validation process');
     hbase.getRow('control', 'last_validated', function (err, ledger) {
 
@@ -89,7 +89,7 @@ var Validator = function (config) {
 
       //get latest ledger index
       importer.getLedger({
-        index        : 'validated', 
+        index        : 'validated',
         expand       : false,
         transactions : false
       }, function (err, resp) {
@@ -99,13 +99,13 @@ var Validator = function (config) {
           return;
         }
 
-        max = parseInt(resp.ledger_index, 10);   
+        max = parseInt(resp.ledger_index, 10);
         log.info('latest validated ledger index:', max);
         checkNextLedger();
       });
     });
   }
-  
+
 
   /**
    * checkNextLedger
@@ -146,21 +146,21 @@ var Validator = function (config) {
       txHash = ripple.Ledger.from_json(ledger).calc_tx_hash().to_hex();
 
       if (txHash !== ledger.transaction_hash) {
-        log.error('transactions do not hash to the expected value for ' + 
+        log.error('transactions do not hash to the expected value for ' +
           'ledger_index: ' + ledger.ledger_index + '\n' +
           'ledger_hash: ' + ledger.ledger_hash + '\n' +
           'actual transaction_hash:   ' + txHash + '\n' +
-          'expected transaction_hash: ' + ledger.transaction_hash);  
+          'expected transaction_hash: ' + ledger.transaction_hash);
           importLedger(lastValid.ledger_index + 1);
           return;
-        
-      //make sure the hash chain is intact 
+
+      //make sure the hash chain is intact
       } else if (lastValid.ledger_hash && lastValid.ledger_hash != ledger.parent_hash) {
-        log.error('incorrect parent_hash:\n' + 
+        log.error('incorrect parent_hash:\n' +
           'ledger_index: ' + ledger.ledger_index + '\n' +
           'parent_hash: ' + ledger.parent_hash + '\n' +
-          'expected: ' + lastValid.ledger_hash); 
-        
+          'expected: ' + lastValid.ledger_hash);
+
         if (lastValid.ledger_index - 1 > GENESIS_LEDGER) {
           lastValid.ledger_index--;
           lastValid.parent_hash = null;
@@ -168,20 +168,20 @@ var Validator = function (config) {
 
           setImmediate(function() {
             checkNextLedger();
-          });  
+          });
         }
-        
+
       //update last validated index in hbase
       } else {
         updateLastValid(ledger);
       }
     });
   }
-  
+
   /**
    * updateLastValid
    */
-  
+
   function updateLastValid (ledger) {
     var valid = {
       ledger_index : ledger.ledger_index,
@@ -196,8 +196,8 @@ var Validator = function (config) {
         log.error(err);
         working = false;
         return;
-      } 
-      
+      }
+
       lastValid = valid;
       log.info('last valid index advanced to', lastValid.ledger_index);
 
@@ -212,11 +212,11 @@ var Validator = function (config) {
       }
     });
   }
-  
+
   /**
    * importLedger
    */
-  
+
   function importLedger (ledger_index, callback) {
 
     importer.getLedger({index : ledger_index}, function (err, ledger) {
@@ -228,18 +228,18 @@ var Validator = function (config) {
 
       log.info('got ledger:', ledger.ledger_index);
       self.emit('ledger', ledger, function(err, resp) {
-        
+
         if (err) {
           log.error(err);
           working = false;
           return;
         }
-        
+
         setImmediate(function() {
           checkNextLedger();
-        });  
+        });
       });
-    });  
+    });
   }
 };
 
