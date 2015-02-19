@@ -6,6 +6,8 @@ module.exports = function (options) {
   Routes.getLedger       = require('./getLedger')(options.postgres);
   Routes.getTx           = require('./getTx')(options.postgres);
   Routes.accountTxSeq    = require('./accountTxSeq')(options.postgres);
+  Routes.getPayments     = require('./getPayments')(options.hbase);
+  Routes.getChanges      = require('./accountBalanceChanges')(options.hbase);
   
   return Routes;
 };

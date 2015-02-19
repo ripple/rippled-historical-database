@@ -104,6 +104,7 @@ var DB = function(config) {
     var ledger;
     var ledger_index;
     var txQuery;
+    
     if (ledgerQuery.error) {
       return callback(ledgerQuery);
     }
@@ -197,7 +198,7 @@ var DB = function(config) {
           }
         }
         ledger.transactions = transactions;
-      }  
+      }
       callback(null, ledger);
     }
 
