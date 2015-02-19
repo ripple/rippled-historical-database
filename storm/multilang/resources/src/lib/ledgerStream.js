@@ -1,8 +1,8 @@
-var Importer = require('./modules/ripple-importer');
-var Logger   = require('./modules/logger');
-var utils    = require('./utils');
-var Hbase    = require('./hbase-client');
-
+var Importer  = require('./modules/ripple-importer');
+var Logger    = require('./modules/logger');
+var utils     = require('./utils');
+var Hbase     = require('./hbase-client');
+var Validator = require('./validator');
 
 var EPOCH_OFFSET = 946684800;
 
@@ -18,17 +18,28 @@ function LedgerStream(options) {
     level : options.logLevel
   };
   
+  var validateOpts = {
+    logFile  : options.logFile ? 'validator.log' : null,
+    logLevel : options.logLevel,
+    ripple   : options.ripple,
+    hbase    : options.hbase
+  };
+  
   options.hbase.logLevel = options.logLevel;
   options.hbase.logFile  = options.logFile;
-  
+  this.validator    = new Validator(validateOpts);
   this.hbase        = new Hbase(options.hbase);
   this.live         = new Importer(options);
   this.log          = new Logger(logOpts);
   this.ledgers      = [];
   this.transactions = [];
   
+  this.validator.on('ledger', function (ledger, callback) {
+    self.ledgers.push({ledger:ledger, cb:callback});
+  });
+  
   this.live.on('ledger', function (ledger) {    
-    self.ledgers.push(ledger);
+    self.ledgers.push({ledger:ledger, cb:null});
   });
   
   //establish connection to hbase
@@ -37,11 +48,13 @@ function LedgerStream(options) {
 
 //start live importer
 LedgerStream.prototype.start = function () {
+  //this.validator.start();
   this.live.liveStream();
 };
 
 //stop live importer
 LedgerStream.prototype.stop = function () {
+  //this.validator.stop();
   this.live.stop();
 };
 
@@ -51,39 +64,39 @@ LedgerStream.prototype.stop = function () {
 
 LedgerStream.prototype.processNextLedger = function (callback) {
   var self   = this;
-  var ledger = this.ledgers.shift();
+  var row    = this.ledgers.shift();
   var transactions;
   
-  if (!ledger) {
+  if (!row) {
     callback(); //nothing to do
     return;
   }
   
   //adjust the close time to unix epoch
-  ledger.close_time = ledger.close_time + EPOCH_OFFSET;
+  row.ledger.close_time = row.ledger.close_time + EPOCH_OFFSET;
 
   //replace transaction array 
   //with array of hashes
-  transactions = ledger.transactions;
-  ledger.transactions = [];  
+  transactions = row.ledger.transactions;
+  row.ledger.transactions = [];  
   
   transactions.forEach(function(tx) {
     try {
-      var prepared = self.prepareTransaction(ledger, tx); 
+      var prepared = self.prepareTransaction(row.ledger, tx); 
       
     } catch (e) {
       self.log.error(e);
-      callback('error preparing tx: ' + ledger.ledger_index + ' ' + tx.hash);
+      callback('error preparing tx: ' + row.ledger.ledger_index + ' ' + tx.hash);
       return;
     }
     
     //add the transaction to 
     //the processing queue
     self.transactions.push(prepared);
-    ledger.transactions.push(tx.hash); 
+    row.ledger.transactions.push(tx.hash); 
   });
   
-  callback(null, ledger);
+  callback(null, row);
 };
 
 /**

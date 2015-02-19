@@ -1,6 +1,5 @@
 var ripple  = require('ripple-lib');
 var events  = require('events');
-var emitter = new events.EventEmitter();
 var winston = require('winston');
 var Logger  = require('./logger');
 
