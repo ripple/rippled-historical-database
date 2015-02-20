@@ -13,8 +13,6 @@ var Server = function (options) {
   var routes = Routes({postgres : db, hbase : hb});
   var server;
 
-  hb.connect();
-
   app.use(bodyParser.json());
   app.use(cors());
 
