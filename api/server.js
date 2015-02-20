@@ -9,7 +9,7 @@ var Server = function (options) {
   var db     = new Postgres(options.postgres);
   var routes = Routes({postgres : db});
   var server;
-  
+
   app.use(bodyParser.json());
   app.use(cors());
 
@@ -23,7 +23,7 @@ var Server = function (options) {
   //start the server
   server = app.listen(options.port);
   console.log('Ripple Data API running on port: ' + options.port);
-  
+
   this.close = function () {
     if (server) {
       server.close();

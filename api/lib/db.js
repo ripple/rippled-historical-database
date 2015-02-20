@@ -31,14 +31,14 @@ var DB = function(config) {
       }
     });
   };
-  
+
   /**
-  * 
+  *
   * getTx
   * get transaction for a specific tx_hash
   * @param {Object} options
   * @param {Function} callback
-  */ 
+  */
 
   self.getTx = function (options, callback) {
     var txQuery = prepareTxQuery();
@@ -60,42 +60,43 @@ var DB = function(config) {
           .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
           .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"));
 
+      log.debug(query.toString());
       return query;
     }
 
     function handleResponse(transaction) {
-      
+
       if (!transaction) {
         callback({error:'transaction not found', code:404});
         return;
       }
-      
+
       transaction.hash = transaction.hash.toUpperCase();
       transaction.ledger_index = Number(transaction.ledger_index);
       transaction.date = moment.unix(transaction.date).utc().format();
-      
+
       if (!options.binary) {
         try {
           transaction.tx   = new SerializedObject(transaction.tx).to_json();
-          transaction.meta = new SerializedObject(transaction.meta).to_json();   
+          transaction.meta = new SerializedObject(transaction.meta).to_json();
         } catch (e) {
           log.error(e);
           callback({error:e, code:500});
           return;
-        }   
+        }
       }
-      
+
       callback(null, transaction);
     }
   };
 
   /**
-  * 
+  *
   * getLedger
   * get ledger for a specific ledger_index, ledger_hash, or closing_time
   * @param {Object} options
   * @param {Function} callback
-  */ 
+  */
 
   self.getLedger = function (options, callback) {
 
@@ -103,6 +104,7 @@ var DB = function(config) {
     var ledger;
     var ledger_index;
     var txQuery;
+
     if (ledgerQuery.error) {
       return callback(ledgerQuery);
     }
@@ -113,10 +115,9 @@ var DB = function(config) {
       else {
         ledger = parseLedger(ledgers[0]);
         ledger_index = ledger.ledger_index;
-        txQuery = prepareTxQuery(ledger_index);
 
         if (options.tx_return !== "none") {
-          if (txQuery.error) return callback(txQuery);
+          txQuery = prepareTxQuery(ledger_index);
           txQuery.nodeify(function(err, transactions) {
             if (err) return callback(err);
             else handleResponse(ledger, transactions);
@@ -137,14 +138,13 @@ var DB = function(config) {
         .select(self.knex.raw("encode(ledgers.accounts_hash, 'hex') as accounts_hash"))
         .select(self.knex.raw("encode(ledgers.transactions_hash, 'hex') as transactions_hash"))
         .orderBy('ledgers.ledger_index', 'desc')
-        .orderBy('closing_time', 'desc')
         .limit(1);
-      
+
       if (!options.ledger_index && !options.date && !options.ledger_hash) {
         query.where('ledgers.closing_time', '<=', moment().unix());
-      }
-      else {
-        if (options.ledger_index) 
+
+      } else {
+        if (options.ledger_index)
           query.where('ledgers.ledger_index', options.ledger_index);
         if (options.date) {
           var iso_date = moment.utc(options.date, moment.ISO_8601);
@@ -159,6 +159,8 @@ var DB = function(config) {
         if (options.ledger_hash)
           query.where('ledgers.ledger_hash', self.knex.raw("decode('"+options.ledger_hash+"', 'hex')"));
       }
+
+      log.debug(query.toString());
       return query;
     }
 
@@ -174,6 +176,7 @@ var DB = function(config) {
           .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
           .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"));
 
+      log.debug(query.toString());
       return query;
     }
 
@@ -196,7 +199,7 @@ var DB = function(config) {
           }
         }
         ledger.transactions = transactions;
-      }  
+      }
       callback(null, ledger);
     }
 
@@ -215,54 +218,39 @@ var DB = function(config) {
 
 
   self.getAccountTxSeq = function (options, callback) {
-    var result = prepareQuery();
-    if (result.error) {
-      callback(result);
+    var query = prepareQuery();
+    if (query.error) {
+      callback(query);
       return;
     }
-    
+
     if (options.sequence)
       log.debug(new Date().toISOString(), 'getting transaction:', options.account, options.sequence);
     else
       log.debug(new Date().toISOString(), 'getting transactions:', options.account);
 
-    //execute the query      
-    result.query.nodeify(function(err, rows) {
+    //execute the query
+    query.nodeify(function(err, resp) {
 
-      if (options.sequence)
-        log.debug(new Date().toISOString(), 'transaction found'); 
-      else
-        log.debug(new Date().toISOString(), (rows ? rows.length : 0) + ' transactions found'); 
-
-            
       if (err) {
-        log.error(err);
+        log.error(err.toString());
         callback({error:err, code:500});
-        return;
-        
-      //get a count of all the rows that
-      //are found without a limit
-      } else if (rows.length && !options.sequence) {
-        result.count.nodeify(function(err, resp) {
-          if (err) {
-            log.error(err);
-            callback({error:err, code:500});
-            return;  
-          } 
-          handleResponse(rows, parseInt(resp[0].count, 10));
-        });
-        
+
+      } else if (options.count) {
+        log.debug(new Date().toISOString(), (resp[0].count || 0) + ' transaction(s) found');
+        callback(null, parseInt(resp[0].count, 10));
+
       } else {
-        handleResponse(rows, rows.length);      
+        log.debug(new Date().toISOString(), (resp ? resp.length : 0) + ' transaction(s) found');
+        handleResponse(resp);
       }
-    }); 
-    
+    });
+
     function prepareQuery () {
       var descending = options.descending === false ? false : true;
       var types;
       var results;
       var results;
-      var count;
 
       var query = self.knex('transactions')
         .where('transactions.account', options.account);
@@ -271,18 +259,14 @@ var DB = function(config) {
         query.where('transactions.account_seq', options.sequence);
       else {
 
-        if (options.offset) {
-          query.offset(options.offset || 0); 
-        }
-
         //handle min_sequence - optional
         if (options.min_sequence) {
-          query.where('transactions.account_seq', '>=', options.min_sequence); 
+          query.where('transactions.account_seq', '>=', options.min_sequence);
         }
 
-        //handle max_sequence - optional            
+        //handle max_sequence - optional
         if (options.max_sequence) {
-          query.where('transactions.account_seq', '<=', options.max_sequence); 
+          query.where('transactions.account_seq', '<=', options.max_sequence);
         }
 
         //specify a result - default to tesSUCCESS,
@@ -293,14 +277,14 @@ var DB = function(config) {
           query.where(function() {
             var q = this;
             results.forEach(function(result) {
-              q.orWhere('transactions.tx_result', result.trim());   
+              q.orWhere('transactions.tx_result', result.trim());
             });
           });
-          
+
         } else if (!options.result) {
           query.where('transactions.tx_result', 'tesSUCCESS');
-        } 
-        
+        }
+
         //specify a type - optional
         //can be comma separate list
         if (options.type) {
@@ -308,67 +292,68 @@ var DB = function(config) {
           query.where(function() {
             var q = this;
             types.forEach(function(type) {
-              q.orWhere('transactions.tx_type', type.trim());   
+              q.orWhere('transactions.tx_type', type.trim());
             });
           });
         }
       }
 
-      count = query.clone();
-      count.count();
+      if (options.count) {
+        query.count();
 
-      query.select(self.knex.raw("encode(transactions.tx_hash, 'hex') as hash"))
-        .select('transactions.ledger_index')
-        .select('transactions.executed_time')
-        .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
-        .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"))
-        .orderBy('transactions.tx_seq', descending ? 'desc' : 'asc')
-        .limit(options.limit || 20)
-      
-      //log.debug(query.toString());
-      return {
-        count : count,
-        query : query
-      }; 
+      } else {
+
+        query.select(self.knex.raw("encode(transactions.tx_hash, 'hex') as hash"))
+          .select('transactions.ledger_index')
+          .select('transactions.executed_time')
+          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"))
+          .orderBy('transactions.account_seq', descending ? 'desc' : 'asc')
+          .limit(options.limit || 20);
+
+        if (options.offset) {
+          query.offset(options.offset || 0);
+        }
+      }
+
+      log.debug(query.toString());
+      return query;
     }
 
        /**
-    * handleResponse 
+    * handleResponse
     * @param {Object} rows
     * @param {Object} callback
-    */ 
-    function handleResponse (rows, total) {
-      
+    */
+    function handleResponse (rows) {
+
       var transactions = [];
 
       rows.forEach(function(row) {
         var data = { };
-        
+
         data.hash         = row.hash.toUpperCase();
         data.ledger_index = parseInt(row.ledger_index, 10);
         data.date         = moment.unix(parseInt(row.executed_time, 10)).utc().format();
-        
+
         if (options.binary) {
           data.tx   = row.tx;
           data.meta = row.meta;
-          
+
         } else {
           try {
             data.tx   = new SerializedObject(row.tx).to_json();
-            data.meta = new SerializedObject(row.meta).to_json();     
+            data.meta = new SerializedObject(row.meta).to_json();
           } catch (e) {
             log.error(e);
             return callback({error:e, code:500});
-          }          
+          }
         }
-                
+
         transactions.push(data);
       });
-      
-      callback(null, {
-        transactions : transactions,
-        total        : total || 0
-      });
+
+      callback(null, transactions);
     }
 
   }
@@ -376,56 +361,44 @@ var DB = function(config) {
 
 
  /**
-  * 
+  *
   * getAccountTransactions
   * get transactions for a specific account
   * @param {Object} options
   * @param {Function} callback
-  */  
+  */
   self.getAccountTransactions = function (options, callback) {
-    
+
     //prepare the sql query
-    var result = prepareQuery ();
-    if (result.error) {
-      callback(result);
+    var query = prepareQuery();
+    if (query.error) {
+      callback(query);
       return;
     }
-    
-    log.debug(new Date().toISOString(), 'getting transactions:', options.account); 
-    
-    
-    //execute the query      
-    result.query.nodeify(function(err, rows) {
-      log.debug(new Date().toISOString(), (rows ? rows.length : 0) + ' transactions found'); 
-            
-      
+
+    log.debug(new Date().toISOString(), 'getting transactions:', options.account);
+
+    //execute the query
+    query.nodeify(function(err, resp) {
+
       if (err) {
         log.error(err.toString());
         callback({error:err, code:500});
-        return;
-        
-      //get a count of all the rows that
-      //are found without a limit
-      } else if (rows.length) {
-        result.count.nodeify(function(err, resp) {
-          if (err || !resp.length) {
-            log.error(err);
-            callback({error:err || 'error counting transactions', code:500});
-            return;  
-          } 
-      
-          handleResponse(rows, parseInt(resp[0].count, 10));
-        });
-        
+
+      } else if (options.count) {
+        log.debug(new Date().toISOString(), (resp[0].count || 0) + ' transaction(s) found');
+        callback(null, parseInt(resp[0].count, 10));
+
       } else {
-        handleResponse(rows, 0);      
+        log.debug(new Date().toISOString(), (resp ? resp.length : 0) + ' transaction(s) found');
+        handleResponse(resp);
       }
-    }); 
-    
+    });
+
    /**
     * prepareQuery
     * parse incoming options to create
-    * the knex SQL query 
+    * the knex SQL query
     */
     function prepareQuery () {
       var descending = options.descending === false ? false : true;
@@ -433,42 +406,41 @@ var DB = function(config) {
       var end;
       var types;
       var results;
-      var count;
-      
+
       var query = self.knex('account_transactions')
         .innerJoin('transactions', 'account_transactions.tx_hash', 'transactions.tx_hash')
         .where('account_transactions.account', options.account)
-  
+
       //handle start date/time - optional
       if (options.start) {
         start = moment.utc(options.start, moment.ISO_8601);
-  
+
         if (start.isValid()) {
-          query.where('account_transactions.executed_time', '>=', start.unix());        
+          query.where('account_transactions.executed_time', '>=', start.unix());
         } else {
           return {error:'invalid start time, format must be ISO 8601', code:400};
         }
       }
-     
+
       //handle end date/time - optional
-      if (options.end) {   
+      if (options.end) {
         end = moment.utc(options.end, moment.ISO_8601);
-        
+
         if (end.isValid()) {
           query.where('account_transactions.executed_time', '<=', end.unix());
         } else {
           return {error:'invalid end time, format must be ISO 8601', code:400};
         }
-      } 
-      
+      }
+
       //handle minLedger - optional
       if (options.minLedger) {
-        query.where('account_transactions.ledger_index', '>=', options.minLedger);        
+        query.where('account_transactions.ledger_index', '>=', options.minLedger);
       }
-     
+
        //handle maxLedger - optional
       if (options.maxLedger) {
-        query.where('account_transactions.ledger_index', '<=', options.maxLedger);        
+        query.where('account_transactions.ledger_index', '<=', options.maxLedger);
       }
 
       //specify a result - default to tesSUCCESS,
@@ -479,14 +451,14 @@ var DB = function(config) {
         query.where(function() {
           var q = this;
           results.forEach(function(result) {
-            q.orWhere('account_transactions.tx_result', result.trim());   
+            q.orWhere('account_transactions.tx_result', result.trim());
           });
         });
-        
+
       } else if (!options.result) {
         query.where('account_transactions.tx_result', 'tesSUCCESS');
-      } 
-      
+      }
+
       //specify a type - optional
       //can be comma separate list
       if (options.type) {
@@ -494,69 +466,64 @@ var DB = function(config) {
         query.where(function() {
           var q = this;
           types.forEach(function(type) {
-            q.orWhere('account_transactions.tx_type', type.trim());   
+            q.orWhere('account_transactions.tx_type', type.trim());
           });
         });
       }
-      
-      var count = query.clone();
-      count.count();
-      
-      query.select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
-        .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"))
-        .select(self.knex.raw("encode(account_transactions.tx_hash, 'hex') as tx_hash"))      
-        .select('account_transactions.ledger_index')
-        .select('account_transactions.tx_seq')
-        .select('account_transactions.executed_time')
-        .orderBy('account_transactions.ledger_index', descending ? 'desc' : 'asc')
-        .orderBy('account_transactions.tx_seq', descending ? 'desc' : 'asc')
-        .limit(options.limit || 20)
-      
-      if (options.offset) {
-        query.offset(options.offset || 0); 
+
+      if (options.count) {
+        query.count();
+
+      } else {
+        query.select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"))
+          .select(self.knex.raw("encode(account_transactions.tx_hash, 'hex') as tx_hash"))
+          .select('account_transactions.ledger_index')
+          .select('account_transactions.tx_seq')
+          .select('account_transactions.executed_time')
+          .orderBy('account_transactions.ledger_index', descending ? 'desc' : 'asc')
+          .orderBy('account_transactions.tx_seq', descending ? 'desc' : 'asc')
+          .limit(options.limit || 20)
+
+        if (options.offset) {
+          query.offset(options.offset || 0);
+        }
       }
-      
+
       log.debug(query.toString());
-      return {
-        count : count,
-        query : query
-      };     
+      return query;
     }
-    
+
    /**
-    * handleResponse 
+    * handleResponse
     * @param {Object} rows
     * @param {Object} callback
-    */ 
-    function handleResponse (rows, total) {
-      
+    */
+    function handleResponse (rows) {
+
       var transactions = [];
-      
-      //if (options.limit && parseInt(options.limit, 10) < rows.length) {
-      //  rows = rows.slice(0, options.length);
-      //}
 
       rows.forEach(function(row) {
         var data = { };
-        
+
         data.hash         = row.tx_hash.toUpperCase();
         data.ledger_index = parseInt(row.ledger_index, 10);
         data.date         = moment.unix(parseInt(row.executed_time, 10)).utc().format();
-        
+
         if (options.binary) {
           data.tx   = row.tx;
           data.meta = row.meta;
-          
+
         } else {
           try {
             data.tx   = new SerializedObject(row.tx).to_json();
-            data.meta = new SerializedObject(row.meta).to_json();     
+            data.meta = new SerializedObject(row.meta).to_json();
           } catch (e) {
             log.error(e);
             return callback({error:e, code:500});
-          }          
-        
-        
+          }
+
+
           //NOTE: keeping these here for backwards compatability for
           //the moment, to be removed!
           data.tx.hash          = row.tx_hash.toUpperCase();
@@ -564,14 +531,11 @@ var DB = function(config) {
           data.tx.executed_time = parseInt(row.executed_time, 10);
           data.tx.date          = data.tx.executed_time - EPOCH_OFFSET;
         }
-                
+
         transactions.push(data);
       });
-      
-      callback(null, {
-        transactions : transactions,
-        total        : total || 0
-      });
+
+      callback(null, transactions);
     }
   };
 };
