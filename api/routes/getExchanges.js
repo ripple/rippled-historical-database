@@ -24,24 +24,42 @@ self.getExchanges = function (req, res, next) {
 
   function prepareOptions() {
     var options = {
-      start    : req.query.start,
-      end      : req.query.end,
-      interval : req.query.interval,
-      limit    : req.query.limit || 20
+      start      : req.query.start,
+      end        : req.query.end,
+      interval   : req.query.interval,
+      limit      : req.query.limit || 100,
+      base       : {},
+      counter    : {},
+      descending : !req.query.descending || req.query.descending === "false" ? false : true
     }
 
-    try {
-      options.base    = JSON.parse(req.params.base);
-      options.counter = JSON.parse(req.params.counter);
-    }
-    catch (err) {
-      options.error = {error:"enter valid json for base and counter", code:400};
-    }
+    var baseParams    = req.params.base.split("+");
+    var counterParams = req.params.counter.split("+");
 
-    if (options.base.currency === "XRP") options.base.issuer = "";
-    if (options.counter.currency === "XRP") options.counter.issuer = "";
+    if (baseParams[0] === "XRP") {
+      options.base.currency = "XRP";
+      options.base.issuer   = "";
+    }
+    else if (baseParams[1]) {
+      options.base.currency = baseParams[0];
+      options.base.issuer   = baseParams[1];
+    }
+    else 
+      options.error = {error:"enter valid base", code:400};
+
+    if (counterParams[0] === "XRP") {
+      options.counter.currency = "XRP";
+      options.counter.issuer   = "";
+    }
+    else if (counterParams[1]) {
+      options.counter.currency = counterParams[0];
+      options.counter.issuer   = counterParams[1];
+    }
+    else
+      options.error = {error:"enter valid counter", code:400};
 
     if (!options.start || !options.end) options.error = {error:"must provide start and end dates", code:400};
+    
     return options;
   }
 
