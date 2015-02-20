@@ -8,6 +8,7 @@ module.exports = function (options) {
   Routes.accountTxSeq    = require('./accountTxSeq')(options.postgres);
   Routes.getPayments     = require('./getPayments')(options.hbase);
   Routes.getChanges      = require('./accountBalanceChanges')(options.hbase);
-
+  Routes.getExchanges    = require('./getExchanges')(options.hbase);
+  
   return Routes;
 };

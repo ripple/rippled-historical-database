@@ -54,7 +54,8 @@ HbaseClient.prototype.getPayments = function (options, callback) {
     stopRow  : endRow,
     limit    : options.limit
   }, function (err, rows) {
-    callback(err, formatPayments(rows));
+    if (err) callback({error: err, code: 500});
+    else callback(null, formatChanges(rows));
   });
 
   function formatPayments(rows) {
@@ -108,7 +109,8 @@ HbaseClient.prototype.getAccountBalanceChanges = function (options, callback) {
       stopRow  : endRow,
       limit    : options.limit
     }, function (err, rows) {
-      callback(err, formatChanges(rows));
+      if (err) callback({error: err, code: 500});
+      else callback(null, formatChanges(rows));
     });
   }
 
@@ -158,7 +160,8 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     table      : table,
     startRow   : startRow,
     stopRow    : endRow,
-    limit      : options.limit
+    limit      : options.limit,
+    descending : options.descending
 
   }, function (err, rows) {
 
@@ -167,8 +170,8 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     } else {
       rows = formatAggregates(rows || []);
     }
-
-    callback (err, rows);
+    if (err) callback({error: err, code: 500});
+    else callback (null, rows);
   });
 
   /**
@@ -201,8 +204,10 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
       delete rows[i].base_issuer;
       delete rows[i].counter_issuer;
 
+      delete rows[i].rowkey;
+
       rows[i].rate             = parseFloat(row.rate);
-      rows[i].ledger_index     = parseInt(row.ledger_index, 10);
+      rows[i].ledger_index     = parseInt(key[5]);
       rows[i].tx_index         = parseInt(key[6], 10);
       rows[i].node_index       = parseInt(key[7], 10);
       rows[i].time             = utils.unformatTime(key[4]).unix();
