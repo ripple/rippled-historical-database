@@ -80,7 +80,7 @@ var DB = function(config) {
           transaction.tx   = new SerializedObject(transaction.tx).to_json();
           transaction.meta = new SerializedObject(transaction.meta).to_json();
         } catch (e) {
-          log.error(e);
+          log.error('serialization error:', e.toString());
           callback({error:e, code:500});
           return;
         }
@@ -190,12 +190,20 @@ var DB = function(config) {
       }
       else {
         for (var i=0; i<transactions.length; i++){
-          var row = transactions[i];
-          row.ledger_index = Number(ledger_index);
-          row.date = moment.unix(row.date).utc().format();
+          var row          = transactions[i];
+          row.ledger_index = Number(ledger.ledger_index);
+          row.date         = moment.unix(row.date).utc().format();
+
           if (options.tx_return === "json") {
-            row.tx = new SerializedObject(row.tx).to_json();
-            row.meta = new SerializedObject(row.meta).to_json();
+            try {
+              row.tx   = new SerializedObject(row.tx).to_json();
+              row.meta = new SerializedObject(row.meta).to_json();
+            } catch(e) {
+
+              log.error('serialization error:', e.toString());
+              callback({error:e, code:500});
+              return;
+            }
           }
         }
         ledger.transactions = transactions;
@@ -344,8 +352,9 @@ var DB = function(config) {
           try {
             data.tx   = new SerializedObject(row.tx).to_json();
             data.meta = new SerializedObject(row.meta).to_json();
+
           } catch (e) {
-            log.error(e);
+            log.error('serialization error:', e.toString());
             return callback({error:e, code:500});
           }
         }
@@ -518,8 +527,9 @@ var DB = function(config) {
           try {
             data.tx   = new SerializedObject(row.tx).to_json();
             data.meta = new SerializedObject(row.meta).to_json();
+
           } catch (e) {
-            log.error(e);
+            log.error('serialization error:', e.toString());
             return callback({error:e, code:500});
           }
 

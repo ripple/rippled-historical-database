@@ -93,13 +93,14 @@ var accountTx = function (req, res, next) {
 
     if (typeof data === 'number') {
       result.count = data;
+      log.info('Transactions Found:', data);
 
     } else {
       result.count = data.length;
       result.transactions = data;
+      log.info('Transactions Found:', data.length);
     }
 
-    log.info('Transactions Found:', data.length || data);
     response.json(result).pipe(res);
   }
 }
