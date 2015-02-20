@@ -12,7 +12,7 @@ var Server = function (options) {
   var hb     = new Hbase(options.hbase);
   var routes = Routes({postgres : db, hbase : hb});
   var server;
-  
+
   hb.connect();
 
   app.use(bodyParser.json());
@@ -30,7 +30,7 @@ var Server = function (options) {
   //start the server
   server = app.listen(options.port);
   console.log('Ripple Data API running on port: ' + options.port);
-  
+
   this.close = function () {
     if (server) {
       server.close();

@@ -6,35 +6,35 @@ var postgres;
 var accountTxSeq = function (req, res, next) {
 
   var options = prepareOptions();
-  
-  log.info('ACCOUNT TX:', options.account); 
 
-  postgres.getAccountTxSeq(options, function(err, resp) {
+  log.info('ACCOUNT TX:', options.account);
+
+  postgres.getAccountTxSeq(options, function(err, transactions) {
     if (err) {
-      errorResponse(err);   
-    } else if (resp.transactions.length === 0) {
+      errorResponse(err);
+    } else if (transactions.length === 0) {
       errorResponse({error: "transaction not found", code:404})
     } else {
-      successResponse(resp); 
+      successResponse(transactions[0]);
     }
   });
-  
+
  /**
   * prepareOptions
-  * parse request parameters to determine query options 
+  * parse request parameters to determine query options
   */
   function prepareOptions () {
     var options = {
-      account      : req.params.address,
-      sequence     : req.params.sequence,
-      binary       : !req.query.binary || req.query.binary === 'false' ? false : true
+      account  : req.params.address,
+      sequence : req.params.sequence,
+      binary   : !req.query.binary || (/false/i).test(req.query.binary) ? false : true
     };
 
     return options;
   };
-  
+
  /**
-  * errorResponse 
+  * errorResponse
   * return an error response
   * @param {Object} err
   */
@@ -43,23 +43,23 @@ var accountTxSeq = function (req, res, next) {
       log.error(err.error || err);
       response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
-      response.json({result:'error', message:'unable to retrieve transaction'}).status(500).pipe(res);  
-    }     
+      response.json({result:'error', message:'unable to retrieve transaction'}).status(500).pipe(res);
+    }
   }
-  
+
  /**
   * successResponse
   * return a successful response
   * @param {Object} transactions
-  */  
-  function successResponse (data) {
+  */
+  function successResponse (tx) {
     var result = {
-      result       : 'success',
-      transaction : data.transactions[0]
+      result      : 'success',
+      transaction : tx
     };
-    
-    log.info('ACCOUNT TX: Transaction Found');  
-    response.json(result).pipe(res);      
+
+    log.info('ACCOUNT TX: Transaction Found');
+    response.json(result).pipe(res);
   };
 }
 
