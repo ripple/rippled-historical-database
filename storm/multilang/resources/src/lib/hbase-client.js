@@ -160,7 +160,8 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     table      : table,
     startRow   : startRow,
     stopRow    : endRow,
-    limit      : options.limit
+    limit      : options.limit,
+    descending : options.descending
 
   }, function (err, rows) {
 
