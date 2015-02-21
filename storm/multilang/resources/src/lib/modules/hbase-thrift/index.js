@@ -10,6 +10,8 @@ var Logger     = require('../logger');
  */
 
 var HbaseClient = function (options) {
+  var self  = this;
+
   this.max_sockets = options.max_sockets || 300;
   this._retry      = 0;
   this._prefix     = options.prefix || '';
@@ -25,20 +27,54 @@ var HbaseClient = function (options) {
   });
 
   this.pool = [ ];
+
+
+  function purgePool () {
+    var i   = self.pool.length;
+    var now = Date.now();
+    var age;
+
+    while (i--) {
+
+      //flagged for removal
+      if (self.pool[i].remove) {
+        self.pool.splice(i, 1);
+
+      } else {
+        age = now - self.pool[i].last;
+        console.log(age, self.pool[i].free);
+
+        //keep alive at least 30 seconds
+        if (self.pool[i].free && age > 30000) {
+          self.pool.splice(i, 1);
+
+        //max at 10 minutes
+        } else if (age > 60 * 1000 * 5) {
+          self.pool.splice(i, 1);
+        }
+      }
+    }
+  }
+
+  setInterval(purgePool, 30000);
 };
 
 HbaseClient.prototype.getConnection = function(cb) {
   var self = this;
   var connection;
   var hbase;
+  var i = self.pool.length;
 
   //look for a free socket
-  for (var i=0; i<self.pool.length; i++) {
+  while (i--) {
     if (self.pool[i].free && self.pool[i].connected) {
       self.pool[i].free = false;
       self.pool[i].last = Date.now();
       cb(null, self.pool[i]);
       return;
+
+    } else if (self.pool[i].remove) {
+      self.pool.splice(i, 1);
     }
   }
 
@@ -53,8 +89,11 @@ HbaseClient.prototype.getConnection = function(cb) {
     }, 20);
   }
 
+  /**
+   * openNewSocket
+   */
+
   function openNewSocket() {
-    console.log("no free sockets", self.pool.length);
 
     connection = thrift.createConnection(self._host, self._port, {
       transport : thrift.TFramedTransport,
@@ -62,11 +101,16 @@ HbaseClient.prototype.getConnection = function(cb) {
       connect_timeout : self._timeout
     });
 
+    /**
+     * release socket
+     * release for another use or removal
+     */
+
     connection.release = function (err) {
 
       //set to be removed from the pool
       if (err) {
-        this.closed    = true;
+        this.remove    = true;
         this.connected = false;
 
       //make available for reuse
