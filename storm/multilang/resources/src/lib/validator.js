@@ -33,15 +33,7 @@ var Validator = function (config) {
   var working;
   var timer;
 
-  hbase.connect();
-
   this.start = function () {
-
-    if (!hbase.isConnected()) {
-      setTimeout(function() {
-        self.start();
-      }, 1000);
-    }
 
     if (!timer) {
       timer = setTimeout(function() {
