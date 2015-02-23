@@ -54,7 +54,7 @@ HbaseClient.prototype.getPayments = function (options, callback) {
     stopRow  : endRow,
     limit    : options.limit
   }, function (err, rows) {
-    callback(err, formatPayments(rows));
+    callback(err, formatPayments(rows || []));
   });
 
   function formatPayments(rows) {
@@ -108,7 +108,7 @@ HbaseClient.prototype.getAccountBalanceChanges = function (options, callback) {
       stopRow  : endRow,
       limit    : options.limit
     }, function (err, rows) {
-      callback(err, formatChanges(rows));
+      callback(err, formatChanges(rows || []));
     });
   }
 
