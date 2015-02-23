@@ -474,7 +474,7 @@ HbaseClient.prototype.saveTransactions = function (transactions, callback) {
   })
   .nodeify(function(err, resp) {
     if (err) {
-      self.log.error('error saving transaction(s)');
+      self.log.error('error saving transaction(s)', err);
     } else {
       self.log.info(transactions.length + ' transaction(s) saved');
     }
@@ -769,7 +769,7 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
   })
   .nodeify(function(err, resp) {
     if (err) {
-      self.log.error('error saving parsed data');
+      self.log.error('error saving parsed data', err);
     } else {
       self.log.info('parsed data saved');
     }

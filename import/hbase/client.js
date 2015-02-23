@@ -17,7 +17,6 @@ var Client = function () {
   var hbaseOptions = config.get('hbase');
   hbaseOptions.logLevel = 2;
   self.hbase = new Hbase(hbaseOptions);
-  self.hbase.connect();
 
   self.saveLedger = function (ledger, callback) {
 

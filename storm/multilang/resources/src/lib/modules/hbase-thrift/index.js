@@ -13,7 +13,6 @@ var HbaseClient = function (options) {
   var self  = this;
 
   this.max_sockets = options.max_sockets || 300;
-  this._retry      = 0;
   this._prefix     = options.prefix || '';
   this._host       = options.host;
   this._port       = options.port;
@@ -28,6 +27,9 @@ var HbaseClient = function (options) {
 
   this.pool = [ ];
 
+  /**
+   * purgePool
+   */
 
   function purgePool () {
     var i   = self.pool.length;
@@ -42,7 +44,6 @@ var HbaseClient = function (options) {
 
       } else {
         age = now - self.pool[i].last;
-        console.log(age, self.pool[i].free);
 
         //keep alive at least 30 seconds
         if (self.pool[i].free && age > 30000) {
@@ -144,88 +145,8 @@ HbaseClient.prototype.getConnection = function(cb) {
 }
 
 /**
- * Connect
- * establish new thrift connection
+ * getScan
  */
-
-HbaseClient.prototype.connect = function () {
-  var self = this;
-  return;
-
-  //check if connected already
-  if (self.isConnected()) {
-    return Promise.resolve();
-  }
-
-  //create new connection
-  self._connection = thrift.createConnection(self._host, self._port, {
-    transport : thrift.TFramedTransport,
-    protocol  : thrift.TBinaryProtocol,
-    connect_timeout : self._timeout
-  });
-
-  self._connection.on('connect', function() {
-    self._retry = 0;
-    self.hbase  = thrift.createClient(HBase,self._connection);
-    self.log.info('hbase connected');
-  });
-
-  self._connection.on('error', function (err) {
-    self.log.error('hbase error', err);
-  });
-
-  self._connection.on('close', function() {
-    self.log.info('hbase connection closed');
-    self._retryConnect(); //attempt to reconnect
-  })
-
-  //on the first connect, resolve the promise
-  //if it errors before connecting the first
-  //time, fail the promise
-  return new Promise (function(resolve, reject) {
-    self._connection.once('connect', function() {
-      self.hbase = thrift.createClient(HBase,self._connection);
-      resolve(true);
-    });
-
-    self._connection.once('error', function (err) {
-      reject(err);
-    });
-  }).catch(function(e) {
-    return Promise.reject(e);
-  });
-};
-
-/**
- * _retryConnect
- * attempt to reconnect when disconnected
- */
-
-HbaseClient.prototype._retryConnect = function() {
-  var self = this;
-
-  this._retry += 1;
-
-  var retryTimeout = (this._retry < 40)
-  // First, for 2 seconds: 20 times per second
-  ? (1000 / 20)
-  : (this._retry < 40 + 60)
-  // Then, for 1 minute: once per second
-  ? (1000)
-  : (this._retry < 40 + 60 + 60)
-  // Then, for 10 minutes: once every 10 seconds
-  ? (10 * 1000)
-  // Then: once every 30 seconds
-  : (30 * 1000);
-
-  function connectionRetry() {
-    self.log.info('retry connect');
-    self.connect();
-  }
-
-  if (this._retryTimeout) clearTimeout(this._retryTimeout);
-  this._retryTimeout = setTimeout(connectionRetry, retryTimeout);
-};
 
 HbaseClient.prototype.getScan = function (options, callback) {
   var self     = this;
@@ -354,11 +275,6 @@ HbaseClient.prototype.putRows = function (table, rows) {
     return Promise.resolve();
   }
 
-  //check connection
-  if (!self.isConnected()) {
-    return Promise.reject('not connected');
-  }
-
   //chunk data at no more than 100 rows
   for (var i=0, j=data.length; i<j; i+=chunk) {
     arrays.push(data.slice(i,i+chunk));
@@ -368,14 +284,24 @@ HbaseClient.prototype.putRows = function (table, rows) {
   return Promise.map(arrays, function(chunk) {
     return new Promise (function(resolve, reject) {
       self.log.info(table, '- saving ' + chunk.length + ' rows');
-      self.hbase.mutateRows(self._prefix + table, chunk, null, function(err, resp) {
+      self.getConnection(function(err, connection) {
+
         if (err) {
-          self.log.error(self._prefix + table, err, resp);
-          reject(err);
-        } else {
-          //self.log.info(self._prefix + table, "saved", chunk.length);
-          resolve(resp);
+          callback(err);
+          return;
         }
+
+        connection.client.mutateRows(self._prefix + table, chunk, null, function(err, resp) {
+          connection.release(err);
+          if (err) {
+            self.log.error(self._prefix + table, err, resp);
+            reject(err);
+
+          } else {
+            //self.log.info(self._prefix + table, "saved", chunk.length);
+            resolve(resp);
+          }
+        });
       });
     });
   });
@@ -395,42 +321,49 @@ HbaseClient.prototype.putRow = function (table, rowKey, data) {
     return Promise.resolve();
   }
 
-  //check connection
-  if (!self.isConnected()) {
-    return Promise.reject('not connected');
-  }
-
   //promisify
   return new Promise (function(resolve, reject) {
-    self.hbase.mutateRow(self._prefix + table, rowKey, columns, null, function(err, resp) {
+    self.getConnection(function(err, connection) {
+
       if (err) {
-        self.log.error(self._prefix + table, err, resp);
-        reject(err);
-      } else {
-        resolve(resp);
+        callback(err);
+        return;
       }
+
+      connection.client.mutateRow(self._prefix + table, rowKey, columns, null, function(err, resp) {
+        connection.release(err);
+        if (err) {
+          self.log.error(self._prefix + table, err, resp);
+          reject(err);
+
+        } else {
+          resolve(resp);
+        }
+      });
     });
   });
 }
 
 HbaseClient.prototype.getRow = function (table, rowkey, callback) {
   var self = this;
+  self.getConnection(function(err, connection) {
 
-  //check connection
-  if (!self.isConnected()) {
-    callback('not connected');
-    return;
-  }
-
-  self.hbase.getRow(self._prefix + table, rowkey, null, function (err, rows) {
-    var row = null;
-
-    if (rows) {
-      rows = formatRows(rows);
-      row  = rows[0];
+    if (err) {
+      callback(err);
+      return;
     }
 
-    callback(err, row);
+    connection.client.getRow(self._prefix + table, rowkey, null, function (err, rows) {
+      var row = null;
+
+      connection.release(err);
+      if (rows) {
+        rows = formatRows(rows);
+        row  = rows[0];
+      }
+
+      callback(err, row);
+    });
   });
 };
 
