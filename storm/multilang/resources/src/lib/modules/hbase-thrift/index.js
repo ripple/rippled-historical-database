@@ -253,6 +253,7 @@ HbaseClient.prototype.getScan = function (options, callback) {
   var table    = self._prefix + options.table;
   var scanOpts = { };
   var scan;
+  var swap;
 
   //get connection
   self.getConnection(function(err, connection) {
@@ -267,11 +268,23 @@ HbaseClient.prototype.getScan = function (options, callback) {
     if (options.descending === false) {
       scanOpts.startRow = options.stopRow.toString();
       scanOpts.stopRow  = options.startRow.toString();
-      scanOpts.reversed = true;
+
+      if (scanOpts.startRow > scanOpts.stopRow) {
+        swap              = scanOpts.startRow;
+        scanOpts.startRow = scanOpts.stopRow;
+        scanOpts.stopRow  = swap;
+      }
 
     } else {
       scanOpts.stopRow  = options.stopRow.toString();
       scanOpts.startRow = options.startRow.toString();
+      scanOpts.reversed = true;
+
+      if (scanOpts.startRow < scanOpts.stopRow) {
+        swap              = scanOpts.startRow;
+        scanOpts.startRow = scanOpts.stopRow;
+        scanOpts.stopRow  = swap;
+      }
     }
 
     scan = new HBaseTypes.TScan(scanOpts);

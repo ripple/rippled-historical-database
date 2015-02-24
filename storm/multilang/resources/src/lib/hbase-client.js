@@ -3,7 +3,8 @@ var binformat  = require('ripple-lib').binformat;
 var utils      = require('./utils');
 var Hbase      = require('./modules/hbase-thrift');
 var moment     = require('moment');
-var SerializedObject = require('ripple-lib').SerializedObject;
+var ripple     = require('ripple-lib');
+var SerializedObject = ripple.SerializedObject;
 
 var EPOCH_OFFSET = 946684800;
 var LI_PAD       = 12;
@@ -13,6 +14,21 @@ var S_PAD        = 12;
 
 var TX_TYPES   = { };
 var TX_RESULTS = { };
+
+var exchangeIntervals = [
+  '1minute',
+  '5minute',
+  '15minute',
+  '30minute',
+  '1hour',
+  '2hour',
+  '4hour',
+  '1day',
+  '3day',
+  '7day',
+  '1month',
+  '1year'
+];
 
 Object.keys(binformat.tx).forEach(function(key) {
   TX_TYPES[key] = binformat.tx[key][0];
@@ -135,40 +151,55 @@ HbaseClient.prototype.getAccountBalanceChanges = function (options, callback) {
  */
 
 HbaseClient.prototype.getExchanges = function (options, callback) {
-  var keyBase = options.base.currency + '|' + (options.base.issuer || '') +
-      '|' + options.counter.currency + '|' + (options.counter.issuer || '');
-  var startRow = keyBase + '|' + utils.formatTime(options.start);
-  var endRow   = keyBase + '|' + utils.formatTime(options.end);
-  var table    = 'exchanges';
+  var base     = options.base.currency + '|' + (options.base.issuer || '');
+  var counter  = options.counter.currency + '|' + (options.counter.issuer || '');
+  var table;
+  var keybase;
+  var startRow;
+  var endRow;
+  var descending;
 
-  if      (options.interval === '1minute')  table = 'agg_exchange_1minute';
-  else if (options.interval === '5minute')  table = 'agg_exchange_5minute';
-  else if (options.interval === '15minute') table = 'agg_exchange_15minute';
-  else if (options.interval === '30minute') table = 'agg_exchange_30minute';
-  else if (options.interval === '1hour')    table = 'agg_exchange_1hour';
-  else if (options.interval === '2hour')    table = 'agg_exchange_2hour';
-  else if (options.interval === '4hour')    table = 'agg_exchange_4hour';
-  else if (options.interval === '1day')     table = 'agg_exchange_1day';
-  else if (options.interval === '3day')     table = 'agg_exchange_3day';
-  else if (options.interval === '7day')     table = 'agg_exchange_7day';
-  else if (options.interval === '1month')   table = 'agg_exchange_1month';
-  else if (options.interval === '1year')    table = 'agg_exchange_1year';
+  if (base < counter) {
+    keyBase = base + '|' + counter;
+
+  } else {
+    keyBase = counter + '|' + base;
+    options.invert = true;
+  }
+
+  startRow = keyBase + '|' + utils.formatTime(options.start);
+  endRow   = keyBase + '|' + utils.formatTime(options.end);
+
+  if (!options.interval) {
+    table      = 'exchanges';
+    descending = options.descending;
+    options.unreduced = true;
+
+  } else if (exchangeIntervals.indexOf(options.interval) !== -1) {
+    table      = 'agg_exchange_' + options.interval;
+    descending = options.descending || false;
+
+  } else {
+    callback('invalid time increment or interval');
+    return;
+  }
 
   this.getScan({
     table      : table,
     startRow   : startRow,
     stopRow    : endRow,
-    limit      : options.limit
+    limit      : options.limit,
+    descending : descending
 
   }, function (err, rows) {
 
-    if (table === 'exchanges') {
-      rows = formatExchanges(rows || []);
+    if (options.reduce && options.unreduced) {
+      callback(err, reduce(rows || []));
+    } else if (table === 'exchanges') {
+      callback(err, formatExchanges(rows || []));
     } else {
-      rows = formatAggregates(rows || []);
+      callback(err, formatAggregates(rows || []));
     }
-
-    callback (err, rows);
   });
 
   /**
@@ -178,37 +209,24 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
   function formatExchanges (rows) {
     rows.forEach(function(row, i) {
       var key = row.rowkey.split('|');
-      rows[i].base = {
-        amount   : parseFloat(row.base_amount),
-        currency : key[0],
-      };
 
-      rows[i].counter = {
-        amount   : parseFloat(row.counter_amount),
-        currency : key[2],
-      };
-
-      if (row.base_issuer) {
-        rows[i].base.issuer = row.base_issuer;
-      }
-
-      if (row.counter_issuer) {
-        rows[i].counter.issuer = row.counter_issuer;
-      }
-
-      delete rows[i].base_amount;
-      delete rows[i].counter_amount;
       delete rows[i].base_issuer;
       delete rows[i].counter_issuer;
 
-      rows[i].rate             = parseFloat(row.rate);
-      rows[i].ledger_index     = parseInt(row.ledger_index, 10);
-      rows[i].tx_index         = parseInt(key[6], 10);
-      rows[i].node_index       = parseInt(key[7], 10);
-      rows[i].time             = utils.unformatTime(key[4]).unix();
+      rows[i].base_amount    = parseFloat(rows[i].base_amount);
+      rows[i].counter_amount = parseFloat(rows[i].counter_amount);
+      rows[i].rate           = parseFloat(row.rate);
+      rows[i].ledger_index   = parseInt(row.ledger_index, 10);
+      rows[i].tx_index       = parseInt(key[6], 10);
+      rows[i].node_index     = parseInt(key[7], 10);
+      rows[i].time           = utils.unformatTime(key[4]).unix();
     });
 
-    return rows;
+    if (options.invert) {
+      rows = invertPair(rows);
+    }
+
+    return handleInterest(rows);
   }
 
   /**
@@ -229,7 +247,186 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
       rows[i].open_time      = parseInt(row.close_time, 10);
     });
 
+    if (options.invert) {
+      rows = invertPair(rows);
+    }
+
+    return handleInterest(rows);
+  }
+
+  /**
+   * apply interest to interest/demmurage currencies
+   * @param {Object} rows
+   */
+
+  function handleInterest (rows) {
+    var base    = ripple.Currency.from_json(options.base.currency);
+    var counter = ripple.Currency.from_json(options.counter.currency);
+
+    if (base.has_interest()) {
+      if (options.unreduced) {
+        rows.forEach(function(row, i){
+
+          //apply interest to the base amount
+          var amount = ripple.Amount.from_human(row.base_amount + " " + options.base.currency)
+            .applyInterest(new Date(row.time*1000))
+            .to_human();
+          var pct = row.base_amount/amount;
+
+          row.base_amount = amount;
+          row.rate       *= pct;
+        });
+
+      } else {
+        rows.forEach(function(row, i){
+
+          //apply interest to the base volume
+          var volume = ripple.Amount.from_human(row.base_volume + " " + options.base.currency)
+            .applyInterest(new Date(Date.parse(row.start)))
+            .to_human();
+          var pct = row.base_volume/volume;
+
+          //adjust the prices
+          row.base_volume = volume;
+          row.open  *= pct;
+          row.high  *= pct;
+          row.low   *= pct;
+          row.close *= pct;
+          row.vwap  *= pct;
+        });
+      }
+    } else if (counter.has_interest()) {
+      if (options.unreduced) {
+        rows.forEach(function(row, i){
+
+          //apply interest to the counter amount
+          var amount = ripple.Amount.from_human(row.counter_amount + " " + options.counter.currency)
+            .applyInterest(new Date(row.time*1000))
+            .to_human();
+          var pct = amount/row.counter_amount;
+
+          row.counter_amount = amount;
+          row.rate          *= pct;
+        });
+
+      } else {
+        rows.forEach(function(row, i){
+          if (!i) return;
+
+          //apply interest to the counter volume
+          var volume = ripple.Amount.from_human(row.counter_volume + " " + options.base.currency)
+            .applyInterest(new Date(Date.parse(row.start)))
+            .to_human();
+          var pct = volume/row.counter_volume;
+
+          //adjust the prices
+          row.counter_volume = volume;
+          row.open  *= pct;
+          row.high  *= pct;
+          row.low   *= pct;
+          row.close *= pct;
+          row.vwap  *= pct;
+        });
+      }
+    }
+
     return rows;
+  }
+
+  /**
+  * if the base/counter key was inverted, we need to swap
+  * some of the values in the results
+  */
+
+  function invertPair (rows) {
+    var swap;
+    var i;
+
+    if (options.unreduced) {
+
+      for (i=0; i<rows.length; i++) {
+        rows[i].rate = 1/rows[i].rate;
+
+        //swap base and counter vol
+        swap = rows[i].base_amount;
+        rows[i].base_amount    = rows[i].counter_amount;
+        rows[i].counter_amount = swap;
+
+        //swap buyer and seller
+        swap = rows[i].buyer;
+        rows[i].buyer  = rows[i].seller;
+        rows[i].seller = swap;
+      }
+
+    } else {
+
+      for (i=0; i<rows.length; i++) {
+
+        //swap base and counter vol
+        swap = rows[i].base_volume;
+        rows[i].base_volume    = rows[i].counter_volume;
+        rows[i].counter_volume = swap;
+
+        //swap high and low
+        swap = 1/rows[i].high;
+        rows[i].high = 1/rows[i].low;
+        rows[i].low  = swap;
+
+        //invert open, close, vwap
+        rows[i].open  = 1/rows[i].open;
+        rows[i].close = 1/rows[i].close;
+        rows[i].vwap  = 1/rows[i].vwap;
+      }
+    }
+
+    return rows;
+  }
+
+  /**
+   * reduce
+   * reduce all rows
+   */
+
+  function reduce (rows) {
+
+   var reduced = {
+      open  : 0,
+      high  : 0,
+      low   : Infinity,
+      close : 0,
+      base_volume    : 0,
+      counter_volume : 0,
+      count      : 0,
+      open_time  : 0,
+      close_time : 0
+    };
+
+    rows = formatExchanges(rows);
+
+    if (rows.length) {
+      reduced.open_time  = moment.unix(rows[0].time).utc().format();
+      reduced.close_time = moment.unix(rows[rows.length-1].time).utc().format();
+
+      reduced.open  = rows[0].rate;
+      reduced.close = rows[rows.length -1].rate;
+      reduced.count = rows.length;
+
+    } else {
+      reduced.low = 0;
+    }
+
+    rows.forEach(function(row) {
+      if (options.base    === 'XRP' && row.base_amount < 0.0001)    return;
+      if (options.counter === 'XRP' && row.counter_amount < 0.0001) return;
+
+      reduced.base_volume    += row.base_amount;
+      reduced.counter_volume += row.counter_amount;
+
+      if (row.rate < reduced.low)  reduced.low  = row.rate;
+      if (row.rate > reduced.high) reduced.high = row.rate;
+    });
+
+    return reduced;
   }
 };
 
