@@ -12,7 +12,7 @@ var Logger     = require('../logger');
 var HbaseClient = function (options) {
   var self  = this;
 
-  this.max_sockets = options.max_sockets || 300;
+  this.max_sockets = options.max_sockets || 1000;
   this._prefix     = options.prefix || '';
   this._host       = options.host;
   this._port       = options.port;
@@ -95,7 +95,6 @@ HbaseClient.prototype.getConnection = function(cb) {
    */
 
   function openNewSocket() {
-
     connection = thrift.createConnection(self._host, self._port, {
       transport : thrift.TFramedTransport,
       protocol  : thrift.TBinaryProtocol,
@@ -143,6 +142,107 @@ HbaseClient.prototype.getConnection = function(cb) {
     })
   }
 }
+
+HbaseClient.prototype.iterator = function (options) {
+  var self     = this;
+  var table    = self._prefix + options.table;
+  var scanOpts = { };
+  var scan;
+  var scan_id;
+  var error;
+  var count = 0;
+  var total = 0;
+  //create scan
+  self.getConnection(function(err, connection) {
+
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    //invert stop and start index
+    if (options.descending === false) {
+      scanOpts.startRow = options.stopRow  ? options.stopRow.toString()  : undefined;
+      scanOpts.stopRow  = options.startRow ? options.startRow.toString() : undefined;
+
+    } else {
+      scanOpts.stopRow  = options.stopRow  ? options.stopRow.toString()  : undefined;
+      scanOpts.startRow = options.startRow ? options.startRow.toString() : undefined;
+      scanOpts.reversed = true;
+    }
+
+    scan = new HBaseTypes.TScan(scanOpts);
+
+    connection.client.scannerOpenWithScan(table, scan, null, function(err, id) {
+      connection.release(err);
+      if (err) {
+        self.log.error("unable to create scanner", err);
+        error = err;
+      }
+
+      scan_id = id;
+    });
+  });
+
+  self.getNext = function(callback) {
+
+    if (!scan_id && !error) {
+      setTimeout(function() {
+        self.getNext(callback);
+      }, 50);
+      return;
+    };
+
+    //get connection
+    self.getConnection(function(err, connection) {
+
+      if (err) {
+        callback(err);
+        return;
+      }
+
+      connection.client.scannerGet(scan_id, function (err, rows) {
+        connection.release(err);
+        var results = [];
+        var key;
+        var parts;
+        var r;
+
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        //format as json
+        results = formatRows(rows || []);
+        callback(null, results[0]);
+      });
+    });
+  };
+
+  self.close = function () {
+
+    if (!scan_id) return;
+
+    //close the scanner
+    self.getConnection(function(err, connection) {
+
+      if (err) {
+        self.log.error('connection error:', err);
+        return;
+      }
+
+      connection.client.scannerClose(scan_id, function(err, resp) {
+        connection.release(err);
+        if (err) {
+          self.log.error('error closing scanner:', err);
+        }
+      });
+    });
+  };
+
+  return this;
+};
 
 /**
  * getScan

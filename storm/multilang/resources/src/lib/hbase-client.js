@@ -305,6 +305,9 @@ HbaseClient.prototype.getLedger = function (options, callback) {
       //use the ledger hash to get the ledger
       getLedgerByHash(resp[0].ledger_hash);
     });
+
+  } else {
+    callback('ledger hash or index is required');
   }
 
 

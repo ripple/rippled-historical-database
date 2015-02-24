@@ -2,9 +2,6 @@ var config   = require('../../config/import.config');
 var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
 var Hbase    = require('../../storm/multilang/resources/src/lib/hbase-client');
 var Parser   = require('../../storm/multilang/resources/src/lib/modules/ledgerParser');
-var utils    = require('../../storm/multilang/resources/src/lib/utils.js');
-var Promise  = require('bluebird');
-var moment   = require('moment');
 
 var Client = function () {
   var self = this;
