@@ -10,7 +10,7 @@ module.exports = {
     ]
   },
   "hbase" : {
-    "prefix" : "beta_",
+    "prefix" : "beta2_",
     "host"   : "54.172.205.78",
     "port"   : 9090
   }

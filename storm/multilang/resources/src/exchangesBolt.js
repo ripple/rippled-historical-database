@@ -10,12 +10,9 @@ var bolt;
 function ExchangesBolt() {
   config.hbase.logLevel = config.logLevel;
   config.hbase.logFile  = config.logFile;
-  
+
   this.hbase = new Hbase(config.hbase);
 
-  //establish connection to hbase
-  this.hbase.connect(); 
-  
   BasicBolt.call(this);
 }
 
@@ -27,7 +24,7 @@ ExchangesBolt.prototype.process = function(tup, done) {
   var ex   = tup.values[0];
   var pair = tup.values[1];
   var parsed;
-  
+
   if (!pairs[pair]) {
     self.log('new pair: ' + pair);
     pairs[pair] = new Aggregation({
@@ -38,15 +35,15 @@ ExchangesBolt.prototype.process = function(tup, done) {
       logFile  : config.logFile
     });
     self.log('#pairs: ' + Object.keys(pairs).length);
-    
-  } else { 
+
+  } else {
     self.log('new ex: ' + pair);
   }
-  
+
   pairs[pair].add(ex, function(err, resp) {
     self.log(pair + ' aggregation finished');
     done();
-  });  
+  });
 };
 
 

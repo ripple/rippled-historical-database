@@ -17,14 +17,14 @@ function LedgerStream(options) {
     file  : options.logFile,
     level : options.logLevel
   };
-  
+
   var validateOpts = {
     logFile  : options.logFile ? 'validator.log' : null,
     logLevel : options.logLevel,
     ripple   : options.ripple,
     hbase    : options.hbase
   };
-  
+
   options.hbase.logLevel = options.logLevel;
   options.hbase.logFile  = options.logFile;
   this.validator    = new Validator(validateOpts);
@@ -33,17 +33,14 @@ function LedgerStream(options) {
   this.log          = new Logger(logOpts);
   this.ledgers      = [];
   this.transactions = [];
-  
+
   this.validator.on('ledger', function (ledger, callback) {
     self.ledgers.push({ledger:ledger, cb:callback});
   });
-  
-  this.live.on('ledger', function (ledger) {    
+
+  this.live.on('ledger', function (ledger) {
     self.ledgers.push({ledger:ledger, cb:null});
   });
-  
-  //establish connection to hbase
-  self.hbase.connect(); 
 };
 
 //start live importer
@@ -66,36 +63,36 @@ LedgerStream.prototype.processNextLedger = function (callback) {
   var self   = this;
   var row    = this.ledgers.shift();
   var transactions;
-  
+
   if (!row) {
     callback(); //nothing to do
     return;
   }
-  
+
   //adjust the close time to unix epoch
   row.ledger.close_time = row.ledger.close_time + EPOCH_OFFSET;
 
-  //replace transaction array 
+  //replace transaction array
   //with array of hashes
   transactions = row.ledger.transactions;
-  row.ledger.transactions = [];  
-  
+  row.ledger.transactions = [];
+
   transactions.forEach(function(tx) {
     try {
-      var prepared = self.prepareTransaction(row.ledger, tx); 
-      
+      var prepared = self.prepareTransaction(row.ledger, tx);
+
     } catch (e) {
       self.log.error(e);
       callback('error preparing tx: ' + row.ledger.ledger_index + ' ' + tx.hash);
       return;
     }
-    
-    //add the transaction to 
+
+    //add the transaction to
     //the processing queue
     self.transactions.push(prepared);
-    row.ledger.transactions.push(tx.hash); 
+    row.ledger.transactions.push(tx.hash);
   });
-  
+
   callback(null, row);
 };
 
@@ -106,17 +103,17 @@ LedgerStream.prototype.processNextLedger = function (callback) {
 LedgerStream.prototype.prepareTransaction = function (ledger, tx) {
   var meta = tx.metaData;
   delete tx.metaData;
-    
+
   tx.raw           = utils.toHex(tx);
   tx.meta          = utils.toHex(meta);
   tx.metaData      = meta;
-  
+
   tx.ledger_hash   = ledger.ledger_hash;
   tx.ledger_index  = ledger.ledger_index;
   tx.executed_time = ledger.close_time;
   tx.tx_index      = tx.metaData.TransactionIndex;
   tx.tx_result     = tx.metaData.TransactionResult;
-  
+
   return tx;
 };
 
