@@ -36,27 +36,19 @@ self.getExchanges = function (req, res, next) {
     var baseParams    = req.params.base.split("+");
     var counterParams = req.params.counter.split("+");
 
-    if (baseParams[0] === "XRP") {
-      options.base.currency = "XRP";
-      //options.base.issuer   = "";
-    }
+    if (baseParams[0] === "XRP") options.base.currency = "XRP";
     else if (baseParams[1]) {
       options.base.currency = baseParams[0];
       options.base.issuer   = baseParams[1];
     }
-    else 
-      options.error = {error:"enter valid base", code:400};
+    else options.error = {error:"enter valid base", code:400};
 
-    if (counterParams[0] === "XRP") {
-      options.counter.currency = "XRP";
-      options.counter.issuer   = "";
-    }
+    if (counterParams[0] === "XRP") options.counter.currency = "XRP";
     else if (counterParams[1]) {
       options.counter.currency = counterParams[0];
       options.counter.issuer   = counterParams[1];
     }
-    else
-      options.error = {error:"enter valid counter", code:400};
+    else options.error = {error:"enter valid counter", code:400};
 
     if (!options.start || !options.end) options.error = {error:"must provide start and end dates", code:400};
     return options;
