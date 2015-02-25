@@ -530,8 +530,13 @@ HbaseClient.prototype.getLedger = function (options, callback) {
         Promise.map(transactions, function (tx_hash) {
           return new Promise(function(resolve, reject) {
             self.getTransaction(tx_hash, function(err, tx) {
-              if (err) reject(err);
-              else     resolve(tx);
+              if (err) {
+                reject(err);
+              } else if (!tx) {
+                reject('missing transaction');
+              } else {
+                resolve(tx);
+              }
             });
           });
         }).nodeify(function(err, resp) {
@@ -575,6 +580,11 @@ HbaseClient.prototype.getTransaction = function (tx_hash, callback) {
 
     if (err) {
       callback(err);
+      return;
+    }
+
+    if (!tx) {
+      callback(null, undefined);
       return;
     }
 

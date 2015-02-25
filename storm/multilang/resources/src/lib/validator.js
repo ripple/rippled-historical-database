@@ -112,7 +112,14 @@ var Validator = function (config) {
 
     }, function (err, ledger) {
 
-      if (err) {
+      //re-import the ledger if
+      //a transaction is missing
+      if (err && err === 'missing transaction') {
+        log.info('ledger missing transaction', lastValid.ledger_index + 1);
+        importLedger(lastValid.ledger_index + 1);
+        return;
+
+      } else if (err) {
         log.error(err);
         working = false;
         return;
