@@ -27,7 +27,7 @@ self.getExchanges = function (req, res, next) {
       start      : req.query.start,
       end        : req.query.end,
       interval   : req.query.interval,
-      limit      : req.query.limit || 100,
+      limit      : req.query.limit || 20,
       base       : {},
       counter    : {},
       descending : !req.query.descending || req.query.descending === "false" ? false : true
@@ -38,7 +38,7 @@ self.getExchanges = function (req, res, next) {
 
     if (baseParams[0] === "XRP") {
       options.base.currency = "XRP";
-      options.base.issuer   = "";
+      //options.base.issuer   = "";
     }
     else if (baseParams[1]) {
       options.base.currency = baseParams[0];
@@ -59,7 +59,6 @@ self.getExchanges = function (req, res, next) {
       options.error = {error:"enter valid counter", code:400};
 
     if (!options.start || !options.end) options.error = {error:"must provide start and end dates", code:400};
-    
     return options;
   }
 

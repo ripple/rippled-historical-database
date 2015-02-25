@@ -191,7 +191,6 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     limit      : options.limit,
     descending : descending
   }, function (err, rows) {
-
     if (options.reduce && options.unreduced) {
       callback(err, reduce(rows || []));
     } else if (table === 'exchanges') {

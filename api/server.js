@@ -24,7 +24,7 @@ var Server = function (options) {
   app.get('/v1/transactions/:tx_hash', routes.getTx);
   app.get('/v1/accounts/:address/payments', routes.getPayments);
   app.get('/v1/accounts/:address/balances/changes', routes.getChanges);
-  app.get('/v1/transactions/:base/:counter/exchanges', routes.getExchanges);
+  app.get('/v1/transactions/exchanges/:base/:counter', routes.getExchanges);
 
   //start the server
   server = app.listen(options.port);
