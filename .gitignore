@@ -30,3 +30,4 @@ persist/*
 .DS_Store
 storm/target
 storm/multilang/resources/test/ledgers/*
+storm/multilang/resources/config.js
