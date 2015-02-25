@@ -40,18 +40,18 @@ var HbaseClient = function (options) {
 
       //flagged for removal
       if (self.pool[i].remove) {
-        self.pool.splice(i, 1);
+        self._closeConnection(i);
 
       } else {
         age = now - self.pool[i].last;
 
         //keep alive at least 30 seconds
         if (self.pool[i].free && age > 30000) {
-          self.pool.splice(i, 1);
+          self._closeConnection(i);
 
-        //max at 10 minutes
+        //max at 5 minutes
         } else if (age > 60 * 1000 * 5) {
-          self.pool.splice(i, 1);
+          self._closeConnection(i);
         }
       }
     }
@@ -60,7 +60,13 @@ var HbaseClient = function (options) {
   setInterval(purgePool, 30000);
 };
 
-HbaseClient.prototype.getConnection = function(cb) {
+HbaseClient.prototype._closeConnection = function (i) {
+  this.pool[i].connection.destroy();
+  delete this.pool[i];
+  this.pool.splice(i, 1);
+};
+
+HbaseClient.prototype._getConnection = function(cb) {
   var self = this;
   var connection;
   var hbase;
@@ -75,7 +81,7 @@ HbaseClient.prototype.getConnection = function(cb) {
       return;
 
     } else if (self.pool[i].remove) {
-      self.pool.splice(i, 1);
+      self._closeConnection();
     }
   }
 
@@ -86,7 +92,7 @@ HbaseClient.prototype.getConnection = function(cb) {
   //wait and check again
   } else {
     setTimeout(function() {
-      self.getConnection(cb);
+      self._getConnection(cb);
     }, 20);
   }
 
@@ -124,21 +130,26 @@ HbaseClient.prototype.getConnection = function(cb) {
     connection.free  = false;
     self.pool.push(connection);
 
+    connection.on('timeout', function() {
+      self.log.error('thrift connection timeout');
+      this.release(true);
+    });
+
     connection.once('connect', function() {
-      connection.client = thrift.createClient(HBase, connection);
-      connection.last   = Date.now();
+      this.client = thrift.createClient(HBase, connection);
+      this.last   = Date.now();
       cb(null, connection);
     });
 
     connection.once('error', function (err) {
       self.log.error('thrift connection error', err);
-      connection.release(true);
+      this.release(true);
       cb(err);
     });
 
     connection.once('close', function() {
       self.log.info('hbase connection closed');
-      connection.release(true);
+      this.release(true);
     })
   }
 }
@@ -153,7 +164,7 @@ HbaseClient.prototype.iterator = function (options) {
   var count = 0;
   var total = 0;
   //create scan
-  self.getConnection(function(err, connection) {
+  self._getConnection(function(err, connection) {
 
     if (err) {
       callback(err);
@@ -194,7 +205,7 @@ HbaseClient.prototype.iterator = function (options) {
     };
 
     //get connection
-    self.getConnection(function(err, connection) {
+    self._getConnection(function(err, connection) {
 
       if (err) {
         callback(err);
@@ -225,7 +236,7 @@ HbaseClient.prototype.iterator = function (options) {
     if (!scan_id) return;
 
     //close the scanner
-    self.getConnection(function(err, connection) {
+    self._getConnection(function(err, connection) {
 
       if (err) {
         self.log.error('connection error:', err);
@@ -256,7 +267,7 @@ HbaseClient.prototype.getScan = function (options, callback) {
   var swap;
 
   //get connection
-  self.getConnection(function(err, connection) {
+  self._getConnection(function(err, connection) {
 
     if (err) {
       callback(err);
@@ -397,7 +408,7 @@ HbaseClient.prototype.putRows = function (table, rows) {
   return Promise.map(arrays, function(chunk) {
     return new Promise (function(resolve, reject) {
       self.log.info(table, '- saving ' + chunk.length + ' rows');
-      self.getConnection(function(err, connection) {
+      self._getConnection(function(err, connection) {
 
         if (err) {
           callback(err);
@@ -436,7 +447,7 @@ HbaseClient.prototype.putRow = function (table, rowKey, data) {
 
   //promisify
   return new Promise (function(resolve, reject) {
-    self.getConnection(function(err, connection) {
+    self._getConnection(function(err, connection) {
 
       if (err) {
         callback(err);
@@ -459,7 +470,7 @@ HbaseClient.prototype.putRow = function (table, rowKey, data) {
 
 HbaseClient.prototype.getRow = function (table, rowkey, callback) {
   var self = this;
-  self.getConnection(function(err, connection) {
+  self._getConnection(function(err, connection) {
 
     if (err) {
       callback(err);
