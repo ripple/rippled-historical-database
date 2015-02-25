@@ -5,20 +5,20 @@ var sjcl        = require('ripple-lib').sjcl;
 var Memos = function (tx) {
   var list = [];
 
-//NOTE: keep all memos  
+//NOTE: keep all memos
 //  if ( tx.metaData.TransactionResult !== "tesSUCCESS" ) {
 //    return list;
 //  }
-  
+
   if (tx.Memos) {
     tx.Memos.forEach(function(memo, i) {
-      
+
       if (!memo.Memo) return;
-      
+
       var data = {
         account : tx.Account,
       };
-      
+
       //MemoData
       if(memo.Memo.MemoData) {
         data.memo_data = memo.Memo.MemoData;
@@ -82,22 +82,22 @@ var Memos = function (tx) {
       if (tx.Destination) {
         data.destination = tx.Destination;
       }
-      
+
       if (tx.DestinationTag) {
         data.destination_tag = tx.DestinationTag;
       }
-      
+
       if (tx.SourceTag) {
         data.source_tag = tx.SourceTag;
       }
-      
-      
-      data.time         = tx.executed_time;
-      data.ledger_index = tx.ledger_index; 
-      data.tx_index     = tx.tx_index;
-      data.memo_index   = i,
-      data.tx_hash      = tx.hash;
-      
+
+
+      data.executed_time = tx.executed_time;
+      data.ledger_index  = tx.ledger_index;
+      data.tx_index      = tx.tx_index;
+      data.memo_index    = i,
+      data.tx_hash       = tx.hash;
+
       list.push(data);
     });
   }
@@ -106,11 +106,11 @@ var Memos = function (tx) {
 };
 
 function decodeBase64(data) {
-  return sjcl.codec.utf8String.fromBits(sjcl.codec.base64.toBits(data));
+  return sjcl.codec.utf8String.fromBits(sjcl.codec.base64.toBits(data)) || undefined;
 }
 
 function decodeHex(data) {
-  return sjcl.codec.utf8String.fromBits(sjcl.codec.hex.toBits(data));
+  return sjcl.codec.utf8String.fromBits(sjcl.codec.hex.toBits(data)) || undefined;
 }
 
 module.exports = Memos;

@@ -34,7 +34,6 @@ var HistoricalImport = function () {
   hbaseOptions.logLevel = 2;
   this.hbase = new Hbase(hbaseOptions);
 
-
  /**
   * handle ledgers from the importer
   */
@@ -162,7 +161,7 @@ var HistoricalImport = function () {
     self.hbase.getLedgersByIndex({
       startIndex : end,
       stopIndex  : startIndex,
-      descending : false
+      descending : true
     }, function (err, ledgers) {
 
       if (err) {
