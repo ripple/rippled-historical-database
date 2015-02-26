@@ -968,14 +968,21 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
     return self.putRows(name, tables[name]);
   })
   .nodeify(function(err, resp) {
+    var total = 0;
     if (err) {
       self.log.error('error saving parsed data', err);
     } else {
-      self.log.info('parsed data saved');
+      if (resp) {
+        resp.forEach(function(r) {
+          if (r && r[0]) total += r[0];
+        });
+      }
+
+      self.log.info('parsed data saved:', total + ' rows');
     }
 
     if (callback) {
-      callback(err, resp);
+      callback(err, total);
     }
   });
 

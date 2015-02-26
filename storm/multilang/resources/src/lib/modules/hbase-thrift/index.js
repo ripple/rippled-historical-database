@@ -80,9 +80,11 @@ HbaseClient.prototype._getConnection = function(cb) {
       delete self.pool[this.pool_index];
       self.pool.splice(this.pool_index, 1);
 
-      for (var key in this.client._reqs) {
-        this.client._reqs[key](err);
-        delete (this.client._reqs[key]);
+      if (this.client) {
+        for (var key in this.client._reqs) {
+          this.client._reqs[key](err);
+          delete (this.client._reqs[key]);
+        }
       }
 
       this.connection.destroy();
@@ -132,13 +134,14 @@ HbaseClient.prototype.iterator = function (options) {
 
     //invert stop and start index
     if (options.descending === false) {
-      scanOpts.startRow = options.stopRow  ? options.stopRow.toString()  : undefined;
-      scanOpts.stopRow  = options.startRow ? options.startRow.toString() : undefined;
+      scanOpts.startRow  = options.stopRow  ? options.stopRow.toString()  : undefined;
+      scanOpts.stopRow   = options.startRow ? options.startRow.toString() : undefined;
 
     } else {
-      scanOpts.stopRow  = options.stopRow  ? options.stopRow.toString()  : undefined;
-      scanOpts.startRow = options.startRow ? options.startRow.toString() : undefined;
-      scanOpts.reversed = true;
+      scanOpts.stopRow   = options.stopRow  ? options.stopRow.toString()  : undefined;
+      scanOpts.startRow  = options.startRow ? options.startRow.toString() : undefined;
+      scanOpts.batchSize = options.batchSize || 100;
+      scanOpts.reversed  = true;
     }
 
     scan = new HBaseTypes.TScan(scanOpts);
@@ -171,7 +174,7 @@ HbaseClient.prototype.iterator = function (options) {
         return;
       }
 
-      connection.client.scannerGet(scan_id, function (err, rows) {
+      connection.client.scannerGetList(scan_id, options.batchSize, function (err, rows) {
         var results = [];
         var key;
         var parts;
@@ -184,7 +187,7 @@ HbaseClient.prototype.iterator = function (options) {
 
         //format as json
         results = formatRows(rows || []);
-        callback(null, results[0]);
+        callback(null, results);
       });
     });
   };
@@ -383,7 +386,7 @@ HbaseClient.prototype.putRows = function (table, rows) {
 
           } else {
             //self.log.info(self._prefix + table, "saved", chunk.length);
-            resolve(resp);
+            resolve(data.length);
           }
         });
       });
