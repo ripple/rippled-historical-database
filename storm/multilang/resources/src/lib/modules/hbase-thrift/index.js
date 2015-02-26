@@ -16,7 +16,7 @@ var HbaseClient = function (options) {
   this._prefix     = options.prefix || '';
   this._host       = options.host;
   this._port       = options.port;
-  this._timeout    = options.timeout || 10000;
+  this._timeout    = options.timeout || 30000; //also acts as keepalive
   this._connection = null;
   this.hbase       = null;
   this.log         = new Logger({
@@ -26,44 +26,6 @@ var HbaseClient = function (options) {
   });
 
   this.pool = [ ];
-
-  /**
-   * purgePool
-   */
-
-  function purgePool () {
-    var i   = self.pool.length;
-    var now = Date.now();
-    var age;
-
-    while (i--) {
-
-      //flagged for removal
-      if (self.pool[i].remove) {
-        self._closeConnection(i);
-
-      } else {
-        age = now - self.pool[i].last;
-
-        //keep alive at least 30 seconds
-        if (self.pool[i].free && age > 30000) {
-          self._closeConnection(i);
-
-        //max at 5 minutes
-        } else if (age > 60 * 1000 * 5) {
-          self._closeConnection(i);
-        }
-      }
-    }
-  }
-
-  setInterval(purgePool, 30000);
-};
-
-HbaseClient.prototype._closeConnection = function (i) {
-  this.pool[i].connection.destroy();
-  delete this.pool[i];
-  this.pool.splice(i, 1);
 };
 
 HbaseClient.prototype._getConnection = function(cb) {
@@ -74,85 +36,82 @@ HbaseClient.prototype._getConnection = function(cb) {
 
   //look for a free socket
   while (i--) {
-    if (self.pool[i].free && self.pool[i].connected) {
-      self.pool[i].free = false;
-      self.pool[i].last = Date.now();
+    if (self.pool[i].client &&
+        self.pool[i].connected &&
+        !Object.keys(self.pool[i].client._reqs).length &&
+        !self.pool[i].keep) {
+
+      //console.log(self.pool.length, i);
       cb(null, self.pool[i]);
       return;
-
-    } else if (self.pool[i].remove) {
-      self._closeConnection();
     }
   }
 
   //open a new socket if there is room in the pool
   if (self.pool.length < self.max_sockets) {
     openNewSocket();
-
-  //wait and check again
-  } else {
-    setTimeout(function() {
-      self._getConnection(cb);
-    }, 20);
   }
+
+  //recheck for connected socket
+  setTimeout(function() {
+    self._getConnection(cb);
+  }, 20);
+
+  return;
 
   /**
    * openNewSocket
    */
 
   function openNewSocket() {
+    var index;
+
+    //create new connection
     connection = thrift.createConnection(self._host, self._port, {
       transport : thrift.TFramedTransport,
       protocol  : thrift.TBinaryProtocol,
-      connect_timeout : self._timeout
+      timeout   : self._timeout
     });
 
-    /**
-     * release socket
-     * release for another use or removal
-     */
 
-    connection.release = function (err) {
+    //handle errors
+    connection.error = function (err) {
+      this.connected = false;
+      delete self.pool[this.pool_index];
+      self.pool.splice(this.pool_index, 1);
 
-      //set to be removed from the pool
-      if (err) {
-        this.remove    = true;
-        this.connected = false;
-
-      //make available for reuse
-      } else {
-        this.free = true;
+      for (var key in this.client._reqs) {
+        this.client._reqs[key](err);
+        delete (this.client._reqs[key]);
       }
 
-      this.last = Date.now();
+      this.connection.destroy();
     };
 
-    connection.free  = false;
-    self.pool.push(connection);
+    connection.pool_index = self.pool.push(connection) - 1;
 
     connection.on('timeout', function() {
-      self.log.error('thrift connection timeout');
-      this.release(true);
+      this.error('thrift connection timeout');
     });
 
     connection.once('connect', function() {
       this.client = thrift.createClient(HBase, connection);
-      this.last   = Date.now();
-      cb(null, connection);
     });
 
-    connection.once('error', function (err) {
-      self.log.error('thrift connection error', err);
-      this.release(true);
-      cb(err);
+    connection.on('error', function (err) {
+      this.error('thrift connection error: ' + err);
     });
 
-    connection.once('close', function() {
-      self.log.info('hbase connection closed');
-      this.release(true);
+    connection.on('close', function() {
+      this.error('hbase connection closed');
     })
   }
 }
+
+/**
+ * iterator
+ * iterate through a scan, one at a time
+ */
 
 HbaseClient.prototype.iterator = function (options) {
   var self     = this;
@@ -185,7 +144,7 @@ HbaseClient.prototype.iterator = function (options) {
     scan = new HBaseTypes.TScan(scanOpts);
 
     connection.client.scannerOpenWithScan(table, scan, null, function(err, id) {
-      connection.release(err);
+
       if (err) {
         self.log.error("unable to create scanner", err);
         error = err;
@@ -213,7 +172,6 @@ HbaseClient.prototype.iterator = function (options) {
       }
 
       connection.client.scannerGet(scan_id, function (err, rows) {
-        connection.release(err);
         var results = [];
         var key;
         var parts;
@@ -244,7 +202,6 @@ HbaseClient.prototype.iterator = function (options) {
       }
 
       connection.client.scannerClose(scan_id, function(err, resp) {
-        connection.release(err);
         if (err) {
           self.log.error('error closing scanner:', err);
         }
@@ -273,6 +230,9 @@ HbaseClient.prototype.getScan = function (options, callback) {
       callback(err);
       return;
     }
+
+    //keep till we are finished
+    connection.keep = true;
 
     //default to reversed,
     //invert stop and start index
@@ -305,7 +265,7 @@ HbaseClient.prototype.getScan = function (options, callback) {
       if (err) {
         self.log.error(err);
         callback('unable to create scanner');
-        connection.release(err);
+        connection.keep = false;
         return;
       }
 
@@ -318,7 +278,8 @@ HbaseClient.prototype.getScan = function (options, callback) {
           if (err) {
             self.log.error('error closing scanner:', err);
           }
-          connection.release(err);
+          //release
+          connection.keep = false;
         });
       });
     });
@@ -416,7 +377,6 @@ HbaseClient.prototype.putRows = function (table, rows) {
         }
 
         connection.client.mutateRows(self._prefix + table, chunk, null, function(err, resp) {
-          connection.release(err);
           if (err) {
             self.log.error(self._prefix + table, err, resp);
             reject(err);
@@ -455,7 +415,6 @@ HbaseClient.prototype.putRow = function (table, rowKey, data) {
       }
 
       connection.client.mutateRow(self._prefix + table, rowKey, columns, null, function(err, resp) {
-        connection.release(err);
         if (err) {
           self.log.error(self._prefix + table, err, resp);
           reject(err);
@@ -480,7 +439,6 @@ HbaseClient.prototype.getRow = function (table, rowkey, callback) {
     connection.client.getRow(self._prefix + table, rowkey, null, function (err, rows) {
       var row = null;
 
-      connection.release(err);
       if (rows) {
         rows = formatRows(rows);
         row  = rows[0];
