@@ -7,11 +7,12 @@ var v;
 config.logFile = null;
 v = new Validator({
   ripple : config.get('ripple'),
-  hbase  : config.get('hbase')
+  hbase  : config.get('hbase'),
+  start  : config.get('startIndex')
 });
 v.start();
 
-v.on('ledger', function(ledger, callback) {  
+v.on('ledger', function(ledger, callback) {
   hbase.saveLedger(ledger, function(err, resp) {
     callback(err, resp);
   });

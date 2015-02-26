@@ -453,22 +453,6 @@ HbaseClient.prototype.getLedgersByIndex = function (options, callback) {
         resp[i].ledger_index = parseInt(rowkey[0], 10);
         resp[i].close_time = parseInt(resp[i].close_time, 10);
       });
-
-      if (options.transactions) {
-        Promise.map(resp, function(row) {
-          self.getLedger({
-            ledger_hash  : row.ledger_hash,
-            transactions : true,
-
-          }, function (err, ledger) {
-
-          });
-
-        }).nodeify(function(err, resp) {
-          console.log(err, resp);
-        });
-        return;
-      }
     }
 
     callback(err, resp);
@@ -491,7 +475,7 @@ HbaseClient.prototype.getLedger = function (options, callback) {
   } else if (options.ledger_index) {
     self.getLedgersByIndex({
       startIndex : options.ledger_index,
-      stopIndex : options.ledger_index
+      stopIndex  : options.ledger_index
     }, function (err, resp) {
 
       if (err || !resp || !resp.length) {

@@ -32,6 +32,7 @@ var Validator = function (config) {
   var lastValid;
   var working;
   var timer;
+  var startIndex = config.start;
 
   this.start = function () {
 
@@ -63,6 +64,14 @@ var Validator = function (config) {
     if (working) return;
     working = true;
 
+    if (startIndex) {
+      lastValid = {
+        ledger_index : startIndex
+      };
+      getLatestIndex();
+      return;
+    }
+
     log.info('starting validation process');
     hbase.getRow('control', 'last_validated', function (err, ledger) {
 
@@ -79,22 +88,26 @@ var Validator = function (config) {
 
       log.info('Last valid index:', lastValid.ledger_index);
 
-      //get latest ledger index
-      importer.getLedger({
-        index        : 'validated',
-        expand       : false,
-        transactions : false
-      }, function (err, resp) {
-        if (err) {
-          log.error(err);
-          working = false;
-          return;
-        }
+      getLatestIndex();
+    });
+  }
 
-        max = parseInt(resp.ledger_index, 10);
-        log.info('latest validated ledger index:', max);
-        checkNextLedger();
-      });
+  function getLatestIndex () {
+
+    importer.getLedger({
+      index        : 'validated',
+      expand       : false,
+      transactions : false
+    }, function (err, resp) {
+      if (err) {
+        log.error(err);
+        working = false;
+        return;
+      }
+
+      max = parseInt(resp.ledger_index, 10);
+      log.info('latest validated ledger index:', max);
+      checkNextLedger();
     });
   }
 
@@ -188,6 +201,23 @@ var Validator = function (config) {
       parent_hash  : ledger.parent_hash
     };
 
+    //dont save if startIndex is used
+    if (startIndex) {
+      lastValid = valid;
+      log.info('valid', lastValid.ledger_index);
+      if (lastValid.ledger_index < max) {
+        setImmediate(function() {
+          checkNextLedger();
+        });
+
+      } else {
+        log.info('reached max:', max);
+        working = false;
+      }
+
+      return;
+    }
+
     hbase.putRow('control', 'last_validated', valid)
     .nodeify(function(err, resp) {
 
@@ -218,6 +248,7 @@ var Validator = function (config) {
 
   function importLedger (ledger_index, callback) {
 
+    log.info('importing ledger:', ledger_index);
     importer.getLedger({index : ledger_index}, function (err, ledger) {
       if (err) {
         log.error(err);
