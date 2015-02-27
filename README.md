@@ -9,7 +9,8 @@ Ripple Labs provides a live instance of the `rippled` Historical Database API wi
 
 `history.ripple.com`
 
-The [rippled Historical Database source code](https://github.com/ripple/rippled-historical-database) is also available under an open-source license, so you can use, install, and contribute back to the project.
+You can also [install and run your own instance of the Historical Database](#running-the-historical-database).
+
 
 ## API Methods ##
 
