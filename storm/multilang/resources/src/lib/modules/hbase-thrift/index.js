@@ -127,8 +127,10 @@ HbaseClient.prototype.iterator = function (options) {
   //create scan
   self._getConnection(function(err, connection) {
 
+
+
     if (err) {
-      callback(err);
+      self.log.error("unable to get connection", err);
       return;
     }
 

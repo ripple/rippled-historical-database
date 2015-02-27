@@ -4,14 +4,14 @@ var Base  = require('ripple-lib').Base;
 module.exports = function (tx) {
   var accounts = [];
   var list     = [];
-  
+
   var meta = new Meta(tx.metaData);
   accounts = meta.getAffectedAccounts();
 /*
   addAffectedAccount('initiator', tx.Account, tx);
-  
+
   if (tx.metaData.TransactionResult === 'tesSUCCESS') {
-    switch(tx.TransactionType) {  
+    switch(tx.TransactionType) {
       case 'Payment':
         addAffectedAccount('source', tx.Account, tx);
         addAffectedAccount('destination', tx.Destination, tx);
@@ -19,21 +19,21 @@ module.exports = function (tx) {
       case 'TrustSet':
         addAffectedAccount('trust', tx.Account, tx);
         addAffectedAccount('trustee', tx.Destination, tx);
-        break;        
+        break;
     }
   }
 
   tx.metaData.AffectedNodes.forEach( function( affNode ) {
     var node = affNode.CreatedNode || affNode.ModifiedNode || affNode.DeletedNode;
     parseNode(node.LedgerEntryType, node.NewFields || node.FinalFields, tx);
-  }); 
-  
+  });
+
   console.log(accounts);
 */
-  
+
   accounts.forEach(function(account) {
     if (account[0] !== 'r') return;
-    
+
     list.push({
       account      : account,
       tx_result    : tx.tx_result,
@@ -41,50 +41,51 @@ module.exports = function (tx) {
       time         : tx.executed_time,
       ledger_index : tx.ledger_index,
       tx_index     : tx.tx_index,
-      tx_hash      : tx.hash
-    });   
+      tx_hash      : tx.hash,
+      client       : tx.client
+    });
   });
-        
+
   return list;
 
-/*  
-  function parseNode (nodeType, fields, tx) {  
+/*
+  function parseNode (nodeType, fields, tx) {
     if (!fields) {
       return;
     }
-    
+
     for (var key in fields) {
       if (isRippleAddress(fields[key])) {
-        
-        addAffectedAccount(null, fields[key], tx);  
-      
-        
+
+        addAffectedAccount(null, fields[key], tx);
+
+
       } else if (key === 'HighLimit' ||
                  key === 'LowLimit'  ||
                  key === 'TakerPays' ||
                  key === 'TakerGets') {
-        
+
         if (isRippleAddress(fields[key].issuer)) {
           var role = nodeType === 'RippleState' ? null : 'issuer';
-          addAffectedAccount(role, fields[key].issuer, tx);  
+          addAffectedAccount(role, fields[key].issuer, tx);
         }
       }
     }
   }
-  
+
   function addAffectedAccount (role, account, tx) {
     if (!accounts[account]) {
       accounts[account] = role ? [role] : [];
-    
+
     } else if (role && accounts[account].indexOf(role) === -1) {
       accounts[account].push(role);
     }
   }
-  
+
   function isRippleAddress (data) {
     return typeof data === 'string' &&
     data.charAt(0)     === "r"      &&
-    Base.decode_check(Base.VER_ACCOUNT_ID, data) ? true : false;  
-  }  
-*/  
+    Base.decode_check(Base.VER_ACCOUNT_ID, data) ? true : false;
+  }
+*/
 };

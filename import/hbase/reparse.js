@@ -30,7 +30,7 @@ iterator = hbase.iterator({
   table     : 'lu_ledgers_by_index',
   startRow  : utils.padNumber(start || 0, LI_PAD),
   stopRow   : utils.padNumber(end || 0, LI_PAD),
-  batchSize : 500
+  batchSize : config.get('batchSize') || 500
 });
 
 function getNext() {
@@ -68,14 +68,16 @@ function processLedger(l) {
       return;
     }
 
+    //parser expects ripple epoch
+    ledger.close_time -= 946684800;
+
     //ledgers must be formatted according to the output from
     //rippled's ledger command
     ledger.transactions.forEach(function(tx, i) {
       var transaction      = tx.tx;
       transaction.metaData = tx.meta,
-      transaction.hash     = tx.hash
+      transaction.hash     = tx.hash,
       ledger.transactions[i] = transaction;
-      ledger.close_time   -= 946684800 //remove EPOCH OFFSET;
     });
 
     var parsed = Parser.parseLedger(ledger);

@@ -785,7 +785,7 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
     var key2 = ex.buyer  + '|' + key;
     var key3 = ex.seller + '|' + key;
     var row  = {
-      'f:base_currency'    : ex.base_currency,
+      'f:base_currency'    : ex.base.currency,
       'f:base_issuer'      : ex.base.issuer || undefined,
       base_amount          : ex.base.amount,
       'f:counter_currency' : ex.counter.currency,
@@ -796,8 +796,10 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       'f:seller'           : ex.seller,
       'f:taker'            : ex.taker,
       'f:tx_hash'          : ex.tx_hash,
-      'f:executed_time'    : ex.executed_time,
+      'f:executed_time'    : ex.time,
       'f:ledger_index'     : ex.ledger_index,
+      'f:tx_type'          : ex.tx_type,
+      'f:client'           : ex.client,
       tx_index             : ex.tx_index,
       node_index           : ex.node_index
     };
@@ -827,12 +829,17 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       'f:executed_time' : c.time,
       'f:ledger_index'  : c.ledger_index,
       tx_index          : c.tx_index,
-      node_index        : c.node_index
+      node_index        : c.node_index,
+      'f:client'        : c.client
     };
 
     key = c.account + suffix;
     tables.account_balance_changes[c.account + suffix] = row;
-    tables.account_balance_changes[c.issuer  + suffix] = row;
+
+    //XRP has no issuer
+    if (c.issuer) {
+      tables.account_balance_changes[c.issuer  + suffix] = row;
+    }
   });
 
   params.data.payments.forEach(function(p) {
@@ -853,7 +860,8 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       'f:tx_hash'       : p.tx_hash,
       'f:executed_time' : p.time,
       'f:ledger_index'  : p.ledger_index,
-      tx_index          : p.tx_index
+      tx_index          : p.tx_index,
+      'f:client'        : p.client
     }
 
     if (p.max_amount) {
@@ -884,9 +892,10 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       'f:parent'        : a.parent,
       balance           : a.balance,
       'f:tx_hash'       : a.tx_hash,
-      'f:executed_time' : a.executed_time,
+      'f:executed_time' : a.time,
       'f:ledger_index'  : a.ledger_index,
-      tx_index          : a.tx_index
+      tx_index          : a.tx_index,
+      'f:client'        : a.client
     };
   });
 
@@ -958,7 +967,8 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       tx_hash           : a.tx_hash,
       tx_index          : a.tx_index,
       'f:executed_time' : a.time,
-      'f:ledger_index'  : a.ledger_index
+      'f:ledger_index'  : a.ledger_index,
+      'f:client'        : a.client
     }
   });
 

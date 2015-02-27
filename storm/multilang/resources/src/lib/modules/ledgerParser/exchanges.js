@@ -3,17 +3,17 @@ var BigNumber  = require('bignumber.js');
 var XRP_ADJUST = 1000000.0;
 /**
  * OffersExercised;
- * parse a single transaction to extract 
+ * parse a single transaction to extract
  * all offers exercised
  */
 
 var OffersExercised = function (tx) {
   var list = [];
-  
+
   if (tx.metaData.TransactionResult !== 'tesSUCCESS') {
     return list;
   }
-  
+
   if (tx.TransactionType !== 'Payment' && tx.TransactionType !== 'OfferCreate') {
     return list;
   }
@@ -24,24 +24,24 @@ var OffersExercised = function (tx) {
     if (!node || node.LedgerEntryType !== 'Offer') {
       return list;
     }
-    
+
     if (!node.PreviousFields || !node.PreviousFields.TakerPays || !node.PreviousFields.TakerGets) {
       return list;
     }
 
     node.nodeIndex = i;
-    list.push(parseOfferExercised(node, tx));    
+    list.push(parseOfferExercised(node, tx));
   });
-  
+
   return list;
-  
+
   /**
    * parseOfferExercised
    * after determining the presence of an
    * excercised offer, extract it into
    * the required form
    */
-  
+
   function parseOfferExercised (node, tx) {
 
 
@@ -54,13 +54,13 @@ var OffersExercised = function (tx) {
     if ( typeof node.PreviousFields.TakerPays === "object" ) {
       change = Amount.from_json(node.PreviousFields.TakerPays)
         .subtract(node.FinalFields.TakerPays).to_json().value;
-      
+
       base = {
         currency : node.PreviousFields.TakerPays.currency,
         issuer   : node.PreviousFields.TakerPays.issuer,
         amount   : change
       }
-      
+
     } else {
       change = new BigNumber(node.PreviousFields.TakerPays).minus(node.FinalFields.TakerPays);
       base   = {
@@ -72,13 +72,13 @@ var OffersExercised = function (tx) {
     if ( typeof node.PreviousFields.TakerGets === "object" ) {
       change = Amount.from_json(node.PreviousFields.TakerGets)
         .subtract(node.FinalFields.TakerGets).to_json().value;
-      
+
       counter = {
         currency : node.PreviousFields.TakerGets.currency,
         issuer   : node.PreviousFields.TakerGets.issuer,
         amount   : change
       }
-      
+
     } else {
       change  = new BigNumber(node.PreviousFields.TakerGets).minus(node.FinalFields.TakerGets);
       counter = {
@@ -86,21 +86,21 @@ var OffersExercised = function (tx) {
         amount   : change.dividedBy(XRP_ADJUST).toString()
       }
     }
-    
+
     try {
       exchangeRate = Amount.from_quality(node.FinalFields.BookDirectory, base.currency, base.issuer, {
-        base_currency : counter.currency  
+        base_currency : counter.currency
       }).invert()
       .to_json().value;
-    
+
     } catch (e) {
       //unable to calculate from quality
     }
-   
+
     if (!exchangeRate) {
       exchangeRate = new BigNumber(counter.amount).dividedBy(base.amount).toString();
     }
-    
+
     var offer = {
       base         : base,
       counter      : counter,
@@ -109,27 +109,28 @@ var OffersExercised = function (tx) {
       seller       : tx.Account,
       taker        : tx.Account,
       time         : tx.executed_time,
+      tx_type      : tx.TransactionType,
       tx_index     : tx.tx_index,
       ledger_index : tx.ledger_index,
       node_index   : node.nodeIndex,
       tx_hash      : tx.hash,
       client       : tx.client
     };
-  
+
     return orderPair(offer);
   }
-  
+
   /**
    * orderPair
    * swap currencies based on
    * lexigraphical order
    */
-  
+
   function orderPair (offer) {
     var c1 = (offer.base.currency + offer.base.issuer).toLowerCase();
     var c2 = (offer.counter.currency + offer.counter.issuer).toLowerCase();
     var swap;
-    
+
     if (c2 < c1) {
       swap          = offer.base;
       offer.base    = offer.counter;
@@ -139,7 +140,7 @@ var OffersExercised = function (tx) {
       offer.buyer   = offer.seller;
       offer.seller  = swap;
     }
-    
+
     return offer;
   }
 };

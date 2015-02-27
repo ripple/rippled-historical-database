@@ -4,25 +4,25 @@ var XRP_ADJUST = 1000000.0;
 
 /**
  * OffersExercised;
- * parse a single transaction to extract 
+ * parse a single transaction to extract
  * all offers exercised
  */
 
 var BalanceChanges = function (tx) {
   var list = [];
-  
+
   if (tx.metaData.TransactionResult.indexOf('tec') !== 0 &&
       tx.metaData.TransactionResult !== 'tesSUCCESS') {
     return list;
   }
-  
+
   tx.metaData.AffectedNodes.forEach( function(affNode, i) {
     var node = affNode.ModifiedNode || affNode.CreatedNode || affNode.DeletedNode;
 
     if (!node) {
       return;
     }
-    
+
     node.nodeIndex = i;
     if (node.LedgerEntryType === "AccountRoot" ) {
       parseAccountRoot(node);
@@ -31,15 +31,15 @@ var BalanceChanges = function (tx) {
       parseRippleState(node);
     }
   });
-    
+
   return list;
-   
+
   /**
    * parseAccountRoot
    * parse balance changes
    * from an account root node
    */
-  
+
   function parseAccountRoot (node) {
 
     var account;
@@ -49,26 +49,26 @@ var BalanceChanges = function (tx) {
     var amount;
     var data;
     var fee;
-    
-    if (node.FinalFields && node.PreviousFields && 
+
+    if (node.FinalFields && node.PreviousFields &&
         node.FinalFields.Balance && node.PreviousFields.Balance) {
 
       balance  = new BigNumber(node.FinalFields.Balance);
       previous = new BigNumber(node.PreviousFields.Balance);
       account  = node.FinalFields.Account;
-      
+
     } else if (node.NewFields) {
       balance  = new BigNumber(node.NewFields.Balance);
-      previous = new BigNumber(0);      
+      previous = new BigNumber(0);
       account  = node.NewFields.Account;
-      
+
     } else {
       return;
     }
-    
+
 
     change = balance.minus(previous);
-      
+
     if (tx.Account === account) {
       fee    = new BigNumber (tx.Fee).negated();
       amount = change.minus(fee);
@@ -83,6 +83,7 @@ var BalanceChanges = function (tx) {
         tx_index      : tx.tx_index,
         node_index    : 'fee',
         tx_hash       : tx.hash,
+        client        : tx.client,
         type          : 'network fee'
       });
 
@@ -100,21 +101,22 @@ var BalanceChanges = function (tx) {
         ledger_index  : tx.ledger_index,
         tx_index      : tx.tx_index,
         node_index    : node.nodeIndex,
-        tx_hash       : tx.hash
+        tx_hash       : tx.hash,
+        client        : tx.client
       }
 
       data.type = findType(account, data);
       list.push(data);
     }
-     
+
   }
-  
+
   /**
    * parseRippleState
    * parse balances changes
    * from a ripple state node
    */
-  
+
   function parseRippleState (node, initiator, destination) {
     var balance;
     var previous;
@@ -124,7 +126,7 @@ var BalanceChanges = function (tx) {
     var issuer;
     var highParty;
     var lowParty;
-    
+
     if (node.NewFields) {
 
       if (node.NewFields.Balance.value === '0') {
@@ -152,23 +154,23 @@ var BalanceChanges = function (tx) {
     } else {
       return;
     }
-    
-    if (balance.is_negative() || previous.is_negative()) {    
+
+    if (balance.is_negative() || previous.is_negative()) {
       account = highParty;
-      issuer  = lowParty;  
+      issuer  = lowParty;
       balance = balance.negate();
       change  = change.negate();
-      
+
     //sending to issuer
     } else if (lowParty === tx.Account) {
       account = lowParty;
-      issuer  = highParty;      
-      
+      issuer  = highParty;
+
     } else {
       account = lowParty;
       issuer  = highParty;
     }
-    
+
     var data = {
       account       : account,
       currency      : currency,
@@ -177,46 +179,46 @@ var BalanceChanges = function (tx) {
       final_balance : balance.to_json().value,
       time          : tx.executed_time,
       ledger_index  : tx.ledger_index,
-      tx_index      : tx.tx_index,      
+      tx_index      : tx.tx_index,
       node_index    : node.nodeIndex,
       tx_hash       : tx.hash,
       client        : tx.client
     }
-    
-    
+
+
     data.type = findType(account, data);
     list.push(data);
   }
-  
+
   /**
    * findType
    * determine what type of balnace
    * change this is, if possible
    */
-  
+
   function findType (account, data) {
-    
+
     //all balance changes for offer creates are exchanges
     if (tx.TransactionType === 'OfferCreate') {
       return 'exchange';
-      
+
     } else if (tx.TransactionType === 'Payment') {
-      
+
       //this isn't really a payment, its a conversion/exchange
       if (tx.Account === tx.Destination) {
         return 'exchange';
-          
+
       } else if (account === tx.Destination) {
-        return 'payment_destination';   
+        return 'payment_destination';
 
       } else if (account === tx.Account) {
         return 'payment_source';
-        
+
       } else {
         return 'exchange';
       }
-    } 
-    
+    }
+
     return null;
   }
 };

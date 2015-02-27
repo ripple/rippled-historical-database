@@ -40,35 +40,39 @@ Parser.parseLedger = function(ledger) {
     memos            : [],
     valueMoved       : []
   }
-  
-  var transactions = ledger.transactions; 
-  
-  ledger.close_time   = ledger.close_time + EPOCH_OFFSET;
+
+  var transactions = ledger.transactions;
+
+  //note: this will only work until 2030
+  if (ledger.close_time < EPOCH_OFFSET) {
+    ledger.close_time   = ledger.close_time + EPOCH_OFFSET;
+  }
+
   ledger.transactions = [];
-  
+
   transactions.forEach(function(transaction) {
     ledger.transactions.push(transaction.hash);
     var meta = transaction.metaData;
     var payment;
-    
+
     delete transaction.metaData;
-    
+
     try {
       transaction.raw  = utils.toHex(transaction);
       transaction.meta = utils.toHex(meta);
-      
+
     } catch (e) {
       console.log(e, transaction.ledger_index, transaction.hash);
       return;
     }
-    
+
     transaction.metaData        = meta;
     transaction.ledger_hash     = ledger.ledger_hash;
     transaction.ledger_index    = ledger.ledger_index;
     transaction.executed_time   = ledger.close_time;
     transaction.tx_index        = transaction.metaData.TransactionIndex;
     transaction.tx_result       = transaction.metaData.TransactionResult;
-    
+
     //set 'client' string, if its present in a memo
     transaction.client = Parser.fromClient(transaction);
 
@@ -77,23 +81,23 @@ Parser.parseLedger = function(ledger) {
     data.exchanges        = data.exchanges.concat(Parser.exchanges(transaction));
     data.balanceChanges   = data.balanceChanges.concat(Parser.balanceChanges(transaction));
     data.accountsCreated  = data.accountsCreated.concat(Parser.accountsCreated(transaction));
-    data.affectedAccounts = data.affectedAccounts.concat(Parser.affectedAccounts(transaction)); 
-    data.memos            = data.memos.concat(Parser.memos(transaction)); 
-    
+    data.affectedAccounts = data.affectedAccounts.concat(Parser.affectedAccounts(transaction));
+    data.memos            = data.memos.concat(Parser.memos(transaction));
+
     //parse payment
     payment = Parser.payment(transaction);
     if (payment) {
       data.payments.push(payment);
     }
   });
-  
+
   data.ledger = ledger;
-  
-/* 
+
+/*
   console.log("ACCOUNTS CREATED");
-  console.log(data.accountsCreated); 
+  console.log(data.accountsCreated);
   console.log("BALANCE CHANGES");
-  console.log(data.balanceChanges);  
+  console.log(data.balanceChanges);
   console.log("OFFERS EXERCISED");
   console.log(data.offersExercised);
   console.log("AFFECTED ACCOUNTS");
@@ -113,19 +117,19 @@ Parser.parseLedger = function(ledger) {
 Parser.parseTransaction = function (tx) {
   var data = { };
   var payment;
-  
+
   data.exchanges        = Parser.exchanges(tx);
   data.balanceChanges   = Parser.balanceChanges(tx);
   data.accountsCreated  = Parser.accountsCreated(tx);
-  data.affectedAccounts = Parser.affectedAccounts(tx); 
-  data.memos            = Parser.memos(tx); 
+  data.affectedAccounts = Parser.affectedAccounts(tx);
+  data.memos            = Parser.memos(tx);
   data.payments         = [];
   payment               = Parser.payment(tx);
-  
+
   if (payment) {
     data.payments.push(payment);
   }
-  
+
   return data;
 };
 
