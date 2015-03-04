@@ -36,10 +36,10 @@ var Validator = function (config) {
 
   this.start = function () {
 
-    if (!timer) {
-      timer = setTimeout(function() {
+    if (!timer && !startIndex) {
+      timer = setInterval(function() {
         startValidation();
-      }, 60*1000);
+      }, 30*1000);
     }
 
     working = false;
@@ -225,6 +225,9 @@ var Validator = function (config) {
       } else {
         log.info('reached max:', max);
         working = false;
+        if (startIndex) {
+          process.exit();
+        }
       }
 
       return;
