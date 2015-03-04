@@ -172,7 +172,7 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
 
   if (!options.interval) {
     table      = 'exchanges';
-    descending = options.descending;
+    descending = options.reduce ? false : options.descending;
     options.unreduced = true;
 
   } else if (exchangeIntervals.indexOf(options.interval) !== -1) {
@@ -576,6 +576,7 @@ HbaseClient.prototype.getTransaction = function (tx_hash, callback) {
       transaction.hash         = tx_hash;
       transaction.date         = moment.unix(tx.executed_time).utc().format();
       transaction.ledger_index = parseInt(tx.ledger_index, 10);
+      transaction.ledger_hash  = tx.ledger_hash;
 
       transaction.tx   = new SerializedObject(tx.raw).to_json();
       transaction.meta = new SerializedObject(tx.meta).to_json();

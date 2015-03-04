@@ -143,6 +143,18 @@ var Validator = function (config) {
         log.info('missing ledger', lastValid.ledger_index + 1);
         importLedger(lastValid.ledger_index + 1);
         return;
+
+      } else {
+        for(var i=0; i<ledger.transactions.length; i++) {
+          if (ledger.transactions[i].ledger_index !== ledger.ledger_index ||
+              ledger.transactions[i].ledger_hash !== ledger.ledger_hash) {
+            log.info('transaction refers to incorrect ledger', ledger.ledger_index);
+            log.info('tx', ledger.transactions[i].ledger_index, ledger.transactions[i].ledger_hash);
+            log.info('ledger', ledger.ledger_index, ledger.ledger_hash);
+            importLedger(lastValid.ledger_index + 1);
+            return;
+          }
+        }
       }
 
       //form transactions for hash calc

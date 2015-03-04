@@ -1,10 +1,10 @@
 var Promise   = require('bluebird');
 var HBaseRest = require('hbase');
 var Logger    = require('./logger');
-var tableList = [    
+var tableList = [
   'ledgers',
-  'transactions', 
-  'exchanges', 
+  'transactions',
+  'exchanges',
   'account_balance_changes',
   'payments',
   'accounts_created',
@@ -15,8 +15,8 @@ var tableList = [
   'lu_account_transactions',
   'lu_affected_account_transactions',
   'lu_account_exchanges',
-  'lu_account_payments',     
-  'lu_account_memos',  
+  'lu_account_payments',
+  'lu_account_memos',
   'agg_exchange_1minute',
   'agg_exchange_5minute',
   'agg_exchange_15minute',
@@ -29,7 +29,9 @@ var tableList = [
   'agg_exchange_7day',
   'agg_exchange_1month',
   'agg_exchange_1year',
-  'agg_trade_volume',
+  'agg_exchange',
+  'agg_metrics',
+  'agg_stats',
   'control'
 ];
 
@@ -40,56 +42,56 @@ var Client = function (options) {
     scope : 'hbase-rest',
     level : options.logLevel || 0,
     file  : options.logFile
-  }); 
-  
+  });
+
   /**
    * initTables
    * create tables and column families
    * if they do not exits
    */
-  
+
   this.initTables = function (done) {
 
     Promise.map(tableList, function(table) {
       return addTable(table);
     })
     .nodeify(function(err, resp) {
-      
+
       if (err) {
         log.error('Error configuring tables:', err);
       } else {
         log.info('tables configured');
       }
-      
+
       if (done) {
         done(err, resp);
       }
     });
   }
-  
+
   this.removeTables = function (done) {
      Promise.map(tableList, function(table) {
       return removeTable(table);
     })
     .nodeify(function(err, resp) {
-      
+
       if (err) {
         log.error('Error removing tables:', err);
       } else {
         log.info('tables removed');
       }
-      
+
       if (done) {
         done(err, resp);
       }
-    }); 
+    });
   }
-  
+
   /**
    * addTable
    * add a new table to HBase
    */
-  
+
   function addTable (table) {
     var families = ['f','d'];
     return new Promise (function(resolve, reject) {
@@ -99,35 +101,35 @@ var Client = function (options) {
       });
 
       rest.table(prefix + table)
-      .create({ColumnSchema : schema}, function(err, resp) { 
+      .create({ColumnSchema : schema}, function(err, resp) {
         log.info(prefix + table, err, resp);
         if (err) {
           reject(err);
         } else {
           resolve(resp);
         }
-      });  
-    });  
+      });
+    });
   }
-  
+
   /**
    * removeTable
    * remove a table from HBase
    */
-  
+
   function removeTable (table) {
     return new Promise (function(resolve, reject) {
       rest.table(prefix + table)
-      .delete(function(err, resp) { 
+      .delete(function(err, resp) {
         log.info(prefix + table, err, resp);
         if (err) {
           reject(err);
         } else {
           resolve(resp);
         }
-      });  
-    });  
-  }  
+      });
+    });
+  }
 };
 
 module.exports = function (options) {
