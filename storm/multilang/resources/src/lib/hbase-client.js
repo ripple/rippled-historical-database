@@ -167,22 +167,23 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     options.invert = true;
   }
 
-  startRow = keyBase + '|' + utils.formatTime(options.start);
-  endRow   = keyBase + '|' + utils.formatTime(options.end);
-
   if (!options.interval) {
     table      = 'exchanges';
     descending = options.reduce ? false : options.descending;
     options.unreduced = true;
 
   } else if (exchangeIntervals.indexOf(options.interval) !== -1) {
-    table      = 'agg_exchange_' + options.interval;
+    keyBase    = options.interval + '|' + keyBase;
     descending = options.descending || false;
+    table      = 'agg_exchanges';
 
   } else {
     callback('invalid time increment or interval');
     return;
   }
+
+  startRow = keyBase + '|' + utils.formatTime(options.start);
+  endRow   = keyBase + '|' + utils.formatTime(options.end);
 
   this.getScan({
     table      : table,
