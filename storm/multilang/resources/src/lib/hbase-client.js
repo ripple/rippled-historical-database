@@ -169,12 +169,12 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
 
   if (!options.interval) {
     table      = 'exchanges';
-    descending = options.reduce ? false : options.descending;
+    descending = options.descending === false ? false : true; //default true
     options.unreduced = true;
 
   } else if (exchangeIntervals.indexOf(options.interval) !== -1) {
     keyBase    = options.interval + '|' + keyBase;
-    descending = options.descending || false;
+    descending = options.descending === true ? true : false; //default false
     table      = 'agg_exchanges';
 
   } else {
@@ -195,6 +195,10 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
   }, function (err, rows) {
 
     if (options.reduce && options.unreduced) {
+      if (rows && options.descending) {
+        rows.reverse();
+      }
+
       callback(err, reduce(rows || []));
     } else if (table === 'exchanges') {
       callback(err, formatExchanges(rows || []));
@@ -414,6 +418,7 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
 
     } else {
       reduced.low = 0;
+      return;
     }
 
     rows.forEach(function(row) {
@@ -427,6 +432,7 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
       if (row.rate > reduced.high) reduced.high = row.rate;
     });
 
+    reduced.vwap = reduced.counter_volume / reduced.base_volume;
     return reduced;
   }
 };
@@ -470,13 +476,14 @@ HbaseClient.prototype.getLedger = function (options, callback) {
 
   //get by hash
   if (options.ledger_hash) {
-    getLedgerByHash(options.ledger_hash);
+    getLedgerByHash(options);
 
-  //get by index
-  } else if (options.ledger_index) {
+  //get by index, or get latest
+  } else {
     self.getLedgersByIndex({
-      startIndex : options.ledger_index,
-      stopIndex  : options.ledger_index
+      startIndex : options.ledger_index || 0,
+      stopIndex  : options.ledger_index || 999999999999,
+      descending : true
     }, function (err, resp) {
 
       if (err || !resp || !resp.length) {
@@ -485,18 +492,16 @@ HbaseClient.prototype.getLedger = function (options, callback) {
       }
 
       //use the ledger hash to get the ledger
-      getLedgerByHash(resp[0].ledger_hash);
+      options.ledger_hash = resp[0].ledger_hash;
+      getLedgerByHash(options);
     });
-
-  } else {
-    callback('ledger hash or index is required');
   }
 
 
-  function getLedgerByHash (hash) {
+  function getLedgerByHash (options) {
     var transactions = [];
 
-    self.getRow('ledgers', hash, function(err, ledger) {
+    self.getRow('ledgers', options.ledger_hash, function(err, ledger) {
 
       if (err || !ledger) {
         callback(err, null);
@@ -699,9 +704,7 @@ HbaseClient.prototype.prepareTransactions = function (transactions) {
     var key;
 
     //transactions by time
-    key = type +
-      '|' + result +
-      '|' + utils.formatTime(tx.executed_time) +
+    key = utils.formatTime(tx.executed_time) +
       '|' + utils.padNumber(tx.ledger_index, LI_PAD) +
       '|' + utils.padNumber(tx.tx_index, I_PAD);
 
@@ -715,10 +718,7 @@ HbaseClient.prototype.prepareTransactions = function (transactions) {
     }
 
     //transactions by account sequence
-    key = tx.Account +
-      '|' + type +
-      '|' + result +
-      '|' + utils.padNumber(tx.Sequence, S_PAD);
+    key = tx.Account + '|' + utils.padNumber(tx.Sequence, S_PAD);
 
     data.lu_account_transactions[key] = {
       tx_hash           : tx.hash,
@@ -959,8 +959,6 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
   //add affected accounts
   params.data.affectedAccounts.forEach(function(a) {
     var key = a.account +
-      '|' + utils.padNumber(TX_TYPES[a.tx_type], E_PAD) +
-      '|' + utils.padNumber(TX_RESULTS[a.tx_result], E_PAD) +
       '|' + utils.formatTime(a.time) +
       '|' + utils.padNumber(a.ledger_index, LI_PAD) +
       '|' + utils.padNumber(a.tx_index, I_PAD);
