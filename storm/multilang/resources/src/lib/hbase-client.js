@@ -191,9 +191,7 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     stopRow    : endRow,
     limit      : options.limit,
     descending : descending
-
   }, function (err, rows) {
-
     if (options.reduce && options.unreduced) {
       if (rows && options.descending) {
         rows.reverse();
