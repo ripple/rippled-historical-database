@@ -681,7 +681,7 @@ HbaseClient.prototype.saveTransactions = function (transactions, callback) {
     }
 
     if (callback) {
-      callback(err, resp);
+      callback(err, transactions.length);
     }
   });
 };

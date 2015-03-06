@@ -4,24 +4,34 @@ var Hbase    = require('../../storm/multilang/resources/src/lib/hbase-client');
 var Parser   = require('../../storm/multilang/resources/src/lib/modules/ledgerParser');
 var utils    = require('../../storm/multilang/resources/src/lib/utils');
 
-var LI_PAD  = 12;
-var options = config.get('hbase');
+var types     = ['full', 'parsed'];
+var LI_PAD    = 12;
+var options   = config.get('hbase');
+var type      = config.get('type') || 'full';
+var prefix    = config.get('prefix') || options.prefix;
+var start     = config.get('startIndex');
+var end       = config.get('stopIndex');
+var batchSize = config.get('batchSize') || 500;
+var saved     = 0;
+
+var stageOpts;
 var hbase;
+var stage;
 var iterator;
 var first;
 var counter;
 var total;
 var batch;
-var saved = 0;
 
 options.logLevel = 2;
+stageOpts        = JSON.parse(JSON.stringify(options));
+stageOpts.prefix = prefix;
 
+//get connection to existing tables
 hbase = new Hbase(options);
-options.prefix = 'stage_';
-stage = new Hbase(options);
 
-var start = config.get('startIndex');
-var end   = config.get('stopIndex');
+//get connection to new tables
+stage = new Hbase(stageOpts);
 
 //offset start index so that it is included
 if (start) start += 1;
@@ -30,7 +40,7 @@ iterator = hbase.iterator({
   table     : 'lu_ledgers_by_index',
   startRow  : utils.padNumber(start || 0, LI_PAD),
   stopRow   : utils.padNumber(end || 0, LI_PAD),
-  batchSize : config.get('batchSize') || 500
+  batchSize : batchSize
 });
 
 function getNext() {
@@ -80,39 +90,97 @@ function processLedger(l) {
       ledger.transactions[i] = transaction;
     });
 
-    var parsed = Parser.parseLedger(ledger);
+    if (type === 'full') {
+      saveLedger(ledger);
+    } else {
+      saveParsedData(ledger);
+    }
+  });
+}
 
-    //save to staging tables
-    stage.saveParsedData({data:parsed}, function(err, resp) {
+function saveParsedData (ledger) {
+  var parsed = Parser.parseLedger(ledger);
+
+  //save to staging tables
+  stage.saveParsedData({data:parsed}, function(err, resp) {
+    if (err) {
+      console.log('unable to save parsed data for ledger: ' + ledger.ledger_index);
+      done(err);
+      return;
+    }
+
+    saved++;
+    counter--;
+
+    if (resp) {
+      console.log('parsed data saved: ',
+                  resp + ' row(s)',
+                  ledger.ledger_index,
+                  'processed: '+ saved,
+                  '---',
+                  counter + ' of ' + total + ' remaining');
+
+    } else {
+      console.log('no parsed data: ',
+                  ledger.ledger_index,
+                  'processed: '+ saved,
+                  '---',
+                  counter + ' of ' + total + ' remaining');
+    }
+
+    if (!counter) {
+      console.log('finished batch');
+      getNext();
+    }
+  });
+}
+
+function saveLedger (ledger) {
+  var parsed = Parser.parseLedger(ledger);
+
+  stage.saveParsedData({data:parsed}, function(err, resp) {
+    if (err) {
+      console.log('unable to save parsed data for ledger: ' + ledger.ledger_index);
+      done(err);
+      return;
+    }
+
+    if (resp) console.log('parsed data saved: ',
+                resp + ' row(s)',
+                ledger.ledger_index);
+
+    stage.saveTransactions(parsed.transactions, function(err, resp) {
       if (err) {
-        console.log('unable to save parsed data for ledger: ' + ledger.ledger_index);
+        console.log('unable to save transactions for ledger: ' + ledger.ledger_index);
         done(err);
         return;
       }
 
-      saved++;
-      counter--;
+      if (resp) console.log(resp + ' transactions(s) saved:', ledger.ledger_index);
 
-      if (resp) {
-        console.log('parsed data saved: ',
-                    resp + ' rows',
-                    ledger.ledger_index,
-                    'processed: '+ saved,
-                    '---',
-                    counter + ' of ' + total + ' remaining');
+      stage.saveLedger(parsed.ledger, function(err, resp) {
+        if (err) {
+          console.log('unable to save ledger: ' + ledger.ledger_index);
+          done(err);
+          return;
 
-      } else {
-        console.log('no parsed data: ',
-                    ledger.ledger_index,
-                    'processed: '+ saved,
-                    '---',
-                    counter + ' of ' + total + ' remaining');
-      }
+        } else {
 
-      if (!counter) {
-        console.log('finished batch');
-        getNext();
-      }
+          saved++;
+          counter--;
+
+          console.log('ledger saved: ',
+            ledger.ledger_index,
+            '   saved: ' + saved,
+            '---',
+            counter + ' of ' + total + ' remaining');
+
+          if (!counter) {
+            console.log('finished batch');
+            getNext();
+          }
+        }
+      });
     });
   });
 }
