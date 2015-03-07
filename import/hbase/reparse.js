@@ -11,7 +11,7 @@ var type      = config.get('type') || 'full';
 var prefix    = config.get('prefix') || options.prefix;
 var start     = config.get('startIndex');
 var stop      = config.get('stopIndex');
-var batchSize = config.get('batchSize') || 50;
+var batchSize = config.get('batchSize') || 20;
 
 var saved     = 0;
 var counter   = 0;
@@ -37,15 +37,15 @@ origin = new Hbase(originOpts);
 //get connection to new tables
 hbase = new Hbase(options);
 
-//offset start index so that it is included
-if (start) start += 1;
-if (batchSize < 10) batchSize = 10;
+//offset stop index so that it is included
+if (stop) stop += 1;
+if (batchSize < 5) batchSize = 5;
 min = batchSize > 20 ? batchSize * 5.5 : 100;
 
 iterator = origin.iterator({
   table      : 'lu_ledgers_by_index',
-  startRow   : utils.padNumber(stop || 0, LI_PAD),
-  stopRow    : utils.padNumber(start || 0, LI_PAD),
+  startRow   : utils.padNumber(start || 0, LI_PAD),
+  stopRow    : utils.padNumber(stop  || 0, LI_PAD),
   descending : false,
   batchSize  : batchSize
 });

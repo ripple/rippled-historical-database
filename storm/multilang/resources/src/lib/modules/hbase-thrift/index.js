@@ -126,24 +126,35 @@ HbaseClient.prototype.iterator = function (options) {
   var total = 0;
   //create scan
   self._getConnection(function(err, connection) {
-
-
+    var swap;
 
     if (err) {
       self.log.error("unable to get connection", err);
       return;
     }
 
+    //default to reversed,
     //invert stop and start index
     if (options.descending === false) {
-      scanOpts.startRow  = options.stopRow  ? options.stopRow.toString()  : undefined;
-      scanOpts.stopRow   = options.startRow ? options.startRow.toString() : undefined;
+      scanOpts.startRow = options.stopRow.toString();
+      scanOpts.stopRow  = options.startRow.toString();
+
+      if (scanOpts.startRow > scanOpts.stopRow) {
+        swap              = scanOpts.startRow;
+        scanOpts.startRow = scanOpts.stopRow;
+        scanOpts.stopRow  = swap;
+      }
 
     } else {
-      scanOpts.stopRow   = options.stopRow  ? options.stopRow.toString()  : undefined;
-      scanOpts.startRow  = options.startRow ? options.startRow.toString() : undefined;
-      scanOpts.batchSize = options.batchSize || 100;
-      scanOpts.reversed  = true;
+      scanOpts.stopRow  = options.stopRow.toString();
+      scanOpts.startRow = options.startRow.toString();
+      scanOpts.reversed = true;
+
+      if (scanOpts.startRow < scanOpts.stopRow) {
+        swap              = scanOpts.startRow;
+        scanOpts.startRow = scanOpts.stopRow;
+        scanOpts.stopRow  = swap;
+      }
     }
 
     scan = new HBaseTypes.TScan(scanOpts);
