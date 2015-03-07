@@ -178,7 +178,7 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     table      = 'agg_exchanges';
 
   } else {
-    callback('invalid time increment or interval');
+    callback('invalid interval');
     return;
   }
 
@@ -192,16 +192,18 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     limit      : options.limit,
     descending : descending
   }, function (err, rows) {
+    if (!rows) rows = [];
+
     if (options.reduce && options.unreduced) {
-      if (rows && options.descending) {
+      if (options.descending) {
         rows.reverse();
       }
 
-      callback(err, reduce(rows || []));
+      callback(err, reduce(rows));
     } else if (table === 'exchanges') {
-      callback(err, formatExchanges(rows || []));
+      callback(err, formatExchanges(rows));
     } else {
-      callback(err, formatAggregates(rows || []));
+      callback(err, formatAggregates(rows));
     }
   });
 
@@ -210,19 +212,21 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
    */
 
   function formatExchanges (rows) {
-    rows.forEach(function(row, i) {
+    rows.forEach(function(row) {
       var key = row.rowkey.split('|');
 
-      delete rows[i].base_issuer;
-      delete rows[i].counter_issuer;
+      delete row.base_issuer;
+      delete row.base_currency;
+      delete row.counter_issuer;
+      delete row.counter_currency;
 
-      rows[i].base_amount    = parseFloat(rows[i].base_amount);
-      rows[i].counter_amount = parseFloat(rows[i].counter_amount);
-      rows[i].rate           = parseFloat(row.rate);
-      rows[i].ledger_index   = parseInt(row.ledger_index, 10);
-      rows[i].tx_index       = parseInt(key[6], 10);
-      rows[i].node_index     = parseInt(key[7], 10);
-      rows[i].time           = utils.unformatTime(key[4]).unix();
+      row.base_amount    = parseFloat(row.base_amount);
+      row.counter_amount = parseFloat(row.counter_amount);
+      row.rate           = parseFloat(row.rate);
+      row.ledger_index   = parseInt(row.ledger_index, 10);
+      row.tx_index       = parseInt(key[6], 10);
+      row.node_index     = parseInt(key[7], 10);
+      row.time           = utils.unformatTime(key[4]).unix();
     });
 
     if (options.invert) {
@@ -237,17 +241,17 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
    */
 
   function formatAggregates (rows) {
-    rows.forEach(function(row, i) {
+    rows.forEach(function(row) {
       var key = row.rowkey.split('|');
-      rows[i].base_volume    = parseFloat(row.base_volume),
-      rows[i].counter_volume = parseFloat(row.counter_volume),
-      rows[i].count          = parseInt(row.count, 10);
-      rows[i].open           = parseFloat(row.open);
-      rows[i].high           = parseFloat(row.high);
-      rows[i].low            = parseFloat(row.low);
-      rows[i].close          = parseFloat(row.close);
-      rows[i].close_time     = parseInt(row.open_time, 10);
-      rows[i].open_time      = parseInt(row.close_time, 10);
+      row.base_volume    = parseFloat(row.base_volume),
+      row.counter_volume = parseFloat(row.counter_volume),
+      row.count          = parseInt(row.count, 10);
+      row.open           = parseFloat(row.open);
+      row.high           = parseFloat(row.high);
+      row.low            = parseFloat(row.low);
+      row.close          = parseFloat(row.close);
+      row.close_time     = parseInt(row.open_time, 10);
+      row.open_time      = parseInt(row.close_time, 10);
     });
 
     if (options.invert) {
