@@ -19,30 +19,31 @@ var complete  = false;
 var fetching  = false;
 var t         = Date.now();
 
-var stageOpts;
+var originOpts;
+var origin;
 var hbase;
-var stage;
 var iterator;
 var first;
 var batch;
 var min;
 
-options.logLevel = 2;
-stageOpts        = JSON.parse(JSON.stringify(options));
-stageOpts.prefix = prefix;
+options.logLevel  = 2;
+originOpts        = JSON.parse(JSON.stringify(options));
+originOpts.prefix = prefix;
 
-//get connection to existing tables
-hbase = new Hbase(options);
+//get connection to origin tables
+origin = new Hbase(originOpts);
 
 //get connection to new tables
-stage = new Hbase(stageOpts);
+hbase = new Hbase(options);
+
 
 //offset start index so that it is included
 if (start) start += 1;
 if (batchSize < 10) batchSize = 10;
 min = batchSize > 20 ? batchSize * 5.5 : 100;
 
-iterator = hbase.iterator({
+iterator = origin.iterator({
   table     : 'lu_ledgers_by_index',
   startRow  : utils.padNumber(start || 0, LI_PAD),
   stopRow   : utils.padNumber(end || 0, LI_PAD),
@@ -74,6 +75,7 @@ function getNext(cb) {
     }
 
     counter += resp.length;
+    console.log('got batch:', resp.length + ' ledgers');
 
     for (var i=0; i<resp.length; i++) {
       processLedger(resp[i]);
@@ -85,7 +87,7 @@ function getNext(cb) {
 
 function processLedger(l) {
 
-  hbase.getLedger({ledger_hash : l.ledger_hash, transactions:true}, function(err, ledger) {
+  origin.getLedger({ledger_hash : l.ledger_hash, transactions:true}, function(err, ledger) {
     if (err) {
       console.log(err, l.rowkey);
       done(err);
@@ -116,7 +118,7 @@ function saveParsedData (ledger) {
   var parsed = Parser.parseLedger(ledger);
 
   //save to staging tables
-  stage.saveParsedData({data:parsed}, function(err, resp) {
+  hbase.saveParsedData({data:parsed}, function(err, resp) {
     if (err) {
       console.log('unable to save parsed data for ledger: ' + ledger.ledger_index);
       done(err);
@@ -152,7 +154,7 @@ function saveParsedData (ledger) {
 function saveLedger (ledger) {
   var parsed = Parser.parseLedger(ledger);
 
-  stage.saveParsedData({data:parsed}, function(err, resp) {
+  hbase.saveParsedData({data:parsed}, function(err, resp) {
     if (err) {
       console.log('unable to save parsed data for ledger: ' + ledger.ledger_index);
       done(err);
@@ -163,7 +165,7 @@ function saveLedger (ledger) {
                 resp + ' row(s)',
                 ledger.ledger_index);
 
-    stage.saveTransactions(parsed.transactions, function(err, resp) {
+    hbase.saveTransactions(parsed.transactions, function(err, resp) {
       if (err) {
         console.log('unable to save transactions for ledger: ' + ledger.ledger_index);
         done(err);
@@ -172,7 +174,7 @@ function saveLedger (ledger) {
 
       if (resp) console.log(resp + ' transactions(s) saved:', ledger.ledger_index);
 
-      stage.saveLedger(parsed.ledger, function(err, resp) {
+      hbase.saveLedger(parsed.ledger, function(err, resp) {
         if (err) {
           console.log('unable to save ledger: ' + ledger.ledger_index);
           done(err);
@@ -220,7 +222,7 @@ function done(err) {
 }
 
 //get first 4 batches immediately
-console.log('getting next batch');
+console.log('getting first ledger batch');
 getNext(function(){
   console.log('getting next batch');
   getNext(function(){
