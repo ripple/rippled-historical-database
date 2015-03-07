@@ -44,10 +44,11 @@ if (batchSize < 10) batchSize = 10;
 min = batchSize > 20 ? batchSize * 5.5 : 100;
 
 iterator = origin.iterator({
-  table     : 'lu_ledgers_by_index',
-  startRow  : utils.padNumber(start || 0, LI_PAD),
-  stopRow   : utils.padNumber(end || 0, LI_PAD),
-  batchSize : batchSize
+  table      : 'lu_ledgers_by_index',
+  startRow   : utils.padNumber(start || 0, LI_PAD),
+  stopRow    : utils.padNumber(end || 0, LI_PAD),
+  descending : false,
+  batchSize  : batchSize
 });
 
 function getNext(cb) {
@@ -57,14 +58,11 @@ function getNext(cb) {
     fetching = false;
 
     if (err) {
-      console.log(err);
-      complete = true;
-      done();
+      done(err);
       return;
 
     } else if (!resp.length) {
       console.log('no more ledgers');
-      complete = true;
       done();
       return;
     }
@@ -90,6 +88,7 @@ function processLedger(l) {
   origin.getLedger({ledger_hash : l.ledger_hash, transactions:true}, function(err, ledger) {
     if (err) {
       console.log(err, l.rowkey);
+      counter--;
       done(err);
       return;
     }
@@ -119,6 +118,8 @@ function saveParsedData (ledger) {
 
   //save to staging tables
   hbase.saveParsedData({data:parsed}, function(err, resp) {
+    counter--;
+
     if (err) {
       console.log('unable to save parsed data for ledger: ' + ledger.ledger_index);
       done(err);
@@ -126,7 +127,6 @@ function saveParsedData (ledger) {
     }
 
     saved++;
-    counter--;
 
     if (resp) {
       console.log('parsed data saved: ',
@@ -157,6 +157,7 @@ function saveLedger (ledger) {
   hbase.saveParsedData({data:parsed}, function(err, resp) {
     if (err) {
       console.log('unable to save parsed data for ledger: ' + ledger.ledger_index);
+      counter--;
       done(err);
       return;
     }
@@ -168,6 +169,7 @@ function saveLedger (ledger) {
     hbase.saveTransactions(parsed.transactions, function(err, resp) {
       if (err) {
         console.log('unable to save transactions for ledger: ' + ledger.ledger_index);
+        counter--;
         done(err);
         return;
       }
@@ -177,6 +179,7 @@ function saveLedger (ledger) {
       hbase.saveLedger(parsed.ledger, function(err, resp) {
         if (err) {
           console.log('unable to save ledger: ' + ledger.ledger_index);
+          counter--;
           done(err);
           return;
 
@@ -202,12 +205,16 @@ function saveLedger (ledger) {
 }
 
 function done(err) {
-  if (err) console.log(err);
-  else if (counter) {
-    setTimeout(done, 1000);
+  complete = true;
+
+  if (counter) {
+    setTimeout(function(){
+      done(err);
+    }, 1000);
     return;
   }
 
+  if (err) console.log(err);
   t = (Date.now() - t)/1000;
   var duration;
   if (t > 60*60*2)  duration = {time:t/3600, interval:'hour'};
