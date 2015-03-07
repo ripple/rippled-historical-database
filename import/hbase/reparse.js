@@ -10,7 +10,7 @@ var options   = config.get('hbase');
 var type      = config.get('type') || 'full';
 var prefix    = config.get('prefix') || options.prefix;
 var start     = config.get('startIndex');
-var end       = config.get('stopIndex');
+var stop      = config.get('stopIndex');
 var batchSize = config.get('batchSize') || 50;
 
 var saved     = 0;
@@ -37,7 +37,6 @@ origin = new Hbase(originOpts);
 //get connection to new tables
 hbase = new Hbase(options);
 
-
 //offset start index so that it is included
 if (start) start += 1;
 if (batchSize < 10) batchSize = 10;
@@ -45,8 +44,8 @@ min = batchSize > 20 ? batchSize * 5.5 : 100;
 
 iterator = origin.iterator({
   table      : 'lu_ledgers_by_index',
-  startRow   : utils.padNumber(start || 0, LI_PAD),
-  stopRow    : utils.padNumber(end || 0, LI_PAD),
+  startRow   : utils.padNumber(stop || 0, LI_PAD),
+  stopRow    : utils.padNumber(start || 0, LI_PAD),
   descending : false,
   batchSize  : batchSize
 });
@@ -89,7 +88,7 @@ function processLedger(l) {
     if (err) {
       console.log(err, l.rowkey);
       counter--;
-      done(err);
+      done(err + ' ' + l.ledger_index);
       return;
     }
 
@@ -122,7 +121,7 @@ function saveParsedData (ledger) {
 
     if (err) {
       console.log('unable to save parsed data for ledger: ' + ledger.ledger_index);
-      done(err);
+      done(err + ' ' + ledger.ledger_index);
       return;
     }
 
@@ -158,7 +157,7 @@ function saveLedger (ledger) {
     if (err) {
       console.log('unable to save parsed data for ledger: ' + ledger.ledger_index);
       counter--;
-      done(err);
+      done(err + ' ' + ledger.ledger_index);
       return;
     }
 
@@ -170,7 +169,7 @@ function saveLedger (ledger) {
       if (err) {
         console.log('unable to save transactions for ledger: ' + ledger.ledger_index);
         counter--;
-        done(err);
+        done(err + ' ' + ledger.ledger_index);
         return;
       }
 
@@ -180,7 +179,7 @@ function saveLedger (ledger) {
         if (err) {
           console.log('unable to save ledger: ' + ledger.ledger_index);
           counter--;
-          done(err);
+          done(err + ' ' + ledger.ledger_index);
           return;
 
         } else {
