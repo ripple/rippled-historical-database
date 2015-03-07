@@ -12,15 +12,17 @@ var prefix    = config.get('prefix') || options.prefix;
 var start     = config.get('startIndex');
 var end       = config.get('stopIndex');
 var batchSize = config.get('batchSize') || 500;
+
 var saved     = 0;
+var counter   = 0;
+var complete  = false;
+var fetching  = false;
 
 var stageOpts;
 var hbase;
 var stage;
 var iterator;
 var first;
-var counter;
-var total;
 var batch;
 
 options.logLevel = 2;
@@ -35,6 +37,7 @@ stage = new Hbase(stageOpts);
 
 //offset start index so that it is included
 if (start) start += 1;
+if (batchSize<30) batchSize = 30;
 
 iterator = hbase.iterator({
   table     : 'lu_ledgers_by_index',
@@ -44,7 +47,10 @@ iterator = hbase.iterator({
 });
 
 function getNext() {
+  fetching = true;
+
   iterator.getNext(function(err, resp) {
+    fetching = false;
 
     if (err) {
       done(err);
@@ -52,6 +58,7 @@ function getNext() {
 
     } else if (!resp.length) {
       console.log('no more ledgers');
+      complete = true;
       done();
       return;
     }
@@ -61,7 +68,7 @@ function getNext() {
       console.log('FIRST:', first);
     }
 
-    total = counter = resp.length;
+    counter += resp.length;
 
     for (var i=0; i<resp.length; i++) {
       processLedger(resp[i]);
@@ -118,17 +125,17 @@ function saveParsedData (ledger) {
                   ledger.ledger_index,
                   'processed: '+ saved,
                   '---',
-                  counter + ' of ' + total + ' remaining');
+                  counter + ' pending');
 
     } else {
       console.log('no parsed data: ',
                   ledger.ledger_index,
                   'processed: '+ saved,
                   '---',
-                  counter + ' of ' + total + ' remaining');
+                  counter + ' pending');
     }
 
-    if (!counter) {
+    if (counter > 20 && !fetching && !complete) {
       console.log('finished batch');
       getNext();
     }
@@ -173,10 +180,10 @@ function saveLedger (ledger) {
             ledger.ledger_index,
             '   saved: ' + saved,
             '---',
-            counter + ' of ' + total + ' remaining');
+            counter + ' pending');
 
-          if (!counter) {
-            console.log('finished batch');
+          if (counter > 20 && !fetching && !complete) {
+            console.log('getting next batch');
             getNext();
           }
         }
@@ -187,6 +194,11 @@ function saveLedger (ledger) {
 
 function done(err) {
   if (err) console.log(err);
+  else if (counter) {
+    setTimeout(done, 100);
+    return;
+  }
+
   process.exit();
 }
 
