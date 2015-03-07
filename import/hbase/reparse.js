@@ -24,6 +24,7 @@ var stage;
 var iterator;
 var first;
 var batch;
+var min;
 
 options.logLevel = 2;
 stageOpts        = JSON.parse(JSON.stringify(options));
@@ -38,6 +39,7 @@ stage = new Hbase(stageOpts);
 //offset start index so that it is included
 if (start) start += 1;
 if (batchSize < 10) batchSize = 10;
+min = batchSize > 20 ? batchSize * 5.5 : 100;
 
 iterator = hbase.iterator({
   table     : 'lu_ledgers_by_index',
@@ -46,7 +48,7 @@ iterator = hbase.iterator({
   batchSize : batchSize
 });
 
-function getNext() {
+function getNext(cb) {
   fetching = true;
 
   iterator.getNext(function(err, resp) {
@@ -75,6 +77,8 @@ function getNext() {
     for (var i=0; i<resp.length; i++) {
       processLedger(resp[i]);
     }
+
+    if (cb) cb();
   });
 }
 
@@ -137,7 +141,7 @@ function saveParsedData (ledger) {
                   counter + ' pending');
     }
 
-    if (counter < 100 && !fetching && !complete) {
+    if (counter < min && !fetching && !complete) {
       console.log('finished batch');
       getNext();
     }
@@ -184,7 +188,7 @@ function saveLedger (ledger) {
             '---',
             counter + ' pending');
 
-          if (counter < 100 && !fetching && !complete) {
+          if (counter < min && !fetching && !complete) {
             console.log('getting next batch');
             getNext();
           }
@@ -204,4 +208,11 @@ function done(err) {
   process.exit();
 }
 
-getNext();
+//get first 4 batches immediately
+getNext(function(){
+  getNext(function(){
+    getNext(function(){
+      getNext();
+    });
+  });
+});
