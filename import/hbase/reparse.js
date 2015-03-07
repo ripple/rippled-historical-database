@@ -37,7 +37,7 @@ stage = new Hbase(stageOpts);
 
 //offset start index so that it is included
 if (start) start += 1;
-if (batchSize < 30) batchSize = 30;
+if (batchSize < 10) batchSize = 10;
 
 iterator = hbase.iterator({
   table     : 'lu_ledgers_by_index',
@@ -53,7 +53,9 @@ function getNext() {
     fetching = false;
 
     if (err) {
-      done(err);
+      console.log(err);
+      complete = true;
+      done();
       return;
 
     } else if (!resp.length) {
@@ -135,7 +137,7 @@ function saveParsedData (ledger) {
                   counter + ' pending');
     }
 
-    if (counter > 20 && !fetching && !complete) {
+    if (counter < 100 && !fetching && !complete) {
       console.log('finished batch');
       getNext();
     }
@@ -182,7 +184,7 @@ function saveLedger (ledger) {
             '---',
             counter + ' pending');
 
-          if (counter < 20 && !fetching && !complete) {
+          if (counter < 100 && !fetching && !complete) {
             console.log('getting next batch');
             getNext();
           }
@@ -195,7 +197,7 @@ function saveLedger (ledger) {
 function done(err) {
   if (err) console.log(err);
   else if (counter) {
-    setTimeout(done, 100);
+    setTimeout(done, 1000);
     return;
   }
 
