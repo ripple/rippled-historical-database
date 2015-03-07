@@ -17,6 +17,7 @@ var saved     = 0;
 var counter   = 0;
 var complete  = false;
 var fetching  = false;
+var t         = Date.now();
 
 var stageOpts;
 var hbase;
@@ -205,13 +206,27 @@ function done(err) {
     return;
   }
 
+  t = (Date.now() - t)/1000;
+  var duration;
+  if (t > 60*60*2)  duration = {time:t/3600, interval:'hour'};
+  else if (t > 600) duration = {time:t/60, interval:'min'};
+  else              duration = {time:t,interval:'sec'};
+
+  console.log(duration.time + ' ' + duration.interval,
+              saved + ' ledgers',
+              t/saved + ' secs/ledger');
+
   process.exit();
 }
 
 //get first 4 batches immediately
+console.log('getting next batch');
 getNext(function(){
+  console.log('getting next batch');
   getNext(function(){
+    console.log('getting next batch');
     getNext(function(){
+      console.log('getting next batch');
       getNext();
     });
   });
