@@ -11,7 +11,7 @@ var type      = config.get('type') || 'full';
 var prefix    = config.get('prefix') || options.prefix;
 var start     = config.get('startIndex');
 var end       = config.get('stopIndex');
-var batchSize = config.get('batchSize') || 500;
+var batchSize = config.get('batchSize') || 50;
 
 var saved     = 0;
 var counter   = 0;
@@ -37,7 +37,7 @@ stage = new Hbase(stageOpts);
 
 //offset start index so that it is included
 if (start) start += 1;
-if (batchSize<30) batchSize = 30;
+if (batchSize < 30) batchSize = 30;
 
 iterator = hbase.iterator({
   table     : 'lu_ledgers_by_index',
@@ -182,7 +182,7 @@ function saveLedger (ledger) {
             '---',
             counter + ' pending');
 
-          if (counter > 20 && !fetching && !complete) {
+          if (counter < 20 && !fetching && !complete) {
             console.log('getting next batch');
             getNext();
           }
