@@ -17,7 +17,7 @@
     "deep-diff": "^0.2.0",
     "node-persist": "0.0.2",
     "winston": "^0.8.0",
-    "ripple-lib": "^0.12.1-rc1",
+    "ripple-lib": "^0.12.1-rc2",
     "nano": "^5.11.2",
     "pg": "^3.5.0",
     "knex": "^0.6.22",

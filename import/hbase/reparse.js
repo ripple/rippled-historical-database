@@ -85,7 +85,7 @@ function getNext(cb) {
 function processLedger(l) {
 
   origin.getLedger({ledger_hash : l.ledger_hash, transactions:true}, function(err, ledger) {
-    if (err) {
+    if (err || !ledger) {
       console.log(err, l.rowkey);
       counter--;
       done(err + ' ' + l.ledger_index);

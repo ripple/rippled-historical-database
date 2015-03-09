@@ -138,7 +138,6 @@ var Validator = function (config) {
         return;
       }
 
-      //TODO: get missing ledger
       if (!ledger) {
         log.info('missing ledger', lastValid.ledger_index + 1);
         importLedger(lastValid.ledger_index + 1);
