@@ -9,6 +9,8 @@ var XRP_ADJUST = 1000000.0;
 
 var OffersExercised = function (tx) {
   var list = [];
+  var node;
+  var affNode;
 
   if (tx.metaData.TransactionResult !== 'tesSUCCESS') {
     return list;
@@ -18,20 +20,21 @@ var OffersExercised = function (tx) {
     return list;
   }
 
-  tx.metaData.AffectedNodes.forEach(function(affNode, i) {
-    var node = affNode.ModifiedNode || affNode.DeletedNode;
+  for (var i=0; i<tx.metaData.AffectedNodes.length; i++) {
+    affNode = tx.metaData.AffectedNodes[i];
+    node    = affNode.ModifiedNode || affNode.DeletedNode;
 
     if (!node || node.LedgerEntryType !== 'Offer') {
-      return list;
+      continue;
     }
 
     if (!node.PreviousFields || !node.PreviousFields.TakerPays || !node.PreviousFields.TakerGets) {
-      return list;
+      continue;
     }
 
     node.nodeIndex = i;
     list.push(parseOfferExercised(node, tx));
-  });
+  }
 
   return list;
 
@@ -108,6 +111,8 @@ var OffersExercised = function (tx) {
       buyer        : counterparty,
       seller       : tx.Account,
       taker        : tx.Account,
+      provider     : node.FinalFields.Account,
+      sequence     : node.FinalFields.Sequence,
       time         : tx.executed_time,
       tx_type      : tx.TransactionType,
       tx_index     : tx.tx_index,

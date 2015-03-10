@@ -22,6 +22,7 @@ Object.keys(binformat.ter).forEach(function(key) {
 
 Parser.affectedAccounts = require('./affectedAccounts');
 Parser.exchanges        = require('./exchanges');
+Parser.offers           = require('./offers');
 Parser.balanceChanges   = require('./balanceChanges');
 Parser.accountsCreated  = require('./accountsCreated');
 Parser.memos            = require('./memos');
@@ -35,6 +36,7 @@ Parser.parseLedger = function(ledger) {
     affectedAccounts : [],
     accountsCreated  : [],
     exchanges        : [],
+    offers           : [],
     balanceChanges   : [],
     payments         : [],
     memos            : [],
@@ -79,6 +81,7 @@ Parser.parseLedger = function(ledger) {
     data.transactions.push(transaction);
 
     data.exchanges        = data.exchanges.concat(Parser.exchanges(transaction));
+    data.offers           = data.offers.concat(Parser.offers(transaction));
     data.balanceChanges   = data.balanceChanges.concat(Parser.balanceChanges(transaction));
     data.accountsCreated  = data.accountsCreated.concat(Parser.accountsCreated(transaction));
     data.affectedAccounts = data.affectedAccounts.concat(Parser.affectedAccounts(transaction));
@@ -119,6 +122,7 @@ Parser.parseTransaction = function (tx) {
   var payment;
 
   data.exchanges        = Parser.exchanges(tx);
+  data.offers           = Parser.offers(tx);
   data.balanceChanges   = Parser.balanceChanges(tx);
   data.accountsCreated  = Parser.accountsCreated(tx);
   data.affectedAccounts = Parser.affectedAccounts(tx);

@@ -52,23 +52,16 @@ HbaseClient.prototype.constructor = HbaseClient;
 */
 
 HbaseClient.prototype.getPayments = function (options, callback) {
-  var keyBase = options.account;
-  var table   = 'lu_account_payments';
-  var startRow;
-  var endRow;
-
-  if (options.start)
-    startRow = keyBase + '|' + utils.formatTime(options.start);
-  else startRow = keyBase + '|1';
-  if (options.end)
-    endRow   = keyBase + '|' + utils.formatTime(options.end);
-  else endRow = keyBase + '|9';
+  var table   = 'account_payments';
+  var startRow = options.account + '|' + utils.formatTime(options.start);
+  var endRow   = options.account + '|' + utils.formatTime(options.end);
 
   this.getScan({
-    table    : table,
-    startRow : startRow,
-    stopRow  : endRow,
-    limit    : options.limit
+    table      : table,
+    startRow   : startRow,
+    stopRow    : endRow,
+    limit      : options.limit,
+    descending : options.descending
   }, function (err, rows) {
     callback(err, formatPayments(rows || []));
   });
@@ -77,15 +70,12 @@ HbaseClient.prototype.getPayments = function (options, callback) {
     rows.forEach(function(row, i) {
       var key = row.rowkey.split('|');
 
-      rows[i].account          = key[0];
-      rows[i].executed_time    = parseInt(row.executed_time, 10);
-      rows[i].ledger_index     = parseInt(row.ledger_index, 10);
-      rows[i].tx_index         = key[3];
+      row.executed_time    = parseInt(row.executed_time, 10);
+      row.ledger_index     = parseInt(row.ledger_index, 10);
+      row.tx_index         = key[3];
 
-      delete rows[i].rowkey;
-
-      rows[i].destination_balance_changes = JSON.parse(row.destination_balance_changes);
-      rows[i].source_balance_changes      = JSON.parse(row.source_balance_changes);
+      row.destination_balance_changes = JSON.parse(row.destination_balance_changes);
+      row.source_balance_changes      = JSON.parse(row.source_balance_changes);
     });
 
     return rows;
@@ -136,8 +126,6 @@ HbaseClient.prototype.getAccountBalanceChanges = function (options, callback) {
       rows[i].executed_time  = parseInt(row.executed_time, 10);
       rows[i].ledger_index   = parseInt(row.ledger_index, 10);
       rows[i].node_index     = parseInt(row.node_index, 10);
-
-      delete rows[i].rowkey;
     });
 
     return rows;
@@ -765,6 +753,7 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
   var tableNames = [];
   var tables     = {
     exchanges            : { },
+    account_offers       : { },
     account_exchanges    : { },
     account_balance_changes : { },
     payments             : { },
@@ -773,6 +762,7 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
     memos                : { },
     lu_account_memos     : { },
     lu_affected_account_transactions : { },
+    lu_account_offers_by_sequence : { },
   };
 
   //add exchanges
@@ -813,6 +803,53 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
     tables.exchanges[key] = row;
     tables.account_exchanges[key2] = row;
     tables.account_exchanges[key3] = row;
+  });
+
+  //add offers
+  params.data.offers.forEach(function(o) {
+    var key = o.account +
+      '|' + utils.formatTime(o.time) +
+      '|' + utils.padNumber(o.ledger_index, LI_PAD) +
+      '|' + utils.padNumber(o.tx_index, I_PAD) +
+      '|' + utils.padNumber(o.node_index, I_PAD);
+
+    tables.account_offers[key] = {
+      'f:account'       : o.account,
+      'f:sequence'      : o.sequence,
+      'f:type'          : o.type,
+      'f:pays_currency' : o.taker_pays.currency,
+      'f:pays_issuer'   : o.taker_pays.issuer || undefined,
+      pays_amount       : o.taker_pays.value,
+      'f:gets_currency' : o.taker_gets.currency,
+      'f:gets_issuer'   : o.taker_gets.issuer || undefined,
+      gets_amount       : o.taker_gets.value,
+      'f:expiration'    : o.expiration,
+      'f:new_offer'     : o.new_offer,
+      'f:old_offer'     : o.old_offer,
+      'f:executed_time' : o.time,
+      'f:ledger_index'  : o.ledger_index,
+      'f:client'        : o.client,
+      tx_index          : o.tx_index,
+      node_index        : o.node_index,
+      tx_hash           : o.tx_hash
+    }
+
+    key = o.account +
+      '|' + o.sequence +
+      '|' + utils.padNumber(o.ledger_index, LI_PAD) +
+      '|' + utils.padNumber(o.tx_index, I_PAD) +
+      '|' + utils.padNumber(o.node_index, I_PAD);
+
+    tables.lu_account_offers_by_sequence[o.account + '|' + o.sequence] = {
+       'f:account'      : o.account,
+      'f:sequence'      : o.sequence,
+      'f:type'          : o.type,
+      'f:executed_time' : o.time,
+      'f:ledger_index'  : o.ledger_index,
+      tx_index          : o.tx_index,
+      node_index        : o.node_index,
+      tx_hash           : o.tx_hash
+    }
   });
 
   //add balance changes

@@ -7,6 +7,8 @@ var tableList = [
   'exchanges',
   'payments',
   'account_exchanges',
+  'account_offers',
+  'account_offers_by_sequence',
   'account_payments',
   'account_balance_changes',
   'accounts_created',
