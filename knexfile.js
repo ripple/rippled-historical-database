@@ -1,5 +1,12 @@
 var config = require('./config/import.config.json')
 var obj = {
+    migration: {
+        client: "postgres",
+        connection: config.postgres,
+        pool: {
+          max:1
+        }
+    },
     integration: {
         client: "postgres",
         connection: config.postgres

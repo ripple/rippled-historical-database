@@ -222,7 +222,6 @@ var DB = function(config) {
       delete ledger.closing_time;
       return ledger;
     }
-
   };
 
 
@@ -548,6 +547,26 @@ var DB = function(config) {
 
       callback(null, transactions);
     }
+  };
+
+  self.getLastValidated = function (callback) {
+    var query = self.knex('control')
+      .select('value')
+      .where('key', 'last_validated');
+
+    //execute the query
+    query.nodeify(function(err, resp) {
+      var ledger;
+
+      if (err) {
+        log.error(err);
+        return callback(err);
+      }
+
+      ledger = resp[0];
+
+      callback(null, ledger ? JSON.parse(ledger.value) : null);
+    });
   };
 };
 

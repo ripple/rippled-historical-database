@@ -27,7 +27,7 @@ The `rippled` Historical Database provides a REST API, with the following method
 
 ## Transaction Objects ##
 
-Transactions have two formats - a compact "binary" format where the defining fields of the transaction are encoded as strings of hex, and an expanded format where the defining fields of the transaction are nested as complete JSON objects. 
+Transactions have two formats - a compact "binary" format where the defining fields of the transaction are encoded as strings of hex, and an expanded format where the defining fields of the transaction are nested as complete JSON objects.
 
 ### Full JSON Format ###
 
@@ -100,7 +100,7 @@ Optionally, you can also include the following query parameters:
 | result | Transaction result code | Filter results to only transactions with the specified transaction result code. Valid result codes include `tesSUCCESS` and all [tec codes](https://ripple.com/build/transactions#tec-codes). |
 | start | ISO 8601 UTC timestamp (YYYY-MM-DDThh:mmZ) | Only retrieve transactions occurring on or after the specified date and time. |
 | end   | ISO 8601 UTC timestamp (YYYY-MM-DDThh:mmZ) | Only retrieve transactions occurring on or before the specified date and time. |
-| ledger_min | Integer | Sequence number of the earliest ledger to search. | 
+| ledger_min | Integer | Sequence number of the earliest ledger to search. |
 | ledger_max | Integer | Sequence number of the most recent ledger to search. |
 | limit | Integer | Number of transactions to return. Defaults to 20. |
 | offset | Integer | Start getting results after skipping this many. Used for paginating results. |
@@ -866,7 +866,7 @@ Response:
         "close_time_human": "2014-08-14T20:22:20+00:00"
     }
 }
-``` 
+```
 
 
 ## Get Transaction ##
@@ -1216,7 +1216,7 @@ The Historical Database requires the following software installed first:
 * [PostgreSQL](http://www.postgresql.org/) (recommended), [HBase](http://hbase.apache.org/), or [CouchDB](http://couchdb.apache.org/).
 * [Node.js](http://nodejs.org/)
 * [npm](https://www.npmjs.org/)
-* [git](http://git-scm.com/) (optional) for installation and updating. 
+* [git](http://git-scm.com/) (optional) for installation and updating.
 
 ### Installation Process ###
 
@@ -1229,7 +1229,7 @@ The Historical Database requires the following software installed first:
 3. Create a new postgres database:
     `createdb ripple_historical` in PostgreSQL
 4. Load the latest database schema for the rippled Historical Database:
-    `node_modules/knex/lib/bin/cli.js migrate:latest`
+    `NODE_ENV=migration ./node_modules/knex/lib/bin/cli.js migrate:latest`
 5. Create configuration files (and modify as necessary):
     `cp config/api.config.json.example config/api.config.json`
 
@@ -1237,7 +1237,7 @@ At this point, the rippled Historical Database is installed. See [Services](#ser
 
 ### Services ###
 
-The `rippled` Historical Database consists of several processes that can be run separately. 
+The `rippled` Historical Database consists of several processes that can be run separately.
 
 * [Live Ledger Importer](#live-ledger-importer) - Monitors `rippled` for newly-validated ledgers.
     `node import/live`
@@ -1256,7 +1256,7 @@ In order to retrieve data from the `rippled` Historical Database, you must first
 * Or, you can load a dump from a database that already has the historical ledger data. (At this time, there are no publicly-available database dumps of historical data.) Use the standard process for your database.
 
 In all cases, keep in mind that the integrity of the data is only as good as the original source. If you retrieve data from a public server, you are assuming that the operator of that server is trustworthy. If you load from a database dump, you are assuming that the provider of the dump has not corrupted or tampered with the data.
- 
+
 ## Live Ledger Importer ##
 
 The Live Ledger Importer is a service that connects to a `rippled` server using the WebSocket API, and listens for ledger close events. Each time a new ledger is closed, the Importer requests the latest validated ledger. Although this process has some fault tolerance built in to prevent ledgers from being skipped, it is still possible that the Importer may miss ledgers.

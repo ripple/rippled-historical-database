@@ -12,7 +12,7 @@ var hashErrorLog = new (require('winston').Logger)({
   transports: [
     new (winston.transports.Console)(),
     new (winston.transports.File)({ filename: './hashErrors.log' })
-  ]   
+  ]
 });
 
 var log = new Logger({
@@ -41,10 +41,10 @@ var DB = function(config) {
       idAttribute: 'tx_hash'
   });
 
-//	var Account = bookshelf.Model.extend({
-//		tableName: 'accounts',
-//		idAttribute: 'account'
-//	});
+//  var Account = bookshelf.Model.extend({
+//    tableName: 'accounts',
+//    idAttribute: 'account'
+//  });
 
   var Account_Transaction = bookshelf.Model.extend({
       tableName: 'account_transactions',
@@ -118,12 +118,12 @@ var DB = function(config) {
       .tap(function(l){
 
         //Go through transaction list
-        return Promise.map(tx_array, function(model){ 
+        return Promise.map(tx_array, function(model){
 
           //Add transaction to db
           return model.tx.save({},{method: 'insert', transacting: t})
           .then(function(tx){
-            log.info('New transaction:', model.hash);
+            log.debug('New transaction:', model.hash);
 
             //Go through accounts associated with transaction
             return Promise.map(model.account, function(account){
@@ -140,10 +140,10 @@ var DB = function(config) {
 
               //Add account and tx_id to account transaction table
               return add_acctx(fields, t);
-            }); 
+            });
           })
           .then(function(){
-            log.info("account transactions saved:", model.account.length);
+            log.debug("account transactions saved:", model.account.length);
           });
         });
       });
@@ -152,10 +152,10 @@ var DB = function(config) {
     //Print error or done
     .nodeify(function(err, res){
       if (err){
-        log.info('Error saving ledger:', err, ledger.ledger_index);	
+        log.error('Error saving ledger:', err, ledger.ledger_index);
         callback(err);
       } else {
-        log.info('Done with ledger:', res.get('ledger_index'));
+        log.debug('Done with ledger:', res.get('ledger_index'));
         callback(null, ledger);
       }
     });
@@ -350,7 +350,6 @@ var DB = function(config) {
     });
   }
 
-
   /**
   * getLedgers
   * get a specific group of ledgers from the db
@@ -366,7 +365,7 @@ var DB = function(config) {
       .select(self.knex.raw("encode(parent_hash, 'hex') as parent_hash"))
       .orderBy('ledger_index', 'desc');
 
-    //execute the query      
+    //execute the query
     query.nodeify(function(err, ledgers) {
       if (err) {
         log.error(err);
@@ -374,7 +373,7 @@ var DB = function(config) {
       }
 
       callback(null, ledgers);
-    }); 
+    });
 
   };
 
@@ -386,7 +385,7 @@ var DB = function(config) {
       .limit(1)
       .orderBy('ledger_index', 'desc');
 
-    //execute the query      
+    //execute the query
     query.nodeify(function(err, ledgers) {
 
       if (err) {
@@ -395,7 +394,190 @@ var DB = function(config) {
       }
 
       callback(null, ledgers[0]);
-    });      
+    });
+  };
+
+  self.getLastValidated = function (callback) {
+    var query = self.knex('control')
+      .select('value')
+      .where('key', 'last_validated');
+
+    //execute the query
+    query.nodeify(function(err, resp) {
+      var ledger;
+
+      if (err) {
+        log.error(err);
+        return callback(err);
+      }
+
+      ledger = resp[0];
+
+      callback(null, ledger ? JSON.parse(ledger.value) : null);
+    });
+  };
+
+  self.setLastValidated = function (lastValidated, callback) {
+    query = self.knex('control')
+      .where('key', 'last_validated')
+      .update({value:JSON.stringify(lastValidated)});
+
+    //execute the query
+    query.nodeify(function(err, resp) {
+      if (err) {
+        callback(err);
+        return;
+
+      //last valid doesnt exist,
+      //so create it
+      } else if (!resp) {
+        query = self.knex('control')
+          .insert({
+            key:'last_validated',
+            value: JSON.stringify(lastValidated)});
+
+        query.nodeify(function(err, resp){
+          callback(err, resp ? (resp.rowCount || 0) : null);
+        });
+
+      } else {
+        callback(null, resp);
+        return;
+      }
+    });
+  };
+
+    /**
+  *
+  * getLedger
+  * get ledger for a specific ledger_index, ledger_hash, or closing_time
+  * @param {Object} options
+  * @param {Function} callback
+  */
+
+  self.getLedger = function (options, callback) {
+
+    var ledgerQuery = prepareLedgerQuery();
+    var ledger;
+    var ledger_index;
+    var txQuery;
+
+    if (ledgerQuery.error) {
+      return callback(ledgerQuery);
+    }
+
+    ledgerQuery.nodeify(function(err, ledgers){
+      if (err) return callback(err);
+      else if (ledgers.length === 0) callback({error: "ledger not found", code:404});
+      else {
+        ledger = parseLedger(ledgers[0]);
+        ledger_index = ledger.ledger_index;
+
+        if (options.tx_return !== "none") {
+          txQuery = prepareTxQuery(ledger_index);
+          txQuery.nodeify(function(err, transactions) {
+            if (err) return callback(err);
+            else handleResponse(ledger, transactions);
+          });
+        }
+        else callback(null, ledger);
+      }
+    });
+
+    function prepareLedgerQuery() {
+      var query = self.knex('ledgers')
+        .select(self.knex.raw("encode(ledgers.ledger_hash, 'hex') as ledger_hash"))
+        .select('ledger_index')
+        .select(self.knex.raw("encode(ledgers.parent_hash, 'hex') as parent_hash"))
+        .select('total_coins')
+        .select('closing_time')
+        .select('close_time_res')
+        .select(self.knex.raw("encode(ledgers.accounts_hash, 'hex') as accounts_hash"))
+        .select(self.knex.raw("encode(ledgers.transactions_hash, 'hex') as transactions_hash"))
+        .orderBy('ledgers.ledger_index', 'desc')
+        .limit(1);
+
+      if (!options.ledger_index && !options.date && !options.ledger_hash) {
+        query.where('ledgers.closing_time', '<=', moment().unix());
+
+      } else {
+        if (options.ledger_index)
+          query.where('ledgers.ledger_index', options.ledger_index);
+        if (options.date) {
+          var iso_date = moment.utc(options.date, moment.ISO_8601);
+          if (iso_date.isValid()) {
+            query.where('ledgers.closing_time', '<=', iso_date.unix());
+          }
+          else if (/^\d+$/.test(options.date)) {
+            query.where('ledgers.closing_time', '<=', options.date);
+          }
+          else return {error:'invalid date, format must be ISO 8601or Unix offset', code:400};
+        }
+        if (options.ledger_hash)
+          query.where('ledgers.ledger_hash', self.knex.raw("decode('"+options.ledger_hash+"', 'hex')"));
+      }
+
+      log.debug(query.toString());
+      return query;
+    }
+
+    function prepareTxQuery(ledger_index) {
+      var query = self.knex('transactions')
+                  .where('transactions.ledger_index', ledger_index)
+                  .select(self.knex.raw("encode(transactions.tx_hash, 'hex') as hash"));
+
+      if (options.tx_return === "binary" || options.tx_return === 'json')
+        query
+          .select('transactions.executed_time as date')
+          .select('transactions.ledger_index')
+          .select(self.knex.raw("encode(transactions.tx_raw, 'hex') as tx"))
+          .select(self.knex.raw("encode(transactions.tx_meta, 'hex') as meta"));
+
+      log.debug(query.toString());
+      return query;
+    }
+
+    function handleResponse(ledger, transactions) {
+      if (options.tx_return === "hex") {
+        var transaction_list = [];
+        for (var i=0; i<transactions.length; i++){
+          transaction_list.push(transactions[i].hash);
+        }
+        ledger.transactions = transaction_list;
+      }
+      else {
+        for (var i=0; i<transactions.length; i++){
+          var row          = transactions[i];
+          row.ledger_index = Number(ledger.ledger_index);
+          row.date         = moment.unix(row.date).utc().format();
+
+          if (options.tx_return === "json") {
+            try {
+              row.tx   = new SerializedObject(row.tx).to_json();
+              row.meta = new SerializedObject(row.meta).to_json();
+            } catch(e) {
+
+              log.error('serialization error:', e.toString());
+              callback({error:e, code:500});
+              return;
+            }
+          }
+        }
+        ledger.transactions = transactions;
+      }
+      callback(null, ledger);
+    }
+
+    function parseLedger(ledger) {
+      ledger.ledger_index     = parseInt(ledger.ledger_index);
+      ledger.closing_time     = parseInt(ledger.closing_time);
+      ledger.close_time_res   = parseInt(ledger.close_time_res);
+      ledger.total_coins      = parseInt(ledger.total_coins);
+      ledger.close_time       = ledger.closing_time;
+      ledger.close_time_human = moment.unix(ledger.close_time).utc().format();
+      delete ledger.closing_time;
+      return ledger;
+    }
   };
 };
 

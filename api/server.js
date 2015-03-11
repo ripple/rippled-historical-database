@@ -25,6 +25,7 @@ var Server = function (options) {
   app.get('/v1/accounts/:address/payments', routes.getPayments);
   app.get('/v1/accounts/:address/balances/changes', routes.getChanges);
   app.get('/v1/exchanges/:base/:counter', routes.getExchanges);
+  app.get('/v1/last_validated', routes.getLastValidated);
 
   //start the server
   server = app.listen(options.port);

@@ -38,15 +38,19 @@ tx.metaData = tx.meta;
 tx.executed_time = tx.date + EPOCH_OFFSET;
 parsed = Parser.parseTransaction(tx);
 
-//console.log(parsed);
+//console.log(parsed.offers);
 
 //start import stream
 live.backFill(10000000, 10000100);
 live.on('ledger', function(ledger) {
   console.log(ledger.ledger_index);
-  
+
+  var parsed = Parser.parseLedger(ledger);
+  console.log(parsed.exchanges);
+  return;
+
   ledger.transactions.forEach(function(tx) {
     parsed = Parser.parseTransaction(tx);
-    console.log(parsed);
+    //console.log(parsed.offers);
   });
 });
