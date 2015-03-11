@@ -427,6 +427,32 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
   }
 };
 
+HbaseClient.prototype.getAccountExchanges = function (options, callback) {
+  this.getScan({
+    table      : 'account_exchanges',
+    startRow   : options.account + '|' + utils.formatTime(options.start),
+    stopRow    : options.account + '|' + utils.formatTime(options.end),
+    descending : options.descending,
+    limit      : options.limit
+
+  }, function(err, rows) {
+
+      if (!rows) rows = [];
+
+      rows.forEach(function(row) {
+
+        row.base_amount    = parseFloat(row.base_amount);
+        row.counter_amount = parseFloat(row.counter_amount);
+        row.rate           = parseFloat(row.rate);
+        row.ledger_index   = parseInt(row.ledger_index, 10);
+        row.tx_index       = parseInt(row.tx_index || 0);
+        row.node_index     = parseInt(row.node_index || 0);
+      });
+
+      callback(err, rows);
+  });
+};
+
 /**
  * getLedgersByIndex
  */
@@ -791,6 +817,8 @@ HbaseClient.prototype.saveParsedData = function (params, callback) {
       'f:buyer'            : ex.buyer,
       'f:seller'           : ex.seller,
       'f:taker'            : ex.taker,
+      'f:provider'         : ex.provider,
+      'f:offer_sequence'   : ex.sequence,
       'f:tx_hash'          : ex.tx_hash,
       'f:executed_time'    : ex.time,
       'f:ledger_index'     : ex.ledger_index,
