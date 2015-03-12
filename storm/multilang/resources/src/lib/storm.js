@@ -161,7 +161,8 @@ Storm.prototype.emit = function(messageDetails, onTaskIds) {
     }
 
     if (!onTaskIds) {
-        throw new Error('You must pass a onTaskIds callback when using emit!')
+        onTaskIds = function(){};
+        //throw new Error('You must pass a onTaskIds callback when using emit!')
     }
 
     this.taskIdsCallbacks.push(onTaskIds);

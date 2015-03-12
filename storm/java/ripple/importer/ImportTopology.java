@@ -12,7 +12,7 @@ public class ImportTopology {
     builder.setSpout("ledgerStream", new LedgerStreamSpout());
 
     builder.setBolt("transactions", new TransactionBolt(), 20)
-      .shuffleGrouping("ledgerStream");
+      .shuffleGrouping("ledgerStream", "txStream");
 
     builder.setBolt("exchanges", new ExchangesBolt(), 10)
       .fieldsGrouping("transactions", "exchangeAggregation", new Fields("pair"));
