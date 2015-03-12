@@ -101,12 +101,8 @@ LedgerStream.prototype.processNextLedger = function (callback) {
  */
 
 LedgerStream.prototype.prepareTransaction = function (ledger, tx) {
-  var meta = tx.metaData;
-  delete tx.metaData;
-
   tx.raw           = utils.toHex(tx);
-  tx.meta          = utils.toHex(meta);
-  tx.metaData      = meta;
+  tx.meta          = utils.toHex(tx.metaData);
 
   tx.ledger_hash   = ledger.ledger_hash;
   tx.ledger_index  = ledger.ledger_index;

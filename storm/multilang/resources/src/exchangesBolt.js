@@ -23,7 +23,6 @@ ExchangesBolt.prototype.process = function(tup, done) {
   var self = this;
   var ex   = tup.values[0];
   var pair = tup.values[1];
-  var parsed;
 
   if (!pairs[pair]) {
     self.log('new pair: ' + pair);
@@ -42,8 +41,10 @@ ExchangesBolt.prototype.process = function(tup, done) {
 
   pairs[pair].add(ex, function(err, resp) {
     self.log(pair + ' aggregation finished');
-    done();
   });
+
+  //don't wait to ack
+  done();
 };
 
 

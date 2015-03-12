@@ -10,24 +10,27 @@ public class ImportTopology {
   public static void main(String[] args) throws Exception {
     TopologyBuilder builder = new TopologyBuilder();
     builder.setSpout("ledgerStream", new LedgerStreamSpout());
-    
+
     builder.setBolt("transactions", new TransactionBolt(), 20)
       .shuffleGrouping("ledgerStream");
-    
+
     builder.setBolt("exchanges", new ExchangesBolt(), 10)
       .fieldsGrouping("transactions", "exchangeAggregation", new Fields("pair"));
-    
+
+    builder.setBolt("stats", new StatsBolt(), 2)
+      .fieldsGrouping("transactions", "statsAggregation", new Fields("label"));
+
     Config conf = new Config();
     //conf.setDebug(true);
 
-    
+
     if (args != null && args.length > 0) {
       conf.setNumWorkers(3);
       conf.setMessageTimeoutSecs(60);
       StormSubmitter.submitTopologyWithProgressBar(args[0], conf, builder.createTopology());
-    
+
     } else {
-      
+
       //conf.setMaxTaskParallelism(6);
       LocalCluster cluster = new LocalCluster();
       cluster.submitTopology("ledger-import", conf, builder.createTopology());

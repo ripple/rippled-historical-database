@@ -465,6 +465,21 @@ HbaseClient.prototype.getRow = function (table, rowkey, callback) {
   });
 };
 
+HbaseClient.prototype.getRows = function (table, rowkeys, callback) {
+  var self = this;
+  self._getConnection(function(err, connection) {
+
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    connection.client.getRows(self._prefix + table, rowkeys, null, function (err, rows) {
+      callback(err, rows ? formatRows(rows) : []);
+    });
+  });
+};
+
 /**
  * prepareColumns
  * create an array of columnValue

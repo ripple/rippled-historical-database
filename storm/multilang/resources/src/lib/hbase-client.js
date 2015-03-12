@@ -46,6 +46,50 @@ HbaseClient.prototype = Object.create(Hbase.prototype);
 HbaseClient.prototype.constructor = HbaseClient;
 
 
+HbaseClient.prototype.getStats = function (options) {
+  var self     = this;
+  var time     = options.time || moment.utc();
+  var interval = options.interval || 'day';
+  var rowkey   = interval + '|' + utils.formatTime(time.startOf(interval));
+
+  return new Promise (function(resolve, reject) {
+    self._getConnection(function(err, connection) {
+
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      connection.client.getRow(self._prefix + 'agg_stats', rowkey, null, function (err, rows) {
+        var stats = {
+          time     : time.format(),
+          interval : interval,
+          type     : { },
+          result   : { },
+          metric   : {
+            accounts_created : 0
+          }
+        };
+
+        if (err) {
+          reject(err);
+
+        } else if (!rows.length) {
+          resolve(stats);
+
+        } else {
+          for (var key in rows[0].columns) {
+            parts = key.split(':');
+            stats[parts[0]][parts[1]] = Number(rows[0].columns[key].value);
+          }
+
+          resolve(stats);
+        }
+      });
+    });
+  });
+};
+
 /**
  * getPayments
  * query payments

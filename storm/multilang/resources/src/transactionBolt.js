@@ -30,19 +30,20 @@ TransactionBolt.prototype.process = function(tup, done) {
   parsed = {
     data        : Parser.parseTransaction(tx),
     ledgerIndex : tx.ledger_index,
-    txIndex     : tx.tx_index
+    txIndex     : tx.tx_index,
+    tx          : tx
   };
 
   Promise.all([
-
-    //save transaction
-    self.saveTransaction(tx),
 
     //save parsed data
     self.saveParsedData(parsed),
 
     //emit to aggregations
     self.processStreams(parsed, tup.id),
+
+    //save transaction
+    self.saveTransaction(tx),
 
   ]).nodeify(function(err, resp){
     done(err);
@@ -101,6 +102,7 @@ TransactionBolt.prototype.saveParsedData = function (parsed) {
 
 TransactionBolt.prototype.processStreams = function (parsed, id) {
   var self = this;
+  var stat;
 
   return new Promise (function(resolve, reject) {
 
@@ -109,6 +111,7 @@ TransactionBolt.prototype.processStreams = function (parsed, id) {
     //self.log(parsed.data.balance_changes.length);
     //self.log(parsed.data.accounts_created.length);
 
+    //aggregate exchanges
     parsed.data.exchanges.forEach(function(exchange) {
       var pair = exchange.base.currency +
           (exchange.base.issuer ? "." + exchange.base.issuer : '') +
@@ -125,41 +128,52 @@ TransactionBolt.prototype.processStreams = function (parsed, id) {
       });
     });
 
-    /*
-    parsed.data.payments.forEach(function(payment) {
-      self.emit({
-        tuple         : [payment],
-        anchorTupleId : id,
-        stream        : 'paymentAggregation'
-      },
-      function(taskIds) {
-          self.log('payment sent to task ids - ' + taskIds);
-      });
+    //increment transactions count
+    stat = {
+      count : 1,
+      time  : parsed.tx.executed_time
+    }
+    self.emit({
+      tuple         : [stat, 'transaction_count'],
+      anchorTupleId : id,
+      stream        : 'statsAggregation'
     });
 
-    parsed.data.balanceChanges.forEach(function(change) {
-      self.emit({
-        tuple         : [change],
-        anchorTupleId : id,
-        stream        : 'balanceChangeAggregation'
-      },
-      function(taskIds) {
-          self.log('balance_change sent to task ids - ' + taskIds);
-      });
+    //aggregate by transaction type
+    stat = {
+      type   : parsed.tx.TransactionType,
+      time   : parsed.tx.executed_time
+    }
+    self.emit({
+      tuple         : [stat, 'transaction_type'],
+      anchorTupleId : id,
+      stream        : 'statsAggregation'
     });
 
-    parsed.data.accountsCreated.forEach(function(account) {
-      self.emit({
-        tuple         : [account],
-        anchorTupleId : id,
-        stream        : 'accountsCreatedAggregation'
-      },
-      function(taskIds) {
-          self.log('account_created sent to task ids - ' + taskIds);
-      });
+    //aggregate by transaction result
+    stat = {
+      result : parsed.tx.tx_result,
+      time   : parsed.tx.executed_time
+    }
+    self.emit({
+      tuple         : [stat, 'transaction_result'],
+      anchorTupleId : id,
+      stream        : 'statsAggregation'
     });
 
-    */
+    //new account created
+    if (parsed.data.accountsCreated.length) {
+      stat = {
+        count  : parsed.data.accountsCreated.length,
+        time   : parsed.tx.executed_time
+      };
+
+      self.emit({
+        tuple         : [stat, 'accounts_created'],
+        anchorTupleId : id,
+        stream        : 'statsAggregation'
+      });
+    }
 
     resolve();
   });
