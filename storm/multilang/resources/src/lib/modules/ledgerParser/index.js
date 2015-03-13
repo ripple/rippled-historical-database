@@ -95,20 +95,6 @@ Parser.parseLedger = function(ledger) {
   });
 
   data.ledger = ledger;
-
-/*
-  console.log("ACCOUNTS CREATED");
-  console.log(data.accountsCreated);
-  console.log("BALANCE CHANGES");
-  console.log(data.balanceChanges);
-  console.log("OFFERS EXERCISED");
-  console.log(data.offersExercised);
-  console.log("AFFECTED ACCOUNTS");
-  console.log(data.affectedAccounts);
-  //console.log(data.transactions);
-  console.log('done');
-*/
-
   return data;
 };
 

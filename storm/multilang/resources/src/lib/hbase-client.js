@@ -217,7 +217,7 @@ HbaseClient.prototype.getExchanges = function (options, callback) {
     table      = 'agg_exchanges';
 
   } else {
-    callback('invalid interval');
+    callback('invalid interval: ' + interval);
     return;
   }
 

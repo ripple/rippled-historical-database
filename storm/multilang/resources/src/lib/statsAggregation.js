@@ -5,6 +5,9 @@ var Hbase   = require('./hbase-client');
 var utils   = require('./utils');
 var bolt;
 
+/**
+ * statsAggregation
+ */
 
 function StatsAggregation(options) {
   var self = this;
@@ -65,24 +68,10 @@ function StatsAggregation(options) {
   }, 60 * 60 * 1000);
 }
 
-StatsAggregation.prototype.load = function (callback) {
-  var self = this;
-
-  Promise.map(['hour','day','week'], function(interval) {
-    return self.hbase.getStats({interval : interval});
-  }).nodeify(function(err, resp) {
-    if (err) {
-      self.log.error(err);
-      process.exit();
-    }
-
-    resp.forEach(function(row) {
-      self.stats[row.interval][row.time] = row;
-    });
-
-    callback();
-  });
-};
+/**
+ * aggregate
+ * aggregate incoming stats
+ */
 
 StatsAggregation.prototype.aggregate = function () {
   var self       = this;
@@ -104,6 +93,7 @@ StatsAggregation.prototype.aggregate = function () {
   self.pending = [ ];
   self.ready   = false;
 
+  //determine which buckets we need
   incoming.forEach(function(row) {
     var time = moment.unix(row.data.time).utc();
     var hour = moment(time).startOf('hour').format();
@@ -114,6 +104,8 @@ StatsAggregation.prototype.aggregate = function () {
     bucketList['week|' + week] = true;
   });
 
+  //get any from hbase that arent
+  //already present
   Promise.map(Object.keys(bucketList), function(key) {
     var parts = key.split('|');
 
@@ -138,6 +130,7 @@ StatsAggregation.prototype.aggregate = function () {
       self.stats[row.interval][row.time] = row;
     });
 
+    //handle incoming stats
     incoming.forEach(function(row) {
       var time = moment.unix(row.data.time).utc();
       var hour = moment(time).startOf('hour').format();
@@ -178,10 +171,10 @@ StatsAggregation.prototype.aggregate = function () {
         updateBucket('hour', hour, 'metric', 'ledger_interval', time);
         updateBucket('day',  day,  'metric', 'ledger_interval', time);
         updateBucket('week', week, 'metric', 'ledger_interval', time);
-
       }
     });
 
+    //save updated stats
     for(var key in updated) {
       var parts = key.split('|');
       var value = self.stats[parts[0]][parts[1]][parts[2]][parts[3]];
@@ -195,14 +188,25 @@ StatsAggregation.prototype.aggregate = function () {
       });
     }
 
+    //ready for the next batch
     self.ready = true;
     setImmediate(aggregate);
-
   });
+
+  /**
+   * aggregate
+   * function to call from timeout
+   */
 
   function aggregate () {
     self.aggregate();
   }
+
+  /**
+   * getBucket
+   * get a bucket based on
+   * time and interval
+   */
 
   function getBucket(interval, time) {
 
@@ -222,6 +226,12 @@ StatsAggregation.prototype.aggregate = function () {
 
     return self.stats[interval][time];
   }
+
+  /**
+   * updateBucket
+   * update the bucket with
+   * the provided stat
+   */
 
   function updateBucket(interval, time, family, column, value) {
     var bucket;
@@ -250,9 +260,21 @@ StatsAggregation.prototype.aggregate = function () {
   }
 };
 
+/**
+ * update
+ * add an incoming
+ * stat to the queue
+ */
+
 StatsAggregation.prototype.update = function (stat) {
   this.pending.push(stat);
 };
+
+/**
+ * updateStat
+ * save updated stat
+ * to hbase
+ */
 
 StatsAggregation.prototype.updateStat = function(options) {
   var self   = this;

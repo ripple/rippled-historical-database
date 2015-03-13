@@ -33,10 +33,6 @@ var Server = function (options) {
   server = app.listen(options.port);
   console.log('Ripple Data API running on port: ' + options.port);
 
-  hb.getStats({interval:'hour'}).nodeify(function(err, resp) {console.log(err, resp);});
-  hb.getStats({interval:'day'}).nodeify(function(err, resp) {console.log(err, resp);});
-  hb.getStats({interval:'week'}).nodeify(function(err, resp) {console.log(err, resp);});
-
   this.close = function () {
     if (server) {
       server.close();
