@@ -143,6 +143,9 @@ StatsAggregation.prototype.aggregate = function () {
       updateBucket('day',  day,  'metric', 'tx_per_ledger');
       updateBucket('week', week, 'metric', 'tx_per_ledger');
 
+      updateBucket('hour', hour, 'metric', 'ledger_interval', time);
+      updateBucket('day',  day,  'metric', 'ledger_interval', time);
+      updateBucket('week', week, 'metric', 'ledger_interval', time);
       //save times for interval calc
       //self.stats.ledgers[row.data.ledger_index] = row.data.time;
       //prev = self.stats.ledgers[row.data.ledger_index - 1];
@@ -212,16 +215,27 @@ StatsAggregation.prototype.aggregate = function () {
   function updateBucket(interval, time, family, column, value) {
     var bucket;
     var avg;
+    var secs;
+
+    bucket = getBucket(interval, time);
 
     if (column === 'tx_per_ledger') {
-      bucket = getBucket(interval, time);
-      avg    = bucket.metric.transaction_count/bucket.metric.ledger_count;
+      avg = bucket.metric.transaction_count/bucket.metric.ledger_count;
       bucket.metric.tx_per_ledger = avg.toPrecision(5);
 
     } else if (column === 'ledger_interval') {
+      if (bucket.first) {
+        secs = value.diff(bucket.first, 'seconds');
+        avg  = secs/bucket.metric.ledger_count;
+        bucket.metric.ledger_interval = avg.toPrecision(5);
+
+      } else {
+        bucket.first = value;
+        return;
+      }
 
     } else {
-      getBucket(interval, time).increment(family, column, value);
+      bucket.increment(family, column, value);
     }
 
     updated[interval + '|' + time + '|' + family + '|' + column] = true;
