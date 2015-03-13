@@ -119,9 +119,20 @@ LedgerStreamSpout.prototype.ack = function(id, done) {
 
   //if we've acked all transactions, save the ledger
   if (data.acks.length == data.ledger.transactions.length) {
+
+    //increment ledger counter
+    self.emit({
+      tuple : [{
+        time         : data.ledger.close_time,
+        ledger_index : data.ledger.ledger_index
+      }, 'ledger_count'],
+      anchorTupleId : id,
+      stream        : 'statsAggregation'
+    });
+
     stream.hbase.saveLedger(data.ledger, function(err, resp) {
       if (err) {
-        self.log.error(err);
+        self.log(err);
         self.log('unable to save ledger: ' + data.ledger.ledger_index);
 
       } else {

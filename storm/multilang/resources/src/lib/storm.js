@@ -291,6 +291,7 @@ BasicBolt.prototype.ack = function(tup) {
 }
 
 BasicBolt.prototype.fail = function(tup, err) {
+    this.log('FAIL: ' + err);
     this.sendMsgToParent({"command": "fail", "id": tup.id});
 }
 

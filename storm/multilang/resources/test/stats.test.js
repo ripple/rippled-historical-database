@@ -26,8 +26,6 @@ var EPOCH_OFFSET = 946684800;
 var files        = fs.readdirSync(path);
 var ledgers      = [ ];
 
-console.log(stats.purge);
-
 function prepareTransaction (ledger, tx) {
   var meta = tx.metaData;
   delete tx.metaData;
@@ -53,6 +51,15 @@ files.forEach(function(filename) {
 
   //adjust the close time to unix epoch
   ledger.close_time = ledger.close_time + EPOCH_OFFSET;
+
+  //emit ledgers count
+  stats.update({
+    label : 'ledger_count',
+    data  : {
+      time         : ledger.close_time,
+      ledger_index : ledger.ledger_index,
+    }
+  });
 
   ledger.transactions.forEach(function(tx) {
     var parsed;

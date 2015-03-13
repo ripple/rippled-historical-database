@@ -18,7 +18,8 @@ public class ImportTopology {
       .fieldsGrouping("transactions", "exchangeAggregation", new Fields("pair"));
 
     builder.setBolt("stats", new StatsBolt(), 2)
-      .fieldsGrouping("transactions", "statsAggregation", new Fields("label"));
+      .fieldsGrouping("transactions", "statsAggregation", new Fields("label"))
+      .fieldsGrouping("ledgerStream", "statsAggregation", new Fields("label"));
 
     Config conf = new Config();
     //conf.setDebug(true);

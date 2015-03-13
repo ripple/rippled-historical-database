@@ -23,9 +23,10 @@ function StatsAggregation(options) {
   this.ready   = false;
   this.pending = [ ];
   this.stats   = {
-    hour : { },
-    day  : { },
-    week : { }
+    hour    : { },
+    day     : { },
+    week    : { },
+    ledgers : { },
   };
 
   this.load(function() {
@@ -111,7 +112,7 @@ StatsAggregation.prototype.aggregate = function () {
     var hour = moment(time).startOf('hour').format();
     var day  = moment(time).startOf('day').format();
     var week = moment(time).startOf('week').format();
-    var bucket;
+    var prev, interval;
 
     if (row.label === 'transaction_type') {
       updateBucket('hour', hour, 'type', row.data.type);
@@ -129,10 +130,29 @@ StatsAggregation.prototype.aggregate = function () {
       updateBucket('week', week, 'metric', 'transaction_count');
 
     } else if (row.label === 'accounts_created') {
-      updateBucket('hour', hour, 'metric', 'accounts_created');
-      updateBucket('day',  day,  'metric', 'accounts_created');
-      updateBucket('week', week, 'metric', 'accounts_created');
+      updateBucket('hour', hour, 'metric', 'accounts_created', row.data.count);
+      updateBucket('day',  day,  'metric', 'accounts_created', row.data.count);
+      updateBucket('week', week, 'metric', 'accounts_created', row.data.count);
+
+    } else if (row.label === 'ledger_count') {
+      updateBucket('hour', hour, 'metric', 'ledger_count');
+      updateBucket('day',  day,  'metric', 'ledger_count');
+      updateBucket('week', week, 'metric', 'ledger_count');
+
+      updateBucket('hour', hour, 'metric', 'tx_per_ledger');
+      updateBucket('day',  day,  'metric', 'tx_per_ledger');
+      updateBucket('week', week, 'metric', 'tx_per_ledger');
+
+      //save times for interval calc
+      //self.stats.ledgers[row.data.ledger_index] = row.data.time;
+      //prev = self.stats.ledgers[row.data.ledger_index - 1];
+      //if (prev) {
+      //  interval = row.data.time - prev;
+      //}
+
+      //console.log(interval);
     }
+
   });
 
   for(var key in updated) {
@@ -165,17 +185,23 @@ StatsAggregation.prototype.aggregate = function () {
         metric   : {
           accounts_created  : 0,
           transaction_count : 0,
-          ledger_count      : 0
+          ledger_count      : 0,
+          tx_per_ledger     : 0.0,
+          ledger_interval   : 0.0,
         }
       }
     }
 
     if (!self.stats[interval][time].increment) {
-      self.stats[interval][time].increment = function (family, column) {
+      self.stats[interval][time].increment = function (family, column, value) {
+        if (typeof value === 'undefined') {
+          value = 1;
+        }
+
         if (!this[family][column]) {
-          this[family][column] = 1;
+          this[family][column]  = value;
         } else {
-          this[family][column]++
+          this[family][column] += value;
         }
       }
     }
@@ -183,8 +209,21 @@ StatsAggregation.prototype.aggregate = function () {
     return self.stats[interval][time];
   }
 
-  function updateBucket(interval, time, family, column) {
-    getBucket(interval, time).increment(family, column);
+  function updateBucket(interval, time, family, column, value) {
+    var bucket;
+    var avg;
+
+    if (column === 'tx_per_ledger') {
+      bucket = getBucket(interval, time);
+      avg    = bucket.metric.transaction_count/bucket.metric.ledger_count;
+      bucket.metric.tx_per_ledger = avg.toPrecision(5);
+
+    } else if (column === 'ledger_interval') {
+
+    } else {
+      getBucket(interval, time).increment(family, column, value);
+    }
+
     updated[interval + '|' + time + '|' + family + '|' + column] = true;
   }
 };

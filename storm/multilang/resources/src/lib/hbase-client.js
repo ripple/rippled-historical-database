@@ -67,7 +67,11 @@ HbaseClient.prototype.getStats = function (options) {
           type     : { },
           result   : { },
           metric   : {
-            accounts_created : 0
+            accounts_created  : 0,
+            transaction_count : 0,
+            ledger_count      : 0,
+            tx_per_ledger     : 0.0,
+            ledger_interval   : 0.0,
           }
         };
 
