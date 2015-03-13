@@ -124,7 +124,8 @@ LedgerStreamSpout.prototype.ack = function(id, done) {
     self.emit({
       tuple : [{
         time         : data.ledger.close_time,
-        ledger_index : data.ledger.ledger_index
+        ledger_index : data.ledger.ledger_index,
+        tx_count     : data.ledger.transactions.length
       }, 'ledger_count'],
       anchorTupleId : id,
       stream        : 'statsAggregation'

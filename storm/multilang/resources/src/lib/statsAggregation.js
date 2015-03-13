@@ -20,7 +20,7 @@ function StatsAggregation(options) {
 
   this.log     = new Logger(logOpts);
   this.hbase   = new Hbase(options.hbase);
-  this.ready   = false;
+  this.ready   = true;
   this.pending = [ ];
   this.stats   = {
     hour : { },
@@ -28,10 +28,7 @@ function StatsAggregation(options) {
     week : { }
   };
 
-  this.load(function() {
-    self.ready = true;
-    self.aggregate();
-  });
+  self.aggregate();
 
   //remove older data every hour
   this.purge = setInterval(function(){
@@ -88,9 +85,10 @@ StatsAggregation.prototype.load = function (callback) {
 };
 
 StatsAggregation.prototype.aggregate = function () {
-  var self    = this;
-  var updated = { };
-  var incomming;
+  var self       = this;
+  var updated    = { };
+  var bucketList = { };
+  var incoming;
 
   if (!self.pending.length) {
     setTimeout(aggregate, 200);
@@ -111,88 +109,102 @@ StatsAggregation.prototype.aggregate = function () {
     var hour = moment(time).startOf('hour').format();
     var day  = moment(time).startOf('day').format();
     var week = moment(time).startOf('week').format();
-    var prev, interval;
-
-    if (row.label === 'transaction_type') {
-      updateBucket('hour', hour, 'type', row.data.type);
-      updateBucket('day',  day,  'type', row.data.type);
-      updateBucket('week', week, 'type', row.data.type);
-
-    } else if (row.label === 'transaction_result') {
-      updateBucket('hour', hour, 'result', row.data.result);
-      updateBucket('day',  day,  'result', row.data.result);
-      updateBucket('week', week, 'result', row.data.result);
-
-    } else if (row.label === 'transaction_count') {
-      updateBucket('hour', hour, 'metric', 'transaction_count');
-      updateBucket('day',  day,  'metric', 'transaction_count');
-      updateBucket('week', week, 'metric', 'transaction_count');
-
-    } else if (row.label === 'accounts_created') {
-      updateBucket('hour', hour, 'metric', 'accounts_created', row.data.count);
-      updateBucket('day',  day,  'metric', 'accounts_created', row.data.count);
-      updateBucket('week', week, 'metric', 'accounts_created', row.data.count);
-
-    } else if (row.label === 'ledger_count') {
-      updateBucket('hour', hour, 'metric', 'ledger_count');
-      updateBucket('day',  day,  'metric', 'ledger_count');
-      updateBucket('week', week, 'metric', 'ledger_count');
-
-      updateBucket('hour', hour, 'metric', 'tx_per_ledger');
-      updateBucket('day',  day,  'metric', 'tx_per_ledger');
-      updateBucket('week', week, 'metric', 'tx_per_ledger');
-
-      updateBucket('hour', hour, 'metric', 'ledger_interval', time);
-      updateBucket('day',  day,  'metric', 'ledger_interval', time);
-      updateBucket('week', week, 'metric', 'ledger_interval', time);
-      //save times for interval calc
-      //self.stats.ledgers[row.data.ledger_index] = row.data.time;
-      //prev = self.stats.ledgers[row.data.ledger_index - 1];
-      //if (prev) {
-      //  interval = row.data.time - prev;
-      //}
-
-      //console.log(interval);
-    }
-
+    bucketList['hour|' + hour] = true;
+    bucketList['day|'  + day]  = true;
+    bucketList['week|' + week] = true;
   });
 
-  for(var key in updated) {
+  Promise.map(Object.keys(bucketList), function(key) {
     var parts = key.split('|');
-    var value = self.stats[parts[0]][parts[1]][parts[2]][parts[3]];
 
-    self.updateStat({
+    if (self.stats[parts[0]][parts[1]]) {
+      return Promise.resolve(null);
+    }
+
+    return self.hbase.getStats({
       interval : parts[0],
-      time     : parts[1],
-      family   : parts[2],
-      column   : parts[3],
-      value    : value
+      time     : moment.utc(parts[1]),
     });
-  }
 
-  self.ready = true;
-  setImmediate(aggregate);
+  }).nodeify(function(err, resp) {
+    if (err) {
+      self.log.error(err);
+      return;
+    }
+
+    //organize the buckets
+    resp.forEach(function(row) {
+      if (!row) return;
+      self.stats[row.interval][row.time] = row;
+    });
+
+    incoming.forEach(function(row) {
+      var time = moment.unix(row.data.time).utc();
+      var hour = moment(time).startOf('hour').format();
+      var day  = moment(time).startOf('day').format();
+      var week = moment(time).startOf('week').format();
+      var prev, interval;
+
+      if (row.label === 'transaction_type') {
+        updateBucket('hour', hour, 'type', row.data.type);
+        updateBucket('day',  day,  'type', row.data.type);
+        updateBucket('week', week, 'type', row.data.type);
+
+      } else if (row.label === 'transaction_result') {
+        updateBucket('hour', hour, 'result', row.data.result);
+        updateBucket('day',  day,  'result', row.data.result);
+        updateBucket('week', week, 'result', row.data.result);
+
+      } else if (row.label === 'transaction_count') {
+        updateBucket('hour', hour, 'metric', 'transaction_count');
+        updateBucket('day',  day,  'metric', 'transaction_count');
+        updateBucket('week', week, 'metric', 'transaction_count');
+
+      } else if (row.label === 'accounts_created') {
+        updateBucket('hour', hour, 'metric', 'accounts_created', row.data.count);
+        updateBucket('day',  day,  'metric', 'accounts_created', row.data.count);
+        updateBucket('week', week, 'metric', 'accounts_created', row.data.count);
+
+      } else if (row.label === 'ledger_count') {
+
+        updateBucket('hour', hour, 'metric', 'ledger_count');
+        updateBucket('day',  day,  'metric', 'ledger_count');
+        updateBucket('week', week, 'metric', 'ledger_count');
+
+        updateBucket('hour', hour, 'metric', 'tx_per_ledger', row.data.tx_count);
+        updateBucket('day',  day,  'metric', 'tx_per_ledger', row.data.tx_count);
+        updateBucket('week', week, 'metric', 'tx_per_ledger', row.data.tx_count);
+
+        updateBucket('hour', hour, 'metric', 'ledger_interval', time);
+        updateBucket('day',  day,  'metric', 'ledger_interval', time);
+        updateBucket('week', week, 'metric', 'ledger_interval', time);
+
+      }
+    });
+
+    for(var key in updated) {
+      var parts = key.split('|');
+      var value = self.stats[parts[0]][parts[1]][parts[2]][parts[3]];
+
+      self.updateStat({
+        interval : parts[0],
+        time     : parts[1],
+        family   : parts[2],
+        column   : parts[3],
+        value    : value
+      });
+    }
+
+    self.ready = true;
+    setImmediate(aggregate);
+
+  });
 
   function aggregate () {
     self.aggregate();
   }
 
   function getBucket(interval, time) {
-    if (!self.stats[interval][time]) {
-      self.stats[interval][time] = {
-        time     : time,
-        interval : interval,
-        type     : { },
-        result   : { },
-        metric   : {
-          accounts_created  : 0,
-          transaction_count : 0,
-          ledger_count      : 0,
-          tx_per_ledger     : 0.0,
-          ledger_interval   : 0.0,
-        }
-      }
-    }
 
     if (!self.stats[interval][time].increment) {
       self.stats[interval][time].increment = function (family, column, value) {
@@ -215,29 +227,26 @@ StatsAggregation.prototype.aggregate = function () {
     var bucket;
     var avg;
     var secs;
+    var count;
 
     bucket = getBucket(interval, time);
 
     if (column === 'tx_per_ledger') {
-      avg = bucket.metric.transaction_count/bucket.metric.ledger_count;
+      count = bucket.metric.tx_per_ledger * (bucket.metric.ledger_count-1);
+      avg   = (count+value)/bucket.metric.ledger_count;
       bucket.metric.tx_per_ledger = avg.toPrecision(5);
 
     } else if (column === 'ledger_interval') {
-      if (bucket.first) {
-        secs = value.diff(bucket.first, 'seconds');
-        avg  = secs/bucket.metric.ledger_count;
-        bucket.metric.ledger_interval = avg.toPrecision(5);
-
-      } else {
-        bucket.first = value;
-        return;
-      }
+      secs = value.diff(time, 'seconds');
+      avg  = secs/bucket.metric.ledger_count;
+      bucket.metric.ledger_interval = avg.toPrecision(5);
 
     } else {
       bucket.increment(family, column, value);
     }
 
     updated[interval + '|' + time + '|' + family + '|' + column] = true;
+
   }
 };
 

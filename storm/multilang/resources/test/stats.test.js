@@ -58,6 +58,7 @@ files.forEach(function(filename) {
     data  : {
       time         : ledger.close_time,
       ledger_index : ledger.ledger_index,
+      tx_count     : ledger.transactions.length
     }
   });
 
