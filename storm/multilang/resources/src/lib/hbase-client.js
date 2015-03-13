@@ -47,6 +47,9 @@ HbaseClient.prototype.constructor = HbaseClient;
 
 
 HbaseClient.prototype.getStats = function (options) {
+
+  if (!options) options = { };
+
   var self     = this;
   var time     = options.time || moment.utc();
   var interval = options.interval || 'day';

@@ -47,7 +47,8 @@ iterator = origin.iterator({
   startRow   : utils.padNumber(start || 0, LI_PAD),
   stopRow    : utils.padNumber(stop  || 0, LI_PAD),
   descending : false,
-  batchSize  : batchSize
+  count      : batchSize,
+  caching    : config.get('cache') || 30
 });
 
 function getNext(cb) {

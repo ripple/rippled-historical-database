@@ -84,6 +84,11 @@ var Client = function (options) {
 
   function addTable (table) {
     var families = ['f','d'];
+
+    if (table === 'agg_stats') {
+      families = ['type','result','metric'];
+    }
+
     return new Promise (function(resolve, reject) {
       var schema = [];
       families.forEach(function(family) {

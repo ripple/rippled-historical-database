@@ -157,6 +157,9 @@ HbaseClient.prototype.iterator = function (options) {
       }
     }
 
+    if (options.batchSize) scanOpts.batchSize = options.batchSize;
+    if (options.caching)   scanOpts.caching   = options.caching;
+
     scan = new HBaseTypes.TScan(scanOpts);
 
     connection.client.scannerOpenWithScan(table, scan, null, function(err, id) {
@@ -187,7 +190,7 @@ HbaseClient.prototype.iterator = function (options) {
         return;
       }
 
-      connection.client.scannerGetList(scan_id, options.batchSize, function (err, rows) {
+      connection.client.scannerGetList(scan_id, options.count, function (err, rows) {
         var results = [];
         var key;
         var parts;
@@ -273,6 +276,9 @@ HbaseClient.prototype.getScan = function (options, callback) {
         scanOpts.stopRow  = swap;
       }
     }
+
+    if (options.batchSize) scanOpts.batchSize = options.batchSize;
+    if (options.caching)   scanOpts.caching   = options.caching;
 
     scan = new HBaseTypes.TScan(scanOpts);
 

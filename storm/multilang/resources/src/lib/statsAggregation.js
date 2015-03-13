@@ -23,10 +23,9 @@ function StatsAggregation(options) {
   this.ready   = false;
   this.pending = [ ];
   this.stats   = {
-    hour    : { },
-    day     : { },
-    week    : { },
-    ledgers : { },
+    hour : { },
+    day  : { },
+    week : { }
   };
 
   this.load(function() {
