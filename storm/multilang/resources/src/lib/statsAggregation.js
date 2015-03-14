@@ -14,6 +14,7 @@ function StatsAggregation(options) {
 
   options.hbase.logLevel = options.logLevel;
   options.hbase.logFile  = options.logFile;
+  options.hbase.timeout  = 10000;
 
   var logOpts = {
     scope : 'stats-aggregation',
@@ -63,7 +64,7 @@ function StatsAggregation(options) {
       }
     }
 
-    self._ready = true;
+    self.ready = true;
 
   }, 60 * 60 * 1000);
 }
@@ -78,6 +79,8 @@ StatsAggregation.prototype.aggregate = function () {
   var updated    = { };
   var bucketList = { };
   var incoming;
+
+  //console.log(self.pending.length, self.ready);
 
   if (!self.pending.length) {
     setTimeout(aggregate, 200);
@@ -96,9 +99,9 @@ StatsAggregation.prototype.aggregate = function () {
   //determine which buckets we need
   incoming.forEach(function(row) {
     var time = moment.unix(row.data.time).utc();
-    var hour = moment(time).startOf('hour').format();
-    var day  = moment(time).startOf('day').format();
-    var week = moment(time).startOf('week').format();
+    var hour = moment.utc(time).startOf('hour').format();
+    var day  = moment.utc(time).startOf('day').format();
+    var week = moment.utc(time).startOf('week').format();
     bucketList['hour|' + hour] = true;
     bucketList['day|'  + day]  = true;
     bucketList['week|' + week] = true;
@@ -121,21 +124,40 @@ StatsAggregation.prototype.aggregate = function () {
   }).nodeify(function(err, resp) {
     if (err) {
       self.log.error(err);
+
+      //try these again
+      self.ready   = true;
+      self.pending = incoming.concat(self.pending);
+      setImmediate(aggregate);
       return;
     }
 
     //organize the buckets
     resp.forEach(function(row) {
       if (!row) return;
+
+      //add increment function
+      row.increment = function (family, column, value) {
+        if (typeof value === 'undefined') {
+          value = 1;
+        }
+
+        if (!this[family][column]) {
+          this[family][column]  = value;
+        } else {
+          this[family][column] += value;
+        }
+      }
+
       self.stats[row.interval][row.time] = row;
     });
 
     //handle incoming stats
     incoming.forEach(function(row) {
       var time = moment.unix(row.data.time).utc();
-      var hour = moment(time).startOf('hour').format();
-      var day  = moment(time).startOf('day').format();
-      var week = moment(time).startOf('week').format();
+      var hour = moment.utc(time).startOf('hour').format();
+      var day  = moment.utc(time).startOf('day').format();
+      var week = moment.utc(time).startOf('week').format();
       var prev, interval;
 
       if (row.label === 'transaction_type') {
@@ -203,31 +225,6 @@ StatsAggregation.prototype.aggregate = function () {
   }
 
   /**
-   * getBucket
-   * get a bucket based on
-   * time and interval
-   */
-
-  function getBucket(interval, time) {
-
-    if (!self.stats[interval][time].increment) {
-      self.stats[interval][time].increment = function (family, column, value) {
-        if (typeof value === 'undefined') {
-          value = 1;
-        }
-
-        if (!this[family][column]) {
-          this[family][column]  = value;
-        } else {
-          this[family][column] += value;
-        }
-      }
-    }
-
-    return self.stats[interval][time];
-  }
-
-  /**
    * updateBucket
    * update the bucket with
    * the provided stat
@@ -239,7 +236,8 @@ StatsAggregation.prototype.aggregate = function () {
     var secs;
     var count;
 
-    bucket = getBucket(interval, time);
+    bucket = self.stats[interval][time];
+    if (!bucket) return;
 
     if (column === 'tx_per_ledger') {
       count = bucket.metric.tx_per_ledger * (bucket.metric.ledger_count-1);

@@ -115,6 +115,15 @@ LedgerStreamSpout.prototype.ack = function(id, done) {
   var data  = self.pending[parts[0]];
 
   self.log('Received ack for - ' + id);
+
+  //the ledger may already
+  //have been removed because
+  //of failed transactions
+  if (!data) {
+    done();
+    return;
+  }
+
   data.acks.push(parts[1]);
 
   //if we've acked all transactions, save the ledger

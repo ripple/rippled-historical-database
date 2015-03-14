@@ -45,9 +45,18 @@ function prepareTransaction (ledger, tx) {
 
 console.log('# ledgers:', files.length);
 
-files.forEach(function(filename) {
+var count = 0;
 
+files.forEach(function(filename) {
   var ledger = JSON.parse(fs.readFileSync(path + filename, "utf8"));
+
+  setTimeout(function() {
+    console.log("processing ledger:", ledger.ledger_index);
+    processLedger(ledger);
+  }, count++ * 1000);
+});
+
+function processLedger (ledger) {
 
   //adjust the close time to unix epoch
   ledger.close_time = ledger.close_time + EPOCH_OFFSET;
@@ -106,5 +115,4 @@ files.forEach(function(filename) {
       });
     }
   });
-});
-
+}
