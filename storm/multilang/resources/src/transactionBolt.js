@@ -175,6 +175,34 @@ TransactionBolt.prototype.processStreams = function (parsed, id) {
       });
     }
 
+    //aggregate payments count
+    if (parsed.data.payments.length) {
+      stat = {
+        count  : 1,
+        time   : parsed.tx.executed_time
+      };
+
+      self.emit({
+        tuple         : [stat, 'payments_count'],
+        anchorTupleId : id,
+        stream        : 'statsAggregation'
+      });
+    }
+
+    //aggregate exchanges count
+    if (parsed.data.exchanges.length) {
+      stat = {
+        count  : parsed.data.exchanges.length,
+        time   : parsed.tx.executed_time
+      };
+
+      self.emit({
+        tuple         : [stat, 'exchanges_count'],
+        anchorTupleId : id,
+        stream        : 'statsAggregation'
+      });
+    }
+
     resolve();
   });
 };

@@ -175,13 +175,22 @@ StatsAggregation.prototype.aggregate = function () {
         updateBucket('day',  day,  'metric', 'transaction_count');
         updateBucket('week', week, 'metric', 'transaction_count');
 
+      } else if (row.label === 'payments_count') {
+        updateBucket('hour', hour, 'metric', 'payments_count', row.data.count);
+        updateBucket('day',  day,  'metric', 'payments_count', row.data.count);
+        updateBucket('week', week, 'metric', 'payments_count', row.data.count);
+
+      } else if (row.label === 'exchanges_count') {
+        updateBucket('hour', hour, 'metric', 'exchanges_count', row.data.count);
+        updateBucket('day',  day,  'metric', 'exchanges_count', row.data.count);
+        updateBucket('week', week, 'metric', 'exchanges_count', row.data.count);
+
       } else if (row.label === 'accounts_created') {
         updateBucket('hour', hour, 'metric', 'accounts_created', row.data.count);
         updateBucket('day',  day,  'metric', 'accounts_created', row.data.count);
         updateBucket('week', week, 'metric', 'accounts_created', row.data.count);
 
       } else if (row.label === 'ledger_count') {
-
         updateBucket('hour', hour, 'metric', 'ledger_count');
         updateBucket('day',  day,  'metric', 'ledger_count');
         updateBucket('week', week, 'metric', 'ledger_count');
@@ -193,6 +202,9 @@ StatsAggregation.prototype.aggregate = function () {
         updateBucket('hour', hour, 'metric', 'ledger_interval', time);
         updateBucket('day',  day,  'metric', 'ledger_interval', time);
         updateBucket('week', week, 'metric', 'ledger_interval', time);
+
+      } else {
+        self.log.info('unhandled stat:', row.label);
       }
     });
 

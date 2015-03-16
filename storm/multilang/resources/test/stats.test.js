@@ -114,5 +114,27 @@ function processLedger (ledger) {
         }
       });
     }
+
+        //aggregate payments count
+    if (parsed.payments.length) {
+      stats.update({
+        label : 'payments_count',
+        data  : {
+          count  : 1,
+          time   : tx.executed_time
+        }
+      });
+    }
+
+    //aggregate exchanges count
+    if (parsed.exchanges.length) {
+      stats.update({
+        label : 'exchanges_count',
+        data  : {
+          count  : parsed.exchanges.length,
+          time   : tx.executed_time
+        }
+      });
+    }
   });
 }
