@@ -19,6 +19,7 @@ var tableList = [
   'lu_account_transactions',
   'lu_affected_account_transactions',
   'lu_account_memos',
+  'agg_account_payments',
   'agg_exchanges',
   'agg_metrics',
   'agg_stats',

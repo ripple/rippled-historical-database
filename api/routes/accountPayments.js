@@ -1,13 +1,15 @@
 var config   = require('../../storm/multilang/resources/config');
 var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
-var log      = new Logger({scope : 'get payments'});
+var log      = new Logger({scope : 'account payments'});
 var moment   = require('moment');
 var response = require('response');
+var hbase;
 
-var accountPayments = function(hbase) {
-  self = this;
+/**
+ * AccountPayments
+ */
 
-self.getPayments = function (req, res, next) {
+var AccountPayments = function (req, res, next) {
   var options = prepareOptions();
 
   if (options.error) {
@@ -15,9 +17,9 @@ self.getPayments = function (req, res, next) {
     return;
 
   } else {
-    log.info("PAYMENTS: " + options.account);
+    log.info("get: " + options.account);
 
-    hbase.getPayments(options, function(err, payments) {
+    hbase.getAccountPayments(options, function(err, payments) {
       if (err) {
         errorResponse(err);
       } else {
@@ -29,9 +31,11 @@ self.getPayments = function (req, res, next) {
         successResponse(payments);
       }
     });
-
-    return;
   }
+
+  /**
+   * prepareOptions
+   */
 
   function prepareOptions() {
     var options = {
@@ -40,10 +44,21 @@ self.getPayments = function (req, res, next) {
       end        : req.query.end,
       descending : (/false/i).test(req.query.descending) ? false : true,
       limit      : Number(req.query.limit) || 200,
+    };
+
+    if (!options.account) {
+      return {error: 'Account is required', code:400};
     }
 
-    if (!options.end)   options.end   = moment.utc('9999-12-31');
-    if (!options.start) options.start = moment.utc(0);
+    if (req.params.date) {
+      options.start = moment.utc(req.params.date).startOf('day');
+      options.end   = moment.utc(req.params.date).startOf('day').add(1, 'day');
+
+    } else {
+      if (!options.end)   options.end   = moment.utc('9999-12-31');
+      if (!options.start) options.start = moment.utc(0);
+    }
+
     if (options.limit > 1000) {
       return {error:'limit cannot exceed 1000', code:400};
     }
@@ -56,6 +71,7 @@ self.getPayments = function (req, res, next) {
   * return an error response
   * @param {Object} err
   */
+
   function errorResponse (err) {
     if (err.code.toString()[0] === '4') {
       log.error(err.error || err);
@@ -70,6 +86,7 @@ self.getPayments = function (req, res, next) {
   * return a successful response
   * @param {Object} payments
   */
+
   function successResponse (payments) {
     var result = {
       result   : "sucess",
@@ -79,13 +96,9 @@ self.getPayments = function (req, res, next) {
 
     response.json(result).pipe(res);
   }
-
-};
-
-  return this;
 }
 
 module.exports = function(db) {
-  ap = accountPayments(db);
-  return ap.getPayments;
+  hbase = db;
+  return AccountPayments;
 };

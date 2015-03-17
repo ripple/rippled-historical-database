@@ -7,10 +7,11 @@ module.exports = function (options) {
   Routes.getTx            = require('./getTx')(options.postgres);
   Routes.accountTxSeq     = require('./accountTxSeq')(options.postgres);
   Routes.accountExchanges = require('./accountExchanges')(options.hbase);
-  Routes.getPayments      = require('./getPayments')(options.hbase);
+  Routes.accountPayments  = require('./accountPayments')(options.hbase);
   Routes.getChanges       = require('./accountBalanceChanges')(options.hbase);
   Routes.getExchanges     = require('./getExchanges')(options.hbase);
   Routes.getLastValidated = require('./getLastValidated')(options.postgres);
-
+  Routes.accountReports   = require('./accountReports')(options.hbase);
+  Routes.reports          = require('./reports')(options.hbase);
   return Routes;
 };

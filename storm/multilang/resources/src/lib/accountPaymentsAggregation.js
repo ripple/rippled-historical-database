@@ -98,11 +98,11 @@ AccountPaymentsAggregation.prototype.aggregate = function () {
   //get any from hbase that arent
   //already present
   Promise.map(Object.keys(bucketList), function(key) {
-    return self.hbase.getAccountPaymentsAggregation(bucketList[key])
+    return self.hbase.getAggregateAccountPayments(bucketList[key])
     .then(function(resp) {
       var date    = bucketList[key].date.format();
       var account = bucketList[key].account;
-      self.data[date][account] = resp;
+      self.data[date][account] = resp[0];
     });
   })
   .then(normalize) //normalize delivered amount to XRP

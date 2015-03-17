@@ -45,58 +45,6 @@ function HbaseClient() {
 HbaseClient.prototype = Object.create(Hbase.prototype);
 HbaseClient.prototype.constructor = HbaseClient;
 
-HbaseClient.prototype.getAccountPaymentsAggregation = function(options) {
-
-  if (!options || !options.account) {
-    return Promise.reject('account is required');
-  }
-
-  var self   = this;
-  var date   = options.date || moment.utc();
-  var rowkey = utils.formatTime(date.startOf('day')) + '|' + options.account;
-
-  return new Promise (function(resolve, reject) {
-    self._getConnection(function(err, connection) {
-
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      self.getRow('agg_account_payments', rowkey, function (err, row) {
-        var bucket = {
-          receiving_counterparties : [],
-          sending_counterparties   : [],
-          payments_sent        : 0,
-          payments_received    : 0,
-          high_value_sent      : 0,
-          high_value_received  : 0,
-          total_value_sent     : 0,
-          total_value_received : 0,
-          total_value          : 0
-        }
-
-        if (err) {
-          reject(err);
-
-        } else if (row) {
-          row.payments_sent        = Number(row.payments_sent || 0);
-          row.payments_received    = Number(row.payments_received || 0);
-          row.high_value_sent      = Number(row.high_value_sent || 0);
-          row.high_value_received  = Number(row.high_value_received || 0);
-          row.total_value_sent     = Number(row.total_value_sent || 0);
-          row.total_value_received = Number(row.total_value_received || 0);
-          row.total_value          = Number(row.total_value || 0);
-          resolve(row);
-
-        } else {
-          resolve(bucket);
-        }
-      });
-    });
-  });
-}
-
 HbaseClient.prototype.getStats = function (options) {
 
   if (!options) options = { };
@@ -148,12 +96,149 @@ HbaseClient.prototype.getStats = function (options) {
   });
 };
 
+HbaseClient.prototype.getAggregateAccountPayments = function(options) {
+  var self = this;
+  var keys = [ ];
+  var start;
+  var end;
+
+  if (options.account) {
+    if (options.date) {
+      start  = moment.utc(options.date).startOf('day');
+      keys.push(utils.formatTime(start) + '|' + options.account);
+
+    } else {
+      start = moment.utc(options.start).startOf('day');
+      end   = moment.utc(options.end);
+      while(end.diff(start)>=0) {
+        keys.push(utils.formatTime(start) + '|' + options.account);
+        start.add(1, 'day');
+      }
+    }
+
+    return new Promise (function(resolve, reject) {
+      self._getConnection(function(err, connection) {
+
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        self.getRows('agg_account_payments', keys, function (err, rows) {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          resolve(formatRows(rows || [], keys));
+        });
+      });
+    });
+
+  } else {
+    if (options.date) {
+      start = moment.utc(options.date).startOf('day');
+      end   = moment.utc(start).add(1, 'day');
+
+    } else {
+      start = moment.utc(options.start).startOf('day');
+      end   = moment.utc(options.end);
+    }
+
+    return new Promise (function(resolve, reject) {
+      self._getConnection(function(err, connection) {
+
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        self.getScan({
+          table    : 'agg_account_payments',
+          startRow : utils.formatTime(start),
+          stopRow  : utils.formatTime(end)
+        }, function (err, rows) {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          resolve(formatRows(rows || []));
+        });
+      });
+    });
+  }
+
+  function formatRows(rows, keys) {
+    var results = { };
+
+    var Bucket  = function(key) {
+      this.receiving_counterparties = [],
+      this.sending_counterparties   = [],
+      this.payments_sent        = 0,
+      this.payments_received    = 0,
+      this.high_value_sent      = 0,
+      this.high_value_received  = 0,
+      this.total_value_sent     = 0,
+      this.total_value_received = 0,
+      this.total_value          = 0
+
+      if (key) {
+        var parts    = key.split('|');
+        this.date    = utils.unformatTime(parts[0]).format();
+        this.account = parts[1];
+      }
+
+      return this;
+    }
+
+    rows.forEach(function(row) {
+      var key = row.rowkey;
+      var parts;
+
+      row.sending_counterparties   = JSON.parse(row.sending_counterparties) || [];
+      row.receiving_counterparties = JSON.parse(row.receiving_counterparties) || [];
+      row.payments_sent        = Number(row.payments_sent || 0);
+      row.payments_received    = Number(row.payments_received || 0);
+      row.high_value_sent      = Number(row.high_value_sent || 0);
+      row.high_value_received  = Number(row.high_value_received || 0);
+      row.total_value_sent     = Number(row.total_value_sent || 0);
+      row.total_value_received = Number(row.total_value_received || 0);
+      row.total_value          = Number(row.total_value || 0);
+      delete row.rowkey;
+
+      //keys will be present on a
+      //single account lookup, in
+      //which we will add empty
+      //buckets as needed.
+      if (keys) {
+        results[key] = row;
+      }
+
+      if (!row.account) {
+        parts = key.split('|');
+        row.date    = utils.unformatTime(parts[0]).format();
+        row.account = parts[1];
+      }
+    });
+
+    if (keys) {
+      rows = [ ];
+      keys.forEach(function(key) {
+        rows.push(results[key] || new Bucket(key));
+      });
+    }
+
+    return rows;
+  }
+}
+
 /**
  * getPayments
  * query payments
 */
 
-HbaseClient.prototype.getPayments = function (options, callback) {
+HbaseClient.prototype.getAccountPayments = function (options, callback) {
   var table   = 'account_payments';
   var startRow = options.account + '|' + utils.formatTime(options.start);
   var endRow   = options.account + '|' + utils.formatTime(options.end);

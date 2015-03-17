@@ -19,7 +19,8 @@ var Server = function (options) {
   //define routes
   app.get('/v1/accounts/:address/transactions', routes.accountTx);
   app.get('/v1/accounts/:address/transactions/:sequence', routes.accountTxSeq);
-  app.get('/v1/accounts/:address/payments', routes.getPayments);
+  app.get('/v1/accounts/:address/payments/:date?', routes.accountPayments);
+  app.get('/v1/accounts/:address/reports/:date?',  routes.accountReports);
   app.get('/v1/accounts/:address/balance_changes', routes.getChanges);
   app.get('/v1/accounts/:address/exchanges', routes.accountExchanges);
   //app.get('/v1/accounts/:address/offers', routes.accountOffers);
@@ -27,11 +28,15 @@ var Server = function (options) {
   app.get('/v1/ledgers/:ledger_param?', routes.getLedger);
   app.get('/v1/transactions/:tx_hash', routes.getTx);
   app.get('/v1/exchanges/:base/:counter', routes.getExchanges);
+  app.get('/v1/reports/:date?', routes.reports);
+  //app.get('/v1/payments/:date?', routes.payments);
   app.get('/v1/last_validated', routes.getLastValidated);
 
   //start the server
   server = app.listen(options.port);
   console.log('Ripple Data API running on port: ' + options.port);
+
+  //hb.getStats({interval:'hour'}).nodeify(function(err, resp){console.log(err, resp)});
 
   this.close = function () {
     if (server) {
