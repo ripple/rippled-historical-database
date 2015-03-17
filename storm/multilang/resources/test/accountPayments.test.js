@@ -1,10 +1,10 @@
-var Aggregation  = require('../src/lib/exchangeAggregation');
+var Aggregation  = require('../src/lib/accountPaymentsAggregation');
 var Parser       = require('../src/lib/modules/ledgerParser');
 var Hbase        = require('../src/lib/hbase-client');
 var utils        = require('../src/lib/utils');
 var fs           = require('fs');
 var options = {
-  "logLevel" : 3,
+  "logLevel" : 4,
   "hbase" : {
     "prefix" : 'test_',
     "host"   : "54.172.205.78",
@@ -20,13 +20,11 @@ var options = {
   }
 };
 
+var payments     = new Aggregation(options);
 var path         = __dirname + '/ledgers/';
 var EPOCH_OFFSET = 946684800;
 var files        = fs.readdirSync(path);
-
-var ledgers   = [ ];
-var exchanges = [ ];
-var pairs     = { };
+var ledgers      = [ ];
 
 function prepareTransaction (ledger, tx) {
   var meta = tx.metaData;
@@ -47,52 +45,38 @@ function prepareTransaction (ledger, tx) {
 
 console.log('# ledgers:', files.length);
 
-files.forEach(function(filename) {
-  if (exchanges.length) return;
+var count = 0;
 
+files.forEach(function(filename) {
   var ledger = JSON.parse(fs.readFileSync(path + filename, "utf8"));
 
   //adjust the close time to unix epoch
   ledger.close_time = ledger.close_time + EPOCH_OFFSET;
 
+  setTimeout(function() {
+    console.log("processing ledger:", ledger.ledger_index);
+    processLedger(ledger);
+  }, count++ * 500);
+});
+
+function processLedger (ledger) {
+
   ledger.transactions.forEach(function(tx) {
     var parsed;
 
-    tx        = prepareTransaction(ledger, tx);
-    parsed    = Parser.parseTransaction(tx);
-    exchanges = exchanges.concat(parsed.exchanges);
+    tx     = prepareTransaction(ledger, tx);
+    parsed = Parser.parseTransaction(tx);
+
+    if (parsed.payments.length) {
+      payments.add({
+        data    : parsed.payments[0],
+        account : parsed.payments[0].source
+      });
+
+      payments.add({
+        data    : parsed.payments[0],
+        account : parsed.payments[0].destination
+      });
+    }
   });
-});
-
-console.log('# exchanges:', exchanges.length);
-
-var hbase = new Hbase(options.hbase);
-
-exchanges.forEach(function(ex) {
-  var pair = ex.base.currency +
-    (ex.base.issuer ? "." + ex.base.issuer : '') +
-    '/' + ex.counter.currency +
-    (ex.counter.issuer ? "." + ex.counter.issuer : '');
-
-  if (!pairs[pair]) {
-    pairs[pair] = new Aggregation({
-      base     : ex.base,
-      counter  : ex.counter,
-      hbase    : hbase,
-      logLevel : options.logLevel
-    });
-  }
-
-  pairs[pair].add(ex, function(err, resp) {
-    console.log(err, resp);
-  });
-});
-
-var uniquePairs = Object.keys(pairs);
-console.log(uniquePairs, uniquePairs.length);
-
-
-
-
-
-
+}

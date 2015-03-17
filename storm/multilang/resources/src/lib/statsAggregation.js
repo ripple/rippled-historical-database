@@ -3,7 +3,6 @@ var moment  = require('moment');
 var Logger  = require('./modules/logger');
 var Hbase   = require('./hbase-client');
 var utils   = require('./utils');
-var bolt;
 
 /**
  * statsAggregation

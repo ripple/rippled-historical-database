@@ -18,6 +18,7 @@ public class TransactionBolt extends ShellBolt implements IRichBolt {
     declarer.declareStream("paymentAggregation",  new Fields("payment"));
     declarer.declareStream("exchangeAggregation", new Fields("exchange", "pair"));
     declarer.declareStream("statsAggregation",    new Fields("stat", "label"));
+    declarer.declareStream("accountPaymentsAggregation", new Fields("payment", "account"));
   }
 
   @Override

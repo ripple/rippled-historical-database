@@ -21,6 +21,9 @@ public class ImportTopology {
       .fieldsGrouping("transactions", "statsAggregation", new Fields("label"))
       .fieldsGrouping("ledgerStream", "statsAggregation", new Fields("label"));
 
+    builder.setBolt("accountPayments", new AccountPaymentsBolt(), 2)
+      .fieldsGrouping("transactions", "accountPaymentsAggregation", new Fields("account"));
+
     Config conf = new Config();
     //conf.setDebug(true);
 

@@ -45,6 +45,57 @@ function HbaseClient() {
 HbaseClient.prototype = Object.create(Hbase.prototype);
 HbaseClient.prototype.constructor = HbaseClient;
 
+HbaseClient.prototype.getAccountPaymentsAggregation = function(options) {
+
+  if (!options || !options.account) {
+    return Promise.reject('account is required');
+  }
+
+  var self   = this;
+  var date   = options.date || moment.utc();
+  var rowkey = utils.formatTime(date.startOf('day')) + '|' + options.account;
+
+  return new Promise (function(resolve, reject) {
+    self._getConnection(function(err, connection) {
+
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      self.getRow('agg_account_payments', rowkey, function (err, row) {
+        var bucket = {
+          receiving_counterparties : [],
+          sending_counterparties   : [],
+          payments_sent        : 0,
+          payments_received    : 0,
+          high_value_sent      : 0,
+          high_value_received  : 0,
+          total_value_sent     : 0,
+          total_value_received : 0,
+          total_value          : 0
+        }
+
+        if (err) {
+          reject(err);
+
+        } else if (row) {
+          row.payments_sent        = Number(row.payments_sent || 0);
+          row.payments_received    = Number(row.payments_received || 0);
+          row.high_value_sent      = Number(row.high_value_sent || 0);
+          row.high_value_received  = Number(row.high_value_received || 0);
+          row.total_value_sent     = Number(row.total_value_sent || 0);
+          row.total_value_received = Number(row.total_value_received || 0);
+          row.total_value          = Number(row.total_value || 0);
+          resolve(row);
+
+        } else {
+          resolve(bucket);
+        }
+      });
+    });
+  });
+}
 
 HbaseClient.prototype.getStats = function (options) {
 
