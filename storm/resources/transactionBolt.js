@@ -1,4 +1,4 @@
-var config    = require('./config');
+var config    = require('./config/import.config');
 var Promise   = require('bluebird');
 var Storm     = require('./storm');
 var Parser    = require('./lib/ledgerParser');
@@ -7,10 +7,12 @@ var BasicBolt = Storm.BasicBolt;
 var bolt;
 
 function TransactionBolt() {
-  config.hbase.logLevel = config.logLevel;
-  config.hbase.logFile  = config.logFile;
+  var options = config.get('hbase');
 
-  this.hbase = new Hbase(config.hbase);
+  options.logLevel = config.get('logLevel');
+  options.logFile  = config.get('logFile');
+
+  this.hbase = new Hbase(options);
 
   BasicBolt.call(this);
 }

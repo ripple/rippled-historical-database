@@ -1,4 +1,4 @@
-var config      = require('./config');
+var config      = require('./config/import.config');
 var Promise     = require('bluebird');
 var Storm       = require('./storm');
 var Aggregation = require('./lib/aggregation/stats');
@@ -7,10 +7,12 @@ var bolt;
 
 
 function StatsBolt() {
-  config.hbase.logLevel = config.logLevel;
-  config.hbase.logFile  = config.logFile;
+  var options = config.get('hbase');
 
-  this.stats = new Aggregation(config);
+  options.logLevel = config.get('logLevel');
+  options.logFile  = config.get('logFile');
+
+  this.stats = new Aggregation(options);
 
   BasicBolt.call(this);
 }

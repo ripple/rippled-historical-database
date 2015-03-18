@@ -1,9 +1,17 @@
-var config       = require('./config');
+var config       = require('./config/import.config');
 var Storm        = require('./storm');
 var LedgerStream = require('./lib/ledgerStream');
-var stream       = new LedgerStream(config);
 var Spout        = Storm.Spout;
 var ledgerSpout;
+var stream;
+var options = {
+  logLevel : config.get('logLevel'),
+  logFile  : config.get('logFile'),
+  ripple   : config.get('ripple'),
+  hbase    : config.get('hbase')
+}
+
+stream = new LedgerStream(options);
 
 /**
  * LedgerStreamSpout

@@ -24,7 +24,6 @@
 
   <name>ledger-importer</name>
 
-
   <dependencies>
     <dependency>
       <groupId>org.apache.storm</groupId>
@@ -36,19 +35,26 @@
   </dependencies>
 
   <build>
-    <sourceDirectory>java</sourceDirectory>
+    <sourceDirectory>../java</sourceDirectory>
     <resources>
       <resource>
         <targetPath>resources</targetPath>
-        <directory>resources</directory>
+        <directory>../resources</directory>
+      </resource>
+      <resource>
+        <targetPath>resources/config</targetPath>
+        <directory>../../config</directory>
+        <includes>
+          <include>import*</include>
+        </includes>
       </resource>
       <resource>
         <targetPath>resources/lib</targetPath>
-        <directory>../lib</directory>
+        <directory>../../lib</directory>
       </resource>
       <resource>
         <targetPath>resources/node_modules</targetPath>
-        <directory>../node_modules</directory>
+        <directory>../../node_modules</directory>
       </resource>
    </resources>
 

@@ -1,5 +1,7 @@
 {
   "queueLength" : 20,
+  "logLevel"    : 3,
+  "logFile"     : null,
   "ripple" : {
     "trace"                 : false,
     "allow_partial_history" : false,
@@ -29,6 +31,6 @@
   },
   "hbase-rest" : {
     "host" : "",
-    "port" : 20550 
-  }  
+    "port" : 20550
+  }
 }

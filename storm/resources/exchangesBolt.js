@@ -1,4 +1,4 @@
-var config      = require('./config');
+var config      = require('./config/import.config');
 var Promise     = require('bluebird');
 var Storm       = require('./storm');
 var Hbase       = require('./lib/hbase/hbase-client');
@@ -8,10 +8,12 @@ var pairs       = { };
 var bolt;
 
 function ExchangesBolt() {
-  config.hbase.logLevel = config.logLevel;
-  config.hbase.logFile  = config.logFile;
+  var options = config.get('hbase');
 
-  this.hbase = new Hbase(config.hbase);
+  options.logLevel = config.get('logLevel');
+  options.logFile  = config.get('logFile');
+
+  this.hbase = new Hbase(options);
 
   BasicBolt.call(this);
 }
@@ -30,8 +32,8 @@ ExchangesBolt.prototype.process = function(tup, done) {
       base     : ex.base,
       counter  : ex.counter,
       hbase    : self.hbase,
-      logLevel : config.logLevel,
-      logFile  : config.logFile
+      logLevel : config.get('logLevel'),
+      logFile  : config.get('logFile')
     });
     self.log('#pairs: ' + Object.keys(pairs).length);
 

@@ -1,4 +1,4 @@
-var config      = require('./config');
+var config      = require('./config/import.config');
 var Promise     = require('bluebird');
 var Storm       = require('./storm');
 var Aggregation = require('./lib/aggregation/accountPayments');
@@ -7,8 +7,10 @@ var bolt;
 
 
 function AccountPaymentsBolt() {
-  config.hbase.logLevel = config.logLevel;
-  config.hbase.logFile  = config.logFile;
+  var options = config.get('hbase');
+
+  options.logLevel = config.get('logLevel');
+  options.logFile  = config.get('logFile');
 
   this.payments = new Aggregation(config);
 
