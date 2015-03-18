@@ -1,6 +1,6 @@
 var express    = require('express');
 var bodyParser = require('body-parser');
-var Hbase      = require('../storm/multilang/resources/src/lib/hbase-client');
+var Hbase      = require('../lib/hbase/hbase-client');
 var config     = require('../config/api.config');
 var cors       = require('cors');
 var Postgres   = require('./lib/db');

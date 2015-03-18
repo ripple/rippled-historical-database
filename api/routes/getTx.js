@@ -1,4 +1,4 @@
-var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var Logger   = require('../../lib/logger');
 var log      = new Logger({scope : 'get tx'});
 var response = require('response');
 var postgres;

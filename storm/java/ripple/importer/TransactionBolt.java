@@ -10,7 +10,7 @@ import backtype.storm.tuple.Fields;
 public class TransactionBolt extends ShellBolt implements IRichBolt {
 
   public TransactionBolt() {
-    super("node", "src/transactionBolt.js");
+    super("node", "transactionBolt.js");
   }
 
   @Override

@@ -1,5 +1,5 @@
 var config   = require('../../config/import.config');
-var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var Logger   = require('../../lib/logger');
 var Knex     = require('knex');
 var Promise  = require('bluebird');
 var moment   = require('moment');

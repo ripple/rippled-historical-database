@@ -1,5 +1,4 @@
-var config   = require('../../storm/multilang/resources/config');
-var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var Logger   = require('../../lib/logger');
 var log      = new Logger({scope : 'account payments'});
 var moment   = require('moment');
 var response = require('response');

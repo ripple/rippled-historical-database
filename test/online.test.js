@@ -1,0 +1,126 @@
+var assert  = require('assert');
+var Stream  = require('../storm/resources/ledgerStream');
+var Parser  = require('../lib/ledgerParser');
+var Rest    = require('../lib/hbase/hbase-rest');
+var Promise = require('bluebird');
+var fs      = require('fs');
+
+var PREFIX  = 'TEST_';
+var rest    = new Rest({
+  prefix : PREFIX,
+  host   : "54.164.78.183",
+  port   : 20550
+});
+
+
+var stream = new Stream({
+  "logLevel" : 3,
+  "hbase" : {
+    "prefix" : PREFIX,
+    "host"   : "54.172.205.78",
+    "port"   : 9090
+  },
+  "ripple" : {
+    "trace"                 : false,
+    "allow_partial_history" : false,
+    "servers" : [
+      { "host" : "s-west.ripple.com", "port" : 443, "secure" : true },
+      { "host" : "s-east.ripple.com", "port" : 443, "secure" : true }
+    ]
+  },
+});
+
+var testLedger;
+
+describe('ledgerStreamSpout', function () {
+  before(function(done){
+    this.timeout(60000);
+
+    rest.initTables(function(err, resp) {
+      assert.ifError(err);
+      stream.start();
+
+      //wait for a ledger with transactions
+      var interval = setInterval(function() {
+        if (stream.ledgers.length) {
+          if (!stream.ledgers[0].ledger.transactions.length) {
+            stream.ledgers.shift();
+            return;
+          }
+
+          stream.stop();
+          clearInterval(interval);
+          done();
+        }
+      }, 100);
+    });
+  });
+
+
+  it('should process an incoming ledger', function(done) {
+    stream.processNextLedger(function(err, row) {
+      testLedger = row.ledger;
+      done();
+    });
+  });
+
+  it('should parse metadata of incoming transactions', function(done) {
+    stream.parsed = [];
+    stream.transactions.forEach(function(tx) {
+      stream.parsed.push({
+        data        : Parser.parseTransaction(tx),
+        ledgerIndex : tx.ledger_index,
+        txIndex     : tx.tx_index});
+    });
+
+    done();
+  });
+
+  it('should save incoming transactions', function(done) {
+    this.timeout(10000);
+    Promise.map(stream.transactions, function(tx) {
+      return new Promise (function(resolve, reject) {
+        stream.hbase.saveTransaction(tx, function(err, resp) {
+          assert.ifError(err);
+          if (err) reject(err);
+          else     resolve();
+        });
+      });
+    }).then(function(){
+      done();
+    });
+  });
+
+  it('should save parsed transaction data', function(done) {
+    this.timeout(10000);
+    Promise.map(stream.parsed, function(data) {
+      return new Promise (function(resolve, reject) {
+        stream.hbase.saveParsedData(data, function(err, resp) {
+          assert.ifError(err);
+          if (err) reject(err);
+          else     resolve();
+        });
+      });
+    }).then(function(){
+      done();
+    });
+  });
+
+  it('should save the incoming ledger', function(done) {
+    this.timeout(10000);
+    stream.hbase.saveLedger(testLedger, function(err, resp) {
+      assert.ifError(err);
+      done();
+    });
+  });
+
+
+  after(function(done) {
+    this.timeout(60000);
+    stream.stop();
+    console.log('removing tables');
+    rest.removeTables(function(err, resp) {
+      done();
+    });
+  });
+});

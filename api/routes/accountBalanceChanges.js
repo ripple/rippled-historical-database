@@ -1,5 +1,4 @@
-var config   = require('../../storm/multilang/resources/config');
-var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var Logger   = require('../../lib/logger');
 var log      = new Logger({scope : 'get account balance changes'});
 var moment   = require('moment');
 var response = require('response');
@@ -11,10 +10,10 @@ self.getChanges = function (req, res, next) {
   var options = prepareOptions();
 
   log.info("ACCOUNT BALANCE CHANGE:", options.account);
-  
+
   hbase.getAccountBalanceChanges(options, function(err, changes) {
     if (err) errorResponse(err);
-    else if 
+    else if
       (changes.length === 0) errorResponse({error: "no balance changes found", code: 404});
     else successResponse(changes);
   });
@@ -33,7 +32,7 @@ self.getChanges = function (req, res, next) {
   }
 
   /**
-  * errorResponse 
+  * errorResponse
   * return an error response
   * @param {Object} err
   */
@@ -42,15 +41,15 @@ self.getChanges = function (req, res, next) {
       log.error(err.error || err);
       response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
-      response.json({result:'error', message:'unable to retrieve balance changes'}).status(500).pipe(res);  
-    }     
+      response.json({result:'error', message:'unable to retrieve balance changes'}).status(500).pipe(res);
+    }
   }
 
   /**
   * successResponse
   * return a successful response
   * @param {Object} balance changes
-  */  
+  */
   function successResponse (changes) {
     var result = {
       result          : "sucess",
@@ -58,7 +57,7 @@ self.getChanges = function (req, res, next) {
       balance_changes : changes
     };
 
-    response.json(result).pipe(res);      
+    response.json(result).pipe(res);
   }
 
 };

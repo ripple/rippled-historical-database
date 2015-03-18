@@ -8,9 +8,9 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 
 public class ExchangesBolt extends ShellBolt implements IRichBolt {
-	
+
   public ExchangesBolt() {
-    super("node", "src/exchangesBolt.js");
+    super("node", "exchangesBolt.js");
   }
 
   @Override

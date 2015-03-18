@@ -1,8 +1,8 @@
 var config   = require('../../config/import.config');
-var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
-var Hbase    = require('../../storm/multilang/resources/src/lib/hbase-client');
-var Parser   = require('../../storm/multilang/resources/src/lib/modules/ledgerParser');
-var utils    = require('../../storm/multilang/resources/src/lib/utils');
+var Logger   = require('../../lib/logger');
+var Hbase    = require('../../lib/hbase/hbase-client');
+var Parser   = require('../../lib/ledgerParser');
+var utils    = require('../../lib/utils');
 
 var types     = ['full', 'parsed'];
 var LI_PAD    = 12;

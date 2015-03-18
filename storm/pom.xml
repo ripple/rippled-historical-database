@@ -39,7 +39,16 @@
     <sourceDirectory>java</sourceDirectory>
     <resources>
       <resource>
-        <directory>${basedir}/multilang</directory>
+        <targetPath>resources</targetPath>
+        <directory>resources</directory>
+      </resource>
+      <resource>
+        <targetPath>resources/lib</targetPath>
+        <directory>../lib</directory>
+      </resource>
+      <resource>
+        <targetPath>resources/node_modules</targetPath>
+        <directory>../node_modules</directory>
       </resource>
    </resources>
 

@@ -1,5 +1,5 @@
 var HBase     = require('./client');
-var Validator = require('../../storm/multilang/resources/src/lib/validator');
+var Validator = require('../../lib/validator');
 var config    = require('../../config/import.config');
 var hbase = new HBase();
 var v;

@@ -10,7 +10,7 @@ import backtype.storm.tuple.Fields;
 public class AccountPaymentsBolt extends ShellBolt implements IRichBolt {
 
   public AccountPaymentsBolt() {
-    super("node", "src/accountPaymentsBolt.js");
+    super("node", "accountPaymentsBolt.js");
   }
 
   @Override

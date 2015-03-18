@@ -10,7 +10,7 @@ import backtype.storm.tuple.Fields;
 public class StatsBolt extends ShellBolt implements IRichBolt {
 
   public StatsBolt() {
-    super("node", "src/statsBolt.js");
+    super("node", "statsBolt.js");
   }
 
   @Override
