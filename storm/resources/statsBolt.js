@@ -1,4 +1,4 @@
-var config      = require('./config/import.config');
+var config      = require('./config');
 var Promise     = require('bluebird');
 var Storm       = require('./storm');
 var Aggregation = require('./lib/aggregation/stats');

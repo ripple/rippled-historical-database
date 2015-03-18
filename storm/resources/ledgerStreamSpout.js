@@ -1,4 +1,4 @@
-var config       = require('./config/import.config');
+var config       = require('./config');
 var Storm        = require('./storm');
 var LedgerStream = require('./lib/ledgerStream');
 var Spout        = Storm.Spout;
