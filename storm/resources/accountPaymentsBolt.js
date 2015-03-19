@@ -7,7 +7,11 @@ var bolt;
 
 
 function AccountPaymentsBolt() {
-  var options = config.get('hbase');
+  var options = config.get('hbase2');
+
+  if (!options) {
+    options = config.get('hbase');
+  }
 
   options.logLevel = config.get('logLevel');
   options.logFile  = config.get('logFile');
