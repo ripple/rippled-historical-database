@@ -4,9 +4,9 @@ var Hbase        = require('../lib/hbase/hbase-client');
 var utils        = require('../lib/utils');
 var fs           = require('fs');
 var options = {
-  "prefix" : 'test_',
-  "host"   : "54.172.205.78",
-  "port"   : 9090,
+  "prefix"   : 'test_',
+  "host"     : "54.172.205.78",
+  "port"     : 9090,
   "logLevel" : 4
 };
 
