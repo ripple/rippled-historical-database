@@ -4,20 +4,10 @@ var Hbase        = require('../lib/hbase/hbase-client');
 var utils        = require('../lib/utils');
 var fs           = require('fs');
 var options = {
-  "logLevel" : 4,
-  "hbase" : {
-    "prefix" : 'test_',
-    "host"   : "54.172.205.78",
-    "port"   : 9090
-  },
-  "ripple" : {
-    "trace"                 : false,
-    "allow_partial_history" : false,
-    "servers" : [
-      { "host" : "s-west.ripple.com", "port" : 443, "secure" : true },
-      { "host" : "s-east.ripple.com", "port" : 443, "secure" : true }
-    ]
-  }
+  "prefix"   : 'test_',
+  "host"     : "54.172.205.78",
+  "port"     : 9090,
+  "logLevel" : 4
 };
 
 var payments     = new Aggregation(options);
