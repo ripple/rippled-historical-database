@@ -86,7 +86,7 @@ function processLedger (ledger) {
       }
 
       pairs[pair].add(ex, function(err, resp) {
-        console.log(err, resp);
+        if (err) console.log(err);
       });
     });
   });
