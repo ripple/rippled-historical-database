@@ -16,7 +16,7 @@ function AccountPaymentsBolt() {
   options.logLevel = config.get('logLevel');
   options.logFile  = config.get('logFile');
 
-  this.payments = new Aggregation(config);
+  this.payments = new Aggregation(options);
 
   BasicBolt.call(this);
 }
