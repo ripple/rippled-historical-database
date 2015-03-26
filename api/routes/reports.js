@@ -50,7 +50,7 @@ var Reports = function (req, res, next) {
 
     if (req.params.date) {
       options.start  = moment.utc(req.params.date).startOf('day');
-      options.end    = moment.utc(req.params.date);
+      options.end    = moment.utc(options.start).add(1, 'day');
 
     } else {
       if (!options.end)   options.end   = moment.utc();
