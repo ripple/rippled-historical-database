@@ -33,11 +33,24 @@ AccountExchanges = function (req, res, next) {
   function prepareOptions () {
     var options = {
       account      : req.params.address,
+      base         : req.params.base,
+      counter      : req.params.counter,      
       limit        : req.query.limit || 200,
       descending   : (/false/i).test(req.query.descending) ? false : true,
       start        : req.query.start,
       end          : req.query.end,
     };
+
+    var base    = req.params.base ? req.params.base.split(/[\+|\.]/) : undefined;
+    var counter = req.params.counter ? req.params.counter.split(/[\+|\.]/) : undefined;
+
+    options.base= {};
+    options.base.currency = base && base[0] ? base[0].toUpperCase() : undefined;
+    options.base.issuer   = base && base[1] ? base[1] : undefined;
+
+    options.counter= {};
+    options.counter.currency = counter && counter[0] ? counter[0].toUpperCase() : undefined;
+    options.counter.issuer   = counter && counter[1] ? counter[1] : undefined;
 
     if (!options.end)   options.end   = moment.utc('9999-12-31');
     if (!options.start) options.start = moment.utc(0);
