@@ -23,6 +23,8 @@ var Server = function (options) {
   app.get('/v1/accounts/:address/reports/:date?',  routes.accountReports);
   app.get('/v1/accounts/:address/balance_changes', routes.getChanges);
   app.get('/v1/accounts/:address/exchanges', routes.accountExchanges);
+  app.get('/v1/accounts/:address/exchanges/:base', routes.accountExchanges);
+  app.get('/v1/accounts/:address/exchanges/:base/:counter', routes.accountExchanges);
   //app.get('/v1/accounts/:address/offers', routes.accountOffers);
   app.get('/v1/accounts/:address/balances', routes.accountBalances);
   app.get('/v1/ledgers/:ledger_param?', routes.getLedger);
