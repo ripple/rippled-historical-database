@@ -36,7 +36,7 @@ AccountExchanges = function (req, res, next) {
       base         : req.params.base,
       counter      : req.params.counter,      
       limit        : req.query.limit || 200,
-      from         : req.query.from,
+      marker       : req.query.marker,
       descending   : (/false/i).test(req.query.descending) ? false : true,
       start        : req.query.start,
       end          : req.query.end,
@@ -85,7 +85,7 @@ AccountExchanges = function (req, res, next) {
     var result = {
       result   : "sucess",
       count    : exchanges.rows.length,
-      next : exchanges.next,
+      marker : exchanges.next,
       exchanges : exchanges.rows
     };
 
