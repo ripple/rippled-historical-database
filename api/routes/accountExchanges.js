@@ -13,7 +13,7 @@ AccountExchanges = function (req, res, next) {
       errorResponse(err);
 
     } else {
-      exchanges.forEach(function(ex) {
+      exchanges.rows.forEach(function(ex) {
         ex.executed_time = moment.unix(ex.executed_time).utc().format();
 
         delete ex.rowkey;
@@ -36,6 +36,7 @@ AccountExchanges = function (req, res, next) {
       base         : req.params.base,
       counter      : req.params.counter,      
       limit        : req.query.limit || 200,
+      from         : req.query.from,
       descending   : (/false/i).test(req.query.descending) ? false : true,
       start        : req.query.start,
       end          : req.query.end,
@@ -83,8 +84,9 @@ AccountExchanges = function (req, res, next) {
   function successResponse (exchanges) {
     var result = {
       result   : "sucess",
-      count    : exchanges.length,
-      exchanges : exchanges
+      count    : exchanges.rows.length,
+      next : exchanges.next,
+      exchanges : exchanges.rows
     };
 
     response.json(result).pipe(res);
