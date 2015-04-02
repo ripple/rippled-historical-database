@@ -83,9 +83,9 @@ AccountExchanges = function (req, res, next) {
 
   function successResponse (exchanges) {
     var result = {
-      result   : "sucess",
-      count    : exchanges.rows.length,
-      marker : exchanges.next,
+      result    : "success",
+      count     : exchanges.rows.length,
+      marker    : exchanges.marker,
       exchanges : exchanges.rows
     };
 

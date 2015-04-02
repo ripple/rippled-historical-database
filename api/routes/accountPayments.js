@@ -22,9 +22,10 @@ var AccountPayments = function (req, res, next) {
       if (err) {
         errorResponse(err);
       } else {
-        payments.forEach(function(p) {
+        payments.rows.forEach(function(p) {
           delete p.rowkey;
           delete p.tx_index;
+          delete p.client;
         });
 
         successResponse(payments);
@@ -41,6 +42,9 @@ var AccountPayments = function (req, res, next) {
       account    : req.params.address,
       start      : req.query.start,
       end        : req.query.end,
+      type       : req.query.type,
+      currency   : req.query.currency,
+      marker     : req.query.marker,
       descending : (/false/i).test(req.query.descending) ? false : true,
       limit      : Number(req.query.limit) || 200,
     };
@@ -88,9 +92,10 @@ var AccountPayments = function (req, res, next) {
 
   function successResponse (payments) {
     var result = {
-      result   : "sucess",
-      count    : payments.length,
-      payments : payments
+      result   : "success",
+      count    : payments.rows.length,
+      marker   : payments.marker,
+      payments : payments.rows
     };
 
     response.json(result).pipe(res);
