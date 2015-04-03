@@ -4,7 +4,7 @@ var Rest    = require('../lib/hbase/hbase-rest');
 var HBase   = require('../lib/hbase/hbase-client');
 var Promise = require('bluebird');
 var fs      = require('fs');
-var PREFIX  = 'TEST_'
+var PREFIX  = 'TEST_' + Math.random().toString(36).substr(2, 5) + '_';
 
 var rest = new Rest({
   prefix : PREFIX,
