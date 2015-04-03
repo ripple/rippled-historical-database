@@ -1,123 +1,66 @@
 var assert  = require('assert');
-var Stream  = require('../storm/resources/ledgerStream');
 var Parser  = require('../lib/ledgerParser');
 var Rest    = require('../lib/hbase/hbase-rest');
+var HBase   = require('../lib/hbase/hbase-client');
 var Promise = require('bluebird');
 var fs      = require('fs');
+var PREFIX  = 'TEST_' + Math.random().toString(36).substr(2, 5) + '_';
 
-var PREFIX  = 'TEST_';
-var rest    = new Rest({
+var rest = new Rest({
   prefix : PREFIX,
   host   : "54.164.78.183",
   port   : 20550
 });
 
+var options = {
+  "logLevel" : 2,
+  "prefix"   : PREFIX,
+  "host"     : "54.172.205.78",
+  "port"     : 9090
+};
 
-var stream = new Stream({
-  "logLevel" : 3,
-  "hbase" : {
-    "prefix" : PREFIX,
-    "host"   : "54.172.205.78",
-    "port"   : 9090
-  },
-  "ripple" : {
-    "trace"                 : false,
-    "allow_partial_history" : false,
-    "servers" : [
-      { "host" : "s-west.ripple.com", "port" : 443, "secure" : true },
-      { "host" : "s-east.ripple.com", "port" : 443, "secure" : true }
-    ]
-  },
-});
+var hbase = new HBase(options);
+var path  = __dirname + '/ledgers/';
+var files = fs.readdirSync(path);
 
-var testLedger;
-
-describe('ledgerStreamSpout', function () {
+describe('HBASE client and API endpoints', function () {
   before(function(done){
     this.timeout(60000);
-
+    console.log('creating tables in HBASE');
     rest.initTables(function(err, resp) {
       assert.ifError(err);
-      stream.start();
-
-      //wait for a ledger with transactions
-      var interval = setInterval(function() {
-        if (stream.ledgers.length) {
-          if (!stream.ledgers[0].ledger.transactions.length) {
-            stream.ledgers.shift();
-            return;
-          }
-
-          stream.stop();
-          clearInterval(interval);
-          done();
-        }
-      }, 100);
-    });
-  });
-
-
-  it('should process an incoming ledger', function(done) {
-    stream.processNextLedger(function(err, row) {
-      testLedger = row.ledger;
       done();
     });
   });
 
-  it('should parse metadata of incoming transactions', function(done) {
-    stream.parsed = [];
-    stream.transactions.forEach(function(tx) {
-      stream.parsed.push({
-        data        : Parser.parseTransaction(tx),
-        ledgerIndex : tx.ledger_index,
-        txIndex     : tx.tx_index});
-    });
+  it('should save ledgers into hbase', function(done) {
+    this.timeout(60000);
+    Promise.map(files, function(filename) {
+      return new Promise(function(resolve, reject) {
+        var ledger = JSON.parse(fs.readFileSync(path + filename, "utf8"));
+        var parsed = Parser.parseLedger(ledger);
 
-    done();
-  });
-
-  it('should save incoming transactions', function(done) {
-    this.timeout(10000);
-    Promise.map(stream.transactions, function(tx) {
-      return new Promise (function(resolve, reject) {
-        stream.hbase.saveTransaction(tx, function(err, resp) {
+        hbase.saveParsedData({data:parsed}, function(err, resp) {
           assert.ifError(err);
-          if (err) reject(err);
-          else     resolve();
+          hbase.saveTransactions(parsed.transactions, function(err, resp) {
+            assert.ifError(err);
+            hbase.saveLedger(parsed.ledger, function(err, resp) {
+              assert.ifError(err);
+              console.log(ledger.ledger_index, 'saved');
+              resolve();
+            });
+          });
         });
       });
-    }).then(function(){
-      done();
-    });
-  });
-
-  it('should save parsed transaction data', function(done) {
-    this.timeout(10000);
-    Promise.map(stream.parsed, function(data) {
-      return new Promise (function(resolve, reject) {
-        stream.hbase.saveParsedData(data, function(err, resp) {
-          assert.ifError(err);
-          if (err) reject(err);
-          else     resolve();
-        });
-      });
-    }).then(function(){
-      done();
-    });
-  });
-
-  it('should save the incoming ledger', function(done) {
-    this.timeout(10000);
-    stream.hbase.saveLedger(testLedger, function(err, resp) {
+    }).nodeify(function(err, resp) {
       assert.ifError(err);
+      console.log(resp.length, 'ledgers saved');
       done();
     });
   });
-
 
   after(function(done) {
     this.timeout(60000);
-    stream.stop();
     console.log('removing tables');
     rest.removeTables(function(err, resp) {
       done();
