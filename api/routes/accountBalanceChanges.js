@@ -12,21 +12,34 @@ self.getChanges = function (req, res, next) {
   log.info("ACCOUNT BALANCE CHANGE:", options.account);
 
   hbase.getAccountBalanceChanges(options, function(err, changes) {
-    if (err) errorResponse(err);
-    else if
-      (changes.length === 0) errorResponse({error: "no balance changes found", code: 404});
-    else successResponse(changes);
+    if (err) {
+      errorResponse(err);
+
+    } else {
+      changes.rows.forEach(function(ex) {
+        delete ex.rowkey;
+        delete ex.client;
+        delete ex.account;
+      });
+
+      successResponse(changes);
+    }
   });
 
   function prepareOptions() {
+    
     var options = {
       account  : req.params.address,
       currency : req.query.currency,
       issuer   : req.query.issuer,
       limit    : req.query.limit,
       start    : req.query.start,
-      end      : req.query.end
+      end      : req.query.end,
+      marker   : req.query.marker
     }
+
+    if (!options.end)   options.end   = moment.utc('9999-12-31');
+    if (!options.start) options.start = moment.utc(0);
 
     return options;
   }
@@ -52,9 +65,10 @@ self.getChanges = function (req, res, next) {
   */
   function successResponse (changes) {
     var result = {
-      result          : "sucess",
-      count           : changes.length,
-      balance_changes : changes
+      result          : "success",
+      count           : changes.rows.length,
+      marker          : changes.marker,      
+      balance_changes : changes.rows
     };
 
     response.json(result).pipe(res);
