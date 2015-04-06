@@ -26,11 +26,13 @@
     "protocol" : "http"
   },
   "hbase" : {
-    "host" : "",
-    "port" : 9090
+    "prefix" : "test_",
+    "host"   : "",
+    "port"   : 9090
   },
   "hbase-rest" : {
-    "host" : "",
-    "port" : 20550
+    "prefix" : "test_",
+    "host"   : "",
+    "port"   : 20550
   }
 }
