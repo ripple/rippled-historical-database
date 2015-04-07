@@ -20,6 +20,7 @@ self.getChanges = function (req, res, next) {
         delete ex.rowkey;
         delete ex.client;
         delete ex.account;
+        ex.executed_time = moment.unix(ex.executed_time).utc().format();
       });
 
       successResponse(changes);
