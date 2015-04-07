@@ -4,6 +4,7 @@ var Rest    = require('../lib/hbase/hbase-rest');
 var HBase   = require('../lib/hbase/hbase-client');
 var Promise = require('bluebird');
 var request  = require('request');
+var moment   = require('moment');
 var fs      = require('fs');
 var Server   = require('../api/server');
 var PREFIX  = 'TEST_' + Math.random().toString(36).substr(2, 5) + '_';
@@ -119,6 +120,8 @@ describe('HBASE client and API endpoints', function () {
     }
   }
 
+  // PAYMENTS
+  //
   it('should make sure /v1/accounts/:account/payments handles limit correctly', function(done) {
     var url = 'http://localhost:' + port + '/v1/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?limit=2';
     request({
@@ -134,6 +137,63 @@ describe('HBASE client and API endpoints', function () {
     });    
   });
 
+  it('should make sure /v1/accounts/:account/payments handles dates correctly', function(done) {
+    var start= '2015-01-14T18:01:00';
+    var end= '2015-01-14T18:40:45';
+    var url = 'http://localhost:' + port + '/v1/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?'
+                                         + 'start=' + start + '&end='+ end;
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.notStrictEqual(body.payments.length, 0);  // Make sure we test something
+      body.payments.forEach( function(pay) {
+        var d= moment.utc(pay.executed_time);
+        assert.strictEqual( d.isBetween(moment.utc(start), moment.utc(end)) , true);
+      });      
+      done();
+    });    
+  });
+
+  it('should make sure /v1/accounts/:account/payments handles type correctly', function(done) {
+    var url = 'http://localhost:' + port + '/v1/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?'
+                                         + 'type=sent';
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.notStrictEqual(body.payments.length, 0);  // Make sure we test something
+      body.payments.forEach( function(pay) {
+        assert.strictEqual(pay.source, 'rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx');
+      });
+      done();
+    });
+  });
+
+  it('should make sure /v1/accounts/:account/payments handles type correctly', function(done) {
+    var url = 'http://localhost:' + port + '/v1/accounts/rGcSxmn1ibh5ZfCMAEu2iy7mnrb5nE6fbY/payments?'
+                                         + 'type=received';
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.notStrictEqual(body.payments.length, 0);  // Make sure we test something
+      body.payments.forEach( function(pay) {
+        assert.strictEqual(pay.destination, 'rGcSxmn1ibh5ZfCMAEu2iy7mnrb5nE6fbY');
+      });
+      done();
+    });
+  });
+
   it('should make sure /v1/accounts/:account/payments handles pagination correctly', function(done) {
     this.timeout(5000);
     var url = 'http://localhost:' + port + '/v1/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?';
@@ -144,6 +204,8 @@ describe('HBASE client and API endpoints', function () {
     }, done);
   });
 
+  // EXCHANGES
+  //
   it('should make sure /v1/accounts/:account/exhanges handles limit correctly', function(done) {
     var url = 'http://localhost:' + port + '/v1/accounts/rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg/exchanges?limit=5';
     request({
@@ -159,6 +221,27 @@ describe('HBASE client and API endpoints', function () {
     });    
   });
 
+  it('should make sure /v1/accounts/:account/exhanges handles dates correctly', function(done) {
+    var start= '2015-01-14T18:52:00';
+    var end= '2015-01-14T19:00:00';
+    var url = 'http://localhost:' + port + '/v1/accounts/rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg/exchanges?' 
+                                         + 'start=' + start + '&end='+ end;
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.notStrictEqual(body.exchanges.length, 0);  // Make sure we test something
+      body.exchanges.forEach( function(exch) {
+        var d= moment.utc(exch.executed_time);
+        assert.strictEqual( d.isBetween(moment.utc(start), moment.utc(end)) , true);
+      });          
+      done();
+    });    
+  });  
+
   it('should make sure /v1/accounts/:account/exhanges/:curr handles currency correctly', function(done) {
     var url = 'http://localhost:' + port + '/v1/accounts/rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg/exchanges/jpy';
     request({
@@ -168,6 +251,7 @@ describe('HBASE client and API endpoints', function () {
     function (err, res, body) {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
+      assert.notStrictEqual(body.exchanges.length, 0);  // Make sure we test something
       body.exchanges.forEach( function(exch) {
         assert.strictEqual(exch.base_currency, 'JPY');
       });
@@ -184,6 +268,7 @@ describe('HBASE client and API endpoints', function () {
     function (err, res, body) {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
+      assert.notStrictEqual(body.exchanges.length, 0);  // Make sure we test something
       body.exchanges.forEach( function(exch) {
         assert.strictEqual(exch.base_currency, 'BTC');
       });
@@ -200,6 +285,7 @@ describe('HBASE client and API endpoints', function () {
     function (err, res, body) {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
+      assert.notStrictEqual(body.exchanges.length, 0);  // Make sure we test something
       body.exchanges.forEach( function(exch) {
         assert.strictEqual(exch.base_currency, 'USD');
         assert.strictEqual(exch.base_issuer, 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q');
@@ -219,6 +305,9 @@ describe('HBASE client and API endpoints', function () {
       assert.equal(body.exchanges[0].tx_hash, ref.exchanges[i].tx_hash);
     }, done);
   });
+
+  // BALANCE_CHANGES
+  //
 
   after(function(done) {
     this.timeout(60000);
