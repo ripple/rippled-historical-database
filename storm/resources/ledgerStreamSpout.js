@@ -55,14 +55,22 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
             self.log('ledger saved: ' + row.ledger.ledger_index);
           }
 
-          //execute callback if it exists
+          // execute callback if it exists
           if (row.cb) {
             row.cb(err, resp);
           }
         });
 
-      //otherwise, wait till all transactions
-      //are acked to save the ledger
+      // already importing this ledger
+      // this can happen because of the validator
+      } else if (self.pending[row.ledger.ledger_index]) {
+        self.log('Already importing: ' + row.ledger.ledger_index);
+        if (row.cb) {
+          row.cb('already importing this ledger');
+        }
+
+      // otherwise, wait till all transactions
+      // are acked to save the ledger
       } else {
         self.pending[row.ledger.ledger_index] = {
           cb           : row.cb,

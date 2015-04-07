@@ -34,7 +34,7 @@ AccountExchanges = function (req, res, next) {
     var options = {
       account      : req.params.address,
       base         : req.params.base,
-      counter      : req.params.counter,      
+      counter      : req.params.counter,
       limit        : req.query.limit || 200,
       marker       : req.query.marker,
       descending   : (/false/i).test(req.query.descending) ? false : true,
@@ -66,9 +66,8 @@ AccountExchanges = function (req, res, next) {
   */
 
   function errorResponse (err) {
-    console.log(err);
-    if (err.code.toString()[0] === '4') {
-      log.error(err.error || err);
+    log.error(err.error || err);
+    if (err.code && err.code.toString()[0] === '4') {
       response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
       response.json({result:'error', message:'unable to retrieve exchanges'}).status(500).pipe(res);
