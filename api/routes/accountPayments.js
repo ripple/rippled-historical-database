@@ -26,6 +26,7 @@ var AccountPayments = function (req, res, next) {
           delete p.rowkey;
           delete p.tx_index;
           delete p.client;
+          p.executed_time = moment.unix(p.executed_time).utc().format();
         });
 
         successResponse(payments);
