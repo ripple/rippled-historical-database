@@ -49,7 +49,7 @@ self.getChanges = function (req, res, next) {
 
     if(options.issuer) {
       if(options.currency && options.currency.toUpperCase()=='XRP') {
-        return { error: 'invalid request: an issuer cannot be specified for XRP', code: 404 };
+        return { error: 'invalid request: an issuer cannot be specified for XRP', code: 400 };
       }
     }
 

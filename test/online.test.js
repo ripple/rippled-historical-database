@@ -498,7 +498,7 @@ describe('HBASE client and API endpoints', function () {
     },
     function (err, res, body) {
       assert.ifError(err);
-      assert.strictEqual(res.statusCode, 404);
+      assert.strictEqual(res.statusCode, 400);
       done();
     });    
   });
