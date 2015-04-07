@@ -9,6 +9,11 @@ var accountBalances = function(hbase) {
 self.getChanges = function (req, res, next) {
   var options = prepareOptions();
 
+  if (options.error) {
+    errorResponse(options);
+    return;
+  }
+
   log.info("ACCOUNT BALANCE CHANGE:", options.account);
 
   hbase.getAccountBalanceChanges(options, function(err, changes) {
@@ -41,6 +46,12 @@ self.getChanges = function (req, res, next) {
 
     if (!options.end)   options.end   = moment.utc('9999-12-31');
     if (!options.start) options.start = moment.utc(0);
+
+    if(options.issuer) {
+      if(options.currency && options.currency.toUpperCase()=='XRP') {
+        return { error: 'invalid request: an issuer cannot be specified for XRP', code: 404 };
+      }
+    }
 
     return options;
   }

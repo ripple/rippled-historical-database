@@ -388,6 +388,26 @@ describe('HBASE client and API endpoints', function () {
   });
 
   it('should make sure /v1/accounts/:account/balance_changes handles currency correctly', function(done) {
+    var issuer= 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
+    var url = 'http://localhost:' + port + '/v1/accounts/rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg/balance_changes?'
+                                         + 'currency=btc&issuer='+issuer;
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.notStrictEqual(body.balance_changes.length, 0);  // Make sure we test something
+      body.balance_changes.forEach( function(bch) {
+        assert.strictEqual(bch.currency, 'BTC');
+        assert.strictEqual(bch.issuer, issuer);
+      });
+      done();
+    });    
+  });
+
+  it('should make sure /v1/accounts/:account/balance_changes handles currency correctly', function(done) {
     var url = 'http://localhost:' + port + '/v1/accounts/rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg/balance_changes?currency=XRP';
     request({
       url: url,
@@ -449,7 +469,7 @@ describe('HBASE client and API endpoints', function () {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(body.balance_changes.length, 0);
-       assert.strictEqual(body.count, 0);
+      assert.strictEqual(body.count, 0);
       done();
     });    
   }); 
@@ -464,7 +484,21 @@ describe('HBASE client and API endpoints', function () {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(body.balance_changes.length, 0);
-       assert.strictEqual(body.count, 0);
+      assert.strictEqual(body.count, 0);
+      done();
+    });    
+  });
+
+  it('should make sure /v1/accounts/:account/balance_changes handles empty invalid params correctly', function(done) {
+    var url = 'http://localhost:' + port + '/v1/accounts/rrrrUBy92h6worVCYERZcVCzgzgmHb17Dx/balance_changes?'
+                                         + 'issuer=rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx&currency=Xrp' ;
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 404);
       done();
     });    
   });
