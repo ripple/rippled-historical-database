@@ -204,6 +204,21 @@ describe('HBASE client and API endpoints', function () {
     }, done);
   });
 
+  it('should make sure /v1/accounts/:account/payments handles empty response correctly', function(done) {
+    var url = 'http://localhost:' + port + '/v1/accounts/rrrrUBy92h6worVCYERZcVCzgzgmHb17Dx/payments';
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.payments.length, 0);
+       assert.strictEqual(body.count, 0);
+      done();
+    });    
+  });
+
   // EXCHANGES
   //
   it('should make sure /v1/accounts/:account/exhanges handles limit correctly', function(done) {
@@ -306,6 +321,21 @@ describe('HBASE client and API endpoints', function () {
     }, done);
   });
 
+  it('should make sure /v1/accounts/:account/exchanges handles empty response correctly', function(done) {
+    var url = 'http://localhost:' + port + '/v1/accounts/rrrrUBy92h6worVCYERZcVCzgzgmHb17Dx/exchanges';
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.exchanges.length, 0);
+       assert.strictEqual(body.count, 0);
+      done();
+    });    
+  });
+
   // BALANCE_CHANGES
   //
   it('should make sure /v1/accounts/:account/balance_changes handles limit correctly', function(done) {
@@ -405,6 +435,39 @@ describe('HBASE client and API endpoints', function () {
       done();
     });    
   }); 
+
+  it('should make sure /v1/accounts/:account/balance_changes handles empty response correctly', function(done) {
+    var start= '1015-01-14T18:00:00';
+    var end= '1970-01-14T18:30:00';
+    var url = 'http://localhost:' + port + '/v1/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/balance_changes?' 
+                                         + 'start=' + start + '&end='+ end;
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.balance_changes.length, 0);
+       assert.strictEqual(body.count, 0);
+      done();
+    });    
+  }); 
+
+  it('should make sure /v1/accounts/:account/balance_changes handles empty response correctly', function(done) {
+    var url = 'http://localhost:' + port + '/v1/accounts/rrrrUBy92h6worVCYERZcVCzgzgmHb17Dx/balance_changes';
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.balance_changes.length, 0);
+       assert.strictEqual(body.count, 0);
+      done();
+    });    
+  });
 
   after(function(done) {
     this.timeout(60000);
