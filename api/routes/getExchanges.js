@@ -59,9 +59,7 @@ var exchanges = function(hbase) {
         base       : {},
         counter    : {},
         descending : (/false/i).test(req.query.descending) ? false : true,
-        reduce     : (/true/i).test(req.query.reduce) ? true : false,
-        interval   : req.query.interval,
-        reduce     : req.query.reduce,
+        reduce     : (/true/i).test(req.query.reduce) ? true : false
       }
 
       var base    = req.params.base.split(/[\+|\.]/); //any of +, |, or .
