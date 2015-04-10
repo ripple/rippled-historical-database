@@ -1,12 +1,16 @@
-var Logger   = require('../../lib/logger');
-var log      = new Logger({scope : 'get account balance changes'});
-var moment   = require('moment');
+'use strict';
+
+var Logger = require('../../lib/logger');
+var log = new Logger({scope : 'get account balance changes'});
+var moment = require('moment');
 var response = require('response');
+var hbase;
 
-var accountBalances = function(hbase) {
-  self = this;
+/**
+ * AccountBalanceChanges
+ */
 
-self.getChanges = function (req, res, next) {
+var AcccountBalanceChanges = function(req, res) {
   var options = prepareOptions();
 
   if (options.error) {
@@ -33,7 +37,7 @@ self.getChanges = function (req, res, next) {
   });
 
   function prepareOptions() {
-    
+
     var options = {
       account  : req.params.address,
       currency : req.query.currency,
@@ -41,7 +45,8 @@ self.getChanges = function (req, res, next) {
       limit    : req.query.limit,
       start    : req.query.start,
       end      : req.query.end,
-      marker   : req.query.marker
+      marker   : req.query.marker,
+      format   : (req.query.format || 'json').toLowerCase()
     }
 
     if (!options.end)   options.end   = moment.utc('9999-12-31');
@@ -57,41 +62,49 @@ self.getChanges = function (req, res, next) {
   }
 
   /**
-  * errorResponse
-  * return an error response
-  * @param {Object} err
-  */
-  function errorResponse (err) {
-    if (err.code.toString()[0] === '4') {
-      log.error(err.error || err);
-      response.json({result:'error', message:err.error}).status(err.code).pipe(res);
+   * errorResponse
+   * return an error response
+   * @param {Object} err
+   */
+
+  function errorResponse(err) {
+    log.error(err.error || err);
+    if (err.code && err.code.toString()[0] === '4') {
+      response.json({result: 'error', message: err.error})
+        .status(err.code).pipe(res);
     } else {
-      response.json({result:'error', message:'unable to retrieve balance changes'}).status(500).pipe(res);
+      response.json({result: 'error', message: 'unable to retrieve balance changes'})
+        .status(500).pipe(res);
     }
   }
 
   /**
-  * successResponse
-  * return a successful response
-  * @param {Object} balance changes
-  */
-  function successResponse (changes) {
-    var result = {
-      result          : "success",
-      count           : changes.rows.length,
-      marker          : changes.marker,      
-      balance_changes : changes.rows
-    };
+   * successResponse
+   * return a successful response
+   * @param {Object} balance changes
+   */
 
-    response.json(result).pipe(res);
+  function successResponse(changes) {
+    var filename = options.account + ' - balance changes';
+    if (options.format === 'csv') {
+      if (options.currency) {
+        filename += ' ' + options.currency;
+      }
+
+      res.csv(changes.rows, filename + '.csv');
+    } else {
+      response.json({
+        result: 'success',
+        count: changes.rows.length,
+        marker: changes.marker,
+        balance_changes: changes.rows
+      }).pipe(res);
+    }
   }
 
 };
 
-  return this;
-}
-
 module.exports = function(db) {
-  abc = accountBalances(db);
-  return abc.getChanges;
+  hbase = db;
+  return AcccountBalanceChanges;
 };
