@@ -107,8 +107,14 @@ var getExchanges = function(req, res) {
    */
 
   function successResponse(exchanges) {
+    var filename;
+
     if (options.format === 'csv') {
-      res.csv(exchanges, 'exchanges.csv');
+      filename = 'exchanges - ' +
+        options.base.currency + '-' +
+        options.counter.currency +
+        '.csv';
+      res.csv(exchanges, filename);
     } else {
       response.json({
         result: 'sucess',
