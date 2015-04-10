@@ -25,7 +25,7 @@ var Accounts = function (req, res, next) {
       descending: (/false/i).test(req.query.descending) ? false : true,
       reduce: (/true/i).test(req.query.reduce) ? true : false,
       parent: req.query.parent,
-      format: req.query.format || 'json'
+      format: (req.query.format || 'json').toLowerCase()
     };
 
     if (opts.interval && intervals.indexOf(opts.interval) === -1) {
@@ -105,7 +105,7 @@ var Accounts = function (req, res, next) {
     if (err) {
       errorResponse(err);
     } else {
-      successResponse(resp, options);
+      successResponse(resp);
     }
   });
 };

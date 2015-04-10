@@ -21,48 +21,7 @@ var intervals = [
 var hbase;
 
 var getExchanges = function(req, res) {
-  var options = prepareOptions();
-
-  if (options.error) {
-    errorResponse(options);
-    return;
-
-  } else {
-    log.info("EXCHANGES: " + options.base.currency, options.counter.currency);
-
-    hbase.getExchanges(options, function(err, exchanges) {
-      if (err) {
-        errorResponse(err);
-      } else if (options.reduce) {
-        successResponse([exchanges]);
-      } else if (!exchanges.length) {
-        errorResponse({error: "no exchanges found", code: 404});
-      } else {
-
-        if (options.interval) {
-          exchanges.forEach(function(ex) {
-            delete ex.rowkey;
-            delete ex.sort_open;
-            delete ex.sort_close;
-          });
-
-        } else {
-          exchanges.forEach(function(ex) {
-            delete ex.rowkey;
-            delete ex.node_index;
-            delete ex.tx_index;
-            delete ex.time;
-            delete ex.client;
-
-            ex.executed_time = moment.unix(ex.executed_time).utc().format();
-          });
-        }
-
-
-        successResponse(exchanges);
-      }
-    });
-  }
+  var options;
 
   function prepareOptions() {
     var options = {
@@ -73,7 +32,8 @@ var getExchanges = function(req, res) {
       base: {},
       counter: {},
       descending: (/false/i).test(req.query.descending) ? false : true,
-      reduce: (/true/i).test(req.query.reduce) ? true : false
+      reduce: (/true/i).test(req.query.reduce) ? true : false,
+      format: (req.query.format || 'json').toLowerCase()
     };
 
     var base = req.params.base.split(/[\+|\.]/); //any of +, |, or .
@@ -147,13 +107,54 @@ var getExchanges = function(req, res) {
    */
 
   function successResponse(exchanges) {
-    var result = {
-      result: 'sucess',
-      count: exchanges.length,
-      exchanges: exchanges
-    };
+    if (options.format === 'csv') {
+      res.csv(exchanges, 'exchanges.csv');
+    } else {
+      response.json({
+        result: 'sucess',
+        count: exchanges.length,
+        exchanges: exchanges
+      }).pipe(res);
+    }
+  }
 
-    response.json(result).pipe(res);
+  options = prepareOptions();
+
+  if (options.error) {
+    errorResponse(options);
+
+  } else {
+    log.info('EXCHANGES: ' + options.base.currency, options.counter.currency);
+
+    hbase.getExchanges(options, function(err, exchanges) {
+      if (err) {
+        errorResponse(err);
+      } else if (options.reduce) {
+        successResponse([exchanges]);
+      } else {
+
+        if (options.interval) {
+          exchanges.forEach(function(ex) {
+            delete ex.rowkey;
+            delete ex.sort_open;
+            delete ex.sort_close;
+          });
+
+        } else {
+          exchanges.forEach(function(ex) {
+            delete ex.rowkey;
+            delete ex.node_index;
+            delete ex.tx_index;
+            delete ex.time;
+            delete ex.client;
+
+            ex.executed_time = moment.unix(ex.executed_time).utc().format();
+          });
+        }
+
+        successResponse(exchanges);
+      }
+    });
   }
 };
 
