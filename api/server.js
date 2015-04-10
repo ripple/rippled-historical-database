@@ -15,7 +15,7 @@ var Server = function (options) {
   var server;
 
   app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded());
+  app.use(bodyParser.urlencoded({extended:true}));
   app.use(json2csv.expressDecorator);
   app.use(cors());
 
