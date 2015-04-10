@@ -5,6 +5,7 @@ var config     = require('../config/api.config');
 var cors       = require('cors');
 var Postgres   = require('./lib/db');
 var Routes     = require('./routes');
+var json2csv   = require('nice-json2csv');
 
 var Server = function (options) {
   var app    = express();
@@ -14,6 +15,8 @@ var Server = function (options) {
   var server;
 
   app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded());
+  app.use(json2csv.expressDecorator);
   app.use(cors());
 
   //define routes

@@ -24,7 +24,8 @@ var Accounts = function (req, res, next) {
       limit: Number(req.query.limit) || 200,
       descending: (/false/i).test(req.query.descending) ? false : true,
       reduce: (/true/i).test(req.query.reduce) ? true : false,
-      parent: req.query.parent
+      parent: req.query.parent,
+      format: req.query.format || 'json'
     };
 
     if (opts.interval && intervals.indexOf(opts.interval) === -1) {
@@ -64,24 +65,34 @@ var Accounts = function (req, res, next) {
   * @param {Object} resp
   */
 
-  function successResponse(resp, reduced) {
-    var result;
-    if (reduced) {
-      result = {
+  function successResponse(resp) {
+
+    // reduced, csv
+    if (options.reduce && options.format === 'csv') {
+      res.csv([{count: resp.rows[0]}], 'accounts-count.csv');
+
+    // reduced json
+    } else if (options.reduce) {
+      response.json({
         result: 'success',
         count: resp.rows[0]
-      };
+      }).pipe(res);
+
+    // csv
+    } else if (options.format === 'csv') {
+      res.csv(resp.rows, 'accounts.csv');
+
+    // json
     } else {
-      result = {
+      response.json({
         result: 'success',
         count: resp.rows.length,
         marker: resp.marker,
         rows: resp.rows
-      };
+      }).pipe(res);
     }
-
-    response.json(result).pipe(res);
   }
+
 
   options = prepareOptions();
 
@@ -94,7 +105,7 @@ var Accounts = function (req, res, next) {
     if (err) {
       errorResponse(err);
     } else {
-      successResponse(resp, options.reduce);
+      successResponse(resp, options);
     }
   });
 };
