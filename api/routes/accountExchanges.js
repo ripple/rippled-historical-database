@@ -34,12 +34,13 @@ AccountExchanges = function (req, res, next) {
     var options = {
       account      : req.params.address,
       base         : req.params.base,
-      counter      : req.params.counter,      
+      counter      : req.params.counter,
       limit        : req.query.limit || 200,
       marker       : req.query.marker,
       descending   : (/false/i).test(req.query.descending) ? false : true,
       start        : req.query.start,
       end          : req.query.end,
+      format       : (req.query.format || 'json').toLowerCase()
     };
 
     var base    = req.params.base ? req.params.base.split(/[\+|\.]/) : undefined;
@@ -66,9 +67,8 @@ AccountExchanges = function (req, res, next) {
   */
 
   function errorResponse (err) {
-    console.log(err);
-    if (err.code.toString()[0] === '4') {
-      log.error(err.error || err);
+    log.error(err.error || err);
+    if (err.code && err.code.toString()[0] === '4') {
       response.json({result:'error', message:err.error}).status(err.code).pipe(res);
     } else {
       response.json({result:'error', message:'unable to retrieve exchanges'}).status(500).pipe(res);
@@ -81,15 +81,32 @@ AccountExchanges = function (req, res, next) {
   * @param {Object} exchanges
   */
 
-  function successResponse (exchanges) {
-    var result = {
-      result    : "success",
-      count     : exchanges.rows.length,
-      marker    : exchanges.marker,
-      exchanges : exchanges.rows
-    };
+  function successResponse(exchanges) {
+    var filename;
 
-    response.json(result).pipe(res);
+    if (options.format === 'csv') {
+      filename = options.account + ' - exchanges';
+      if (options.base.currency && options.counter.currency) {
+        filename += ' - ' +
+          options.base.currency + '-' +
+          options.counter.currency;
+      } else if (options.base.currency) {
+        filename += ' - ' + options.base.currency;
+      } else if (options.counter.currency) {
+        filename += ' - ' + options.counter.currency;
+      }
+
+      filename += '.csv';
+      res.csv(exchanges.rows, filename);
+
+    } else {
+      response.json({
+        result: 'success',
+        count: exchanges.rows.length,
+        marker: exchanges.marker,
+        exchanges: exchanges.rows
+      }).pipe(res);
+    }
   }
 
 };
