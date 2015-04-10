@@ -82,10 +82,9 @@ AccountExchanges = function (req, res, next) {
   */
 
   function successResponse(exchanges) {
-    var filename;
+    var filename = options.account + ' - exchanges';
 
     if (options.format === 'csv') {
-      filename = options.account + ' - exchanges';
       if (options.base.currency && options.counter.currency) {
         filename += ' - ' +
           options.base.currency + '-' +
