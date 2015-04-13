@@ -5,6 +5,7 @@ var config     = require('../config/api.config');
 var cors       = require('cors');
 var Postgres   = require('./lib/db');
 var Routes     = require('./routes');
+var json2csv   = require('nice-json2csv');
 
 var Server = function (options) {
   var app    = express();
@@ -14,6 +15,8 @@ var Server = function (options) {
   var server;
 
   app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({extended:true}));
+  app.use(json2csv.expressDecorator);
   app.use(cors());
 
   //define routes
@@ -27,6 +30,8 @@ var Server = function (options) {
   app.get('/v1/accounts/:address/exchanges/:base/:counter', routes.accountExchanges);
   //app.get('/v1/accounts/:address/offers', routes.accountOffers);
   app.get('/v1/accounts/:address/balances', routes.accountBalances);
+  app.get('/v1/accounts/:address', routes.getAccount);
+  app.get('/v1/accounts', routes.accounts);
   app.get('/v1/ledgers/:ledger_param?', routes.getLedger);
   app.get('/v1/transactions/:tx_hash', routes.getTx);
   app.get('/v1/exchanges/:base/:counter', routes.getExchanges);

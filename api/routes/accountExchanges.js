@@ -40,6 +40,7 @@ AccountExchanges = function (req, res, next) {
       descending   : (/false/i).test(req.query.descending) ? false : true,
       start        : req.query.start,
       end          : req.query.end,
+      format       : (req.query.format || 'json').toLowerCase()
     };
 
     var base    = req.params.base ? req.params.base.split(/[\+|\.]/) : undefined;
@@ -80,15 +81,31 @@ AccountExchanges = function (req, res, next) {
   * @param {Object} exchanges
   */
 
-  function successResponse (exchanges) {
-    var result = {
-      result    : "success",
-      count     : exchanges.rows.length,
-      marker    : exchanges.marker,
-      exchanges : exchanges.rows
-    };
+  function successResponse(exchanges) {
+    var filename = options.account + ' - exchanges';
 
-    response.json(result).pipe(res);
+    if (options.format === 'csv') {
+      if (options.base.currency && options.counter.currency) {
+        filename += ' - ' +
+          options.base.currency + '-' +
+          options.counter.currency;
+      } else if (options.base.currency) {
+        filename += ' - ' + options.base.currency;
+      } else if (options.counter.currency) {
+        filename += ' - ' + options.counter.currency;
+      }
+
+      filename += '.csv';
+      res.csv(exchanges.rows, filename);
+
+    } else {
+      response.json({
+        result: 'success',
+        count: exchanges.rows.length,
+        marker: exchanges.marker,
+        exchanges: exchanges.rows
+      }).pipe(res);
+    }
   }
 
 };
