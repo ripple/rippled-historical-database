@@ -91,6 +91,10 @@ var Reports = function (req, res, next) {
   */
 
   function successResponse(resp) {
+    var filename = 'account reports';
+    var start;
+    var end;
+
     if (options.format === 'csv') {
       if (options.accounts) {
         resp.forEach(function(r) {
@@ -99,7 +103,14 @@ var Reports = function (req, res, next) {
         });
       }
 
-      res.csv(resp, 'account reports.csv');
+      start = moment.utc(options.start);
+      end = moment.utc(options.end);
+
+      filename += ' ' + start.format('YYYY-MM-DD');
+      if (options.end && end.diff(start.add(1, 'day')) > 0) {
+        filename += ' - ' + end.format('YYYY-MM-DD');
+      }
+      res.csv(resp, filename + '.csv');
 
     } else {
       response.json({
