@@ -36,6 +36,10 @@ var Server = function (options) {
   app.get('/v1/transactions/:tx_hash', routes.getTx);
   app.get('/v1/exchanges/:base/:counter', routes.getExchanges);
   app.get('/v1/reports/:date?', routes.reports);
+  app.get('/v1/stats', routes.stats);
+  app.get('/v1/stats/:family', routes.stats);
+  app.get('/v1/stats/:family/:metric', routes.stats);
+
   //app.get('/v1/payments/:date?', routes.payments);
   app.get('/v1/last_validated', routes.getLastValidated);
 

@@ -15,6 +15,7 @@ module.exports = function(options) {
   Routes.getLastValidated = require('./getLastValidated')(options.postgres);
   Routes.accountReports = require('./accountReports')(options.hbase);
   Routes.reports = require('./reports')(options.hbase);
+  Routes.stats = require('./stats')(options.hbase);
   Routes.accounts = require('./accounts')(options.hbase);
   Routes.getAccount = require('./getAccount')(options.hbase);
 
