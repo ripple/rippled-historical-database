@@ -60,10 +60,10 @@ var getExchanges = function(req, res) {
     }
 
     if (!options.end) {
-      options.end = moment.utc('9999-12-31');
+      options.end = moment.utc();
     }
     if (!options.start) {
-      options.start = moment.utc(0);
+      options.start = moment.utc('2013-01-01');
     }
     if (options.interval) {
       options.interval = options.interval.toLowerCase();
@@ -80,6 +80,7 @@ var getExchanges = function(req, res) {
                intervals.indexOf(options.interval) === -1) {
       return {error: 'invalid interval: ' + options.interval, code: 400};
     }
+
     return options;
   }
 
