@@ -98,10 +98,10 @@ var Stats = function(req, res) {
 
     } else {
       response.json({
-        result: 'sucess',
+        result: 'success',
         count: resp.rows.length,
         marker: resp.marker,
-        rows: resp.rows
+        stats: resp.rows
       }).pipe(res);
     }
   }

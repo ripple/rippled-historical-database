@@ -114,9 +114,9 @@ var Reports = function (req, res, next) {
 
     } else {
       response.json({
-        result: 'sucess',
+        result: 'success',
         count: resp.length,
-        rows: resp
+        reports: resp
       }).pipe(res);
     }
   }
