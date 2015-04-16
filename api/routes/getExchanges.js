@@ -118,7 +118,7 @@ var getExchanges = function(req, res) {
       res.csv(exchanges, filename);
     } else {
       response.json({
-        result: 'sucess',
+        result: 'success',
         count: exchanges.length,
         exchanges: exchanges
       }).pipe(res);

@@ -10,7 +10,7 @@ PSQL_DATABASE="test_db"
 echo "creating database '$PSQL_DATABASE'..."
 createdb $PSQL_DATABASE
 node_modules/.bin/mocha --ui tdd -R spec test/offline.test.js --dbname $PSQL_DATABASE
-if [ $1 = "online" ]; then
+if [ "$1" = "online" ]; then
   node_modules/.bin/mocha --ui tdd -R spec test/online.test.js
 fi
 echo "removing database '$PSQL_DATABASE'"
