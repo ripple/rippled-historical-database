@@ -7,7 +7,7 @@ var Importer     = require('../lib/ripple-importer');
 var options = {
   "logLevel" : 4,
   "hbase" : {
-    "prefix" : 'stage_',
+    "prefix" : 'test_',
     "host"   : "54.172.205.78",
     "port"   : 9090
   },
