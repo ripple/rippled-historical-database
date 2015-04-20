@@ -45,8 +45,12 @@ ExchangesBolt.prototype.process = function(tup, done) {
     self.log('new ex: ' + pair);
   }
 
-  pairs[pair].add(ex, function(err, resp) {
-    self.log(pair + ' aggregation finished');
+  pairs[pair].add(ex, function(err) {
+    if (err) {
+      self.log(err);
+    } else {
+      self.log(pair + ' aggregation finished');
+    }
   });
 
   //don't wait to ack
