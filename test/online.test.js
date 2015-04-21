@@ -437,6 +437,34 @@ describe('HBASE client and API endpoints', function () {
     });
   });
 
+  it('should make sure /v1/accounts/:account/balance_changes handles descending correctly', function(done) {
+    var start= '2015-01-14T18:00:00';
+    var end= '2015-01-14T18:30:00';
+    var url = 'http://localhost:' + port +
+        '/v1/accounts/rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/balance_changes?' +
+        'descending=false';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      var d;
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.notStrictEqual(body.balance_changes.length, 0);  // Make sure we test something
+      body.balance_changes.forEach(function(bch) {
+
+        if (d) {
+          assert(d.diff(bch.executed_time) <= 0);
+        }
+
+        d = moment.utc(bch.executed_time);
+      });
+      done();
+    });
+  });
+
   it('should make sure /v1/accounts/:account/balance_changes handles empty response correctly', function(done) {
     var start= '1015-01-14T18:00:00';
     var end= '1970-01-14T18:30:00';
