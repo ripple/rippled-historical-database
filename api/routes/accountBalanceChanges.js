@@ -39,24 +39,34 @@ var AcccountBalanceChanges = function(req, res) {
   function prepareOptions() {
 
     var options = {
-      account  : req.params.address,
-      currency : req.query.currency,
-      issuer   : req.query.issuer,
-      limit    : req.query.limit,
-      start    : req.query.start,
-      end      : req.query.end,
-      marker   : req.query.marker,
-      format   : (req.query.format || 'json').toLowerCase()
+      account: req.params.address,
+      currency: req.query.currency,
+      issuer: req.query.issuer,
+      limit: req.query.limit,
+      start: req.query.start,
+      end: req.query.end,
+      marker: req.query.marker,
+      descending: (/false/i).test(req.query.descending) ? false : true,
+      format: (req.query.format || 'json').toLowerCase()
     }
 
-    if (!options.end)   options.end   = moment.utc('9999-12-31');
-    if (!options.start) options.start = moment.utc(0);
-
-    if(options.issuer) {
-      if(options.currency && options.currency.toUpperCase()=='XRP') {
-        return { error: 'invalid request: an issuer cannot be specified for XRP', code: 400 };
-      }
+    if (!options.end) {
+      options.end = moment.utc('9999-12-31');
     }
+
+    if (!options.start) {
+      options.start = moment.utc(0);
+    }
+
+    if (options.issuer &&
+       options.currency &&
+       options.currency.toUpperCase() === 'XRP') {
+      return {
+        error: 'invalid request: an issuer cannot be specified for XRP',
+        code: 400
+      };
+    }
+
 
     return options;
   }
@@ -73,8 +83,10 @@ var AcccountBalanceChanges = function(req, res) {
       response.json({result: 'error', message: err.error})
         .status(err.code).pipe(res);
     } else {
-      response.json({result: 'error', message: 'unable to retrieve balance changes'})
-        .status(500).pipe(res);
+      response.json({
+        result: 'error',
+        message: 'unable to retrieve balance changes'
+      }).status(500).pipe(res);
     }
   }
 
