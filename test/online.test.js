@@ -185,6 +185,16 @@ describe('HBASE client and API endpoints', function () {
     }, done);
   });
 
+  it('should make sure /v1/accounts/:account/payments handles pagination correctly (the descending false version)', function(done) {
+    this.timeout(5000);
+    var url = 'http://localhost:' + port + '/v1/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?descending=false';
+    checkPagination(url, undefined, function(ref, i, body) {
+      assert.strictEqual(body.payments.length, 1);
+      assert.equal(body.payments[0].amount, ref.payments[i].amount);
+      assert.equal(body.payments[0].tx_hash, ref.payments[i].tx_hash);
+    }, done);
+  });
+
   it('should make sure /v1/accounts/:account/payments handles empty response correctly', function(done) {
     var url = 'http://localhost:' + port + '/v1/accounts/rrrrUBy92h6worVCYERZcVCzgzgmHb17Dx/payments';
     request({
@@ -294,6 +304,17 @@ describe('HBASE client and API endpoints', function () {
   it('should make sure /v1/accounts/:account/exhanges handles pagination correctly', function(done) {
     this.timeout(5000);
     var url = 'http://localhost:' + port + '/v1/accounts/rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg/exchanges?';
+    checkPagination(url, undefined, function(ref, i, body) {
+      assert.strictEqual(body.exchanges.length, 1);
+      assert.equal(body.exchanges[0].base_amount, ref.exchanges[i].base_amount);
+      assert.equal(body.exchanges[0].base_currency, ref.exchanges[i].base_currency);
+      assert.equal(body.exchanges[0].tx_hash, ref.exchanges[i].tx_hash);
+    }, done);
+  });
+
+  it('should make sure /v1/accounts/:account/exhanges handles pagination correctly (descending)', function(done) {
+    this.timeout(5000);
+    var url = 'http://localhost:' + port + '/v1/accounts/rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg/exchanges?descending=false';
     checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.exchanges.length, 1);
       assert.equal(body.exchanges[0].base_amount, ref.exchanges[i].base_amount);
@@ -416,6 +437,17 @@ describe('HBASE client and API endpoints', function () {
     }, done);
   });
 
+  it('should make sure /v1/accounts/:account/balance_changes handles pagination correctly (descending)', function(done) {
+    this.timeout(5000);
+    var url = 'http://localhost:' + port + '/v1/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/balance_changes?descending=false';
+    checkPagination(url, undefined, function(ref, i, body) {
+      assert.strictEqual(body.balance_changes.length, 1);
+      assert.equal(body.balance_changes[0].change, ref.balance_changes[i].change);
+      assert.equal(body.balance_changes[0].currency, ref.balance_changes[i].currency);
+      assert.equal(body.balance_changes[0].tx_hash, ref.balance_changes[i].tx_hash);
+    }, done);
+  });  
+
   it('should make sure /v1/accounts/:account/balance_changes handles dates correctly', function(done) {
     var start= '2015-01-14T18:00:00';
     var end= '2015-01-14T18:30:00';
@@ -438,8 +470,6 @@ describe('HBASE client and API endpoints', function () {
   });
 
   it('should make sure /v1/accounts/:account/balance_changes handles descending correctly', function(done) {
-    var start= '2015-01-14T18:00:00';
-    var end= '2015-01-14T18:30:00';
     var url = 'http://localhost:' + port +
         '/v1/accounts/rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/balance_changes?' +
         'descending=false';
