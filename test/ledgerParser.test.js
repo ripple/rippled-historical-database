@@ -6,8 +6,8 @@ var live     = new Importer({
     "trace"                 : false,
     "allow_partial_history" : false,
     "servers" : [
-      { "host" : "s-west.ripple.com", "port" : 443, "secure" : true },
-      { "host" : "s-east.ripple.com", "port" : 443, "secure" : true }
+      { "host" : "s2.ripple.com", "port" : 443, "secure" : true },
+      { "host" : "s2.ripple.com", "port" : 443, "secure" : true }
     ]
   }});
 
@@ -32,25 +32,32 @@ parsed = Parser.parseTransaction(tx);
 console.log(parsed.exchanges);
 */
 
-tx = JSON.parse(fs.readFileSync(path + 'demmurage-XRP2.json', "utf8"));
+tx = JSON.parse(fs.readFileSync(path + 'to-issuer.json', "utf8"));
 
 tx.metaData = tx.meta;
 tx.executed_time = tx.date + EPOCH_OFFSET;
 parsed = Parser.parseTransaction(tx);
 
 //console.log(parsed.offers);
+console.log(parsed.payments[0]);
+//process.exit();
+//return;
 
 //start import stream
-live.backFill(10000000, 10000100);
+live.backFill(10000000, 10001000);
 live.on('ledger', function(ledger) {
   console.log(ledger.ledger_index);
 
   var parsed = Parser.parseLedger(ledger);
-  console.log(parsed.exchanges);
+  parsed.payments.forEach(function(p) {
+    if (p.currency !== 'XRP') {
+      console.log(p);
+    }
+  })
   return;
 
-  ledger.transactions.forEach(function(tx) {
-    parsed = Parser.parseTransaction(tx);
-    //console.log(parsed.offers);
-  });
+  //ledger.transactions.forEach(function(tx) {
+  //  parsed = Parser.parseTransaction(tx);
+  //  console.log(parsed.offers);
+  //});
 });

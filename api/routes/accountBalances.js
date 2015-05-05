@@ -82,7 +82,6 @@ var accountBalances = function (req, res, next) {
         return;
       }
 
-      console.log(body);
       for (var attr in body) {
         balances[attr] = body[attr];
       }
