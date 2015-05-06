@@ -23,4 +23,8 @@ The Storm Ledger Importer requires the following software installed first:
   * from the command line, run `storm/local/deploy.sh'
 * to deploy to a storm cluster:
   * adjust storm parallelism as needed in `storm/production/config.properties`
-  * from the command line, run `storm/production/deploy.sh'
+  * from the command line, run:
+    `storm/production/importer.sh start` to start,
+    `storm/production/importer.sh stop` to stop, or
+    `storm/production/importer.sh restart` to restart
+
