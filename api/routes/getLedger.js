@@ -1,40 +1,52 @@
-var Logger   = require('../../lib/logger');
-var log      = new Logger({scope : 'get ledger'});
-var moment   = require('moment');
+'use strict';
+
+var Logger = require('../../lib/logger');
+var log = new Logger({scope : 'get ledger'});
+var moment = require('moment');
 var response = require('response');
-var postgres;
+var hbase;
 
 var getLedger = function (req, res, next) {
 
   var options = prepareOptions();
 
-  if (options.ledger_index) log.info('LEDGER:', options.ledger_index);
-  else if (options.ledger_hash) log.info('LEDGER:', options.ledger_hash);
-  else if (options.date) log.info('LEDGER:', options.date.format());
-  else log.info('LEDGER: latest');
+  if (options.err) {
+    errorResponse(options.err);
+  } else {
 
-  if (options.err) errorResponse(options.err);
-  else
-    postgres.getLedger(options, function(err, ledger){
+    if (options.ledger_index) {
+      log.info('LEDGER:', options.ledger_index);
+    } else if (options.ledger_hash) {
+      log.info('LEDGER:', options.ledger_hash);
+    } else if (options.date) {
+      log.info('LEDGER:', options.date.format());
+    } else {
+      log.info('LEDGER: latest');
+    }
+
+    hbase.getLedger(options, function(err, ledger) {
       if (err) {
         errorResponse(err);
-      } else{
+      } else if (!ledger) {
+        errorResponse({error: "ledger not found", code: 404});
+      } else {
         successResponse(ledger);
       }
     });
-
+  }
    /**
   * prepareOptions
   * parse request parameters to determine query options
   */
-  function prepareOptions () {
+
+  function prepareOptions() {
     var options = {
-      ledger_index : req.query.ledger_index,
-      ledger_hash  : req.query.ledger_hash,
-      date         : req.query.date,
-      binary       : !req.query.binary || req.query.binary === 'false' ? false : true,
-      expand       : !req.query.expand || req.query.expand === 'false' ? false : true,
-      transactions : !req.query.transactions || req.query.transactions === 'false' ? false : true
+      ledger_index: req.query.ledger_index,
+      ledger_hash: req.query.ledger_hash,
+      date: req.query.date,
+      binary: (/true/i).test(req.query.binary) ? true : false,
+      expand: (/true/i).test(req.query.expand) ? true : false,
+      transactions: (/true/i).test(req.query.transactions) ? true : false
     };
 
     var ledger_param = req.params.ledger_param;
@@ -42,17 +54,27 @@ var getLedger = function (req, res, next) {
       var intMatch = /^\d+$/;
       var hexMatch = new RegExp('^(0x)?[0-9A-Fa-f]+$');
       var iso = moment.utc(req.params.ledger_param, moment.ISO_8601);
-      if (intMatch.test(ledger_param)) options.ledger_index = ledger_param;
-      else if (iso.isValid()) options.date = iso;
-      else if (hexMatch.test(ledger_param) && ledger_param.length % 2 === 0)
-        options.ledger_hash = ledger_param;
-      else options.err = {error:"invalid ledger identifier", code:400};
+
+      // ledger index test
+      if (intMatch.test(ledger_param)) {
+        options.ledger_index = ledger_param;
+
+      // date test
+      } else if (iso.isValid()) {
+        options.date = iso;
+
+      // ledger hash test
+      } else if (hexMatch.test(ledger_param) && ledger_param.length % 2 === 0) {
+        options.ledger_hash = ledger_param.toUpperCase();
+
+      } else {
+        options.err = {error: "invalid ledger identifier", code: 400};
+      }
     }
 
-    if (options.expand) options.tx_return = 'json';
-    else if (options.binary) options.tx_return = 'binary';
-    else if (options.transactions) options.tx_return = 'hex';
-    else options.tx_return = 'none';
+    if (options.date) {
+      options.closeTime = options.date;
+    }
 
     return options;
   }
@@ -90,6 +112,6 @@ var getLedger = function (req, res, next) {
 };
 
 module.exports = function(db) {
-  postgres = db;
+  hbase = db;
   return getLedger;
 };
