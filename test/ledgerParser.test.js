@@ -1,5 +1,7 @@
 var Parser   = require('../lib/ledgerParser');
 var Importer = require('../lib/ripple-importer');
+var Hbase    = require('../lib/hbase/hbase-client');
+
 var fs       = require('fs');
 var live     = new Importer({
   ripple : {
@@ -13,6 +15,7 @@ var live     = new Importer({
 
 var path         = __dirname + '/transactions/';
 var EPOCH_OFFSET = 946684800;
+var hbase = new Hbase({});
 
 /*
 var tx = JSON.parse(fs.readFileSync(path + 'demmurage-IOU.json', "utf8"));
@@ -32,16 +35,17 @@ parsed = Parser.parseTransaction(tx);
 console.log(parsed.exchanges);
 */
 
-tx = JSON.parse(fs.readFileSync(path + 'to-issuer.json', "utf8"));
+tx = JSON.parse(fs.readFileSync(path + 'autobridged.json', "utf8"));
 
 tx.metaData = tx.meta;
 tx.executed_time = tx.date + EPOCH_OFFSET;
 parsed = Parser.parseTransaction(tx);
-
+tables = hbase.prepareParsedData(parsed);
 //console.log(parsed.offers);
-console.log(parsed.payments[0]);
-//process.exit();
-//return;
+console.log(parsed.exchanges);
+console.log(tables.exchanges);
+process.exit();
+return;
 
 //start import stream
 live.backFill(10000000, 10001000);
