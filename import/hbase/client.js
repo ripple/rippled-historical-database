@@ -12,7 +12,7 @@ var Client = function () {
   });
 
   var hbaseOptions = config.get('hbase');
-  hbaseOptions.logLevel = 2;
+  hbaseOptions.logLevel = config.get('logLevel') || 2;
   self.hbase = new Hbase(hbaseOptions);
 
   self.saveLedger = function (ledger, callback) {
