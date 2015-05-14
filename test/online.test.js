@@ -277,6 +277,89 @@ describe('HBASE client and API endpoints', function () {
     });
   });
 
+
+  /*** transactions/:tx_hash API endpoint ***/
+
+  it('should return a transaction given a transaction hash', function(done) {
+    var hash = '22F26CE4E2270CE3CF4EB61C609E7ADEDCD41D4C1BA2D96D680A9B016C4F47DA';
+    var url = 'http://localhost:' + port + '/v2/transactions/' + hash;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(typeof body.transaction, 'object');
+      assert.strictEqual(body.transaction.hash, hash);
+      assert.strictEqual(typeof body.transaction.tx, 'object');
+      assert.strictEqual(typeof body.transaction.meta, 'object');
+      done();
+    });
+  });
+
+  it('should return a transaction in binary', function(done) {
+    var hash = '22F26CE4E2270CE3CF4EB61C609E7ADEDCD41D4C1BA2D96D680A9B016C4F47DA';
+    var url = 'http://localhost:' + port + '/v2/transactions/' + hash;
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        binary : true
+      }
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(typeof body.transaction, 'object');
+      assert.strictEqual(body.transaction.hash, hash);
+      assert.strictEqual(typeof body.transaction.tx, 'string');
+      assert.strictEqual(typeof body.transaction.meta, 'string');
+      done();
+    });
+  });
+
+  it('should return an error if the transaction is not found', function(done) {
+    var hash = '22F26CE4E2270CE3CF4EB61C609E7ADEDCD41D4C1BA2D96D680A9B016C4F47DC';
+    var url = 'http://localhost:' + port + '/v2/transactions/' + hash;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 404);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'transaction not found');
+      done();
+    });
+  });
+
+  it('should return an error if the hash is invalid', function(done) {
+    var hash = '22F26CE4E2270CE3CF4EB61C609E7ADEDCD41D4C1BA2D96D680A9B016C4F47D';
+    var url = 'http://localhost:' + port + '/v2/transactions/' + hash;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid hash');
+      done();
+    });
+  });
+
   // PAYMENTS
   //
   it('should make sure /accounts/:account/payments handles limit correctly', function(done) {

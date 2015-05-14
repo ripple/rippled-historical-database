@@ -74,8 +74,13 @@ var getTransactions = function (req, res, next) {
     hbase.getTransaction(options, function(err, tx) {
       if (err) {
         errorResponse(err);
-      } else {
+      } else if (tx) {
         successResponse(tx);
+      } else {
+        errorResponse({
+          error: 'transaction not found',
+          code: 404
+        });
       }
     });
 
