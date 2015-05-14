@@ -360,6 +360,252 @@ describe('HBASE client and API endpoints', function () {
     });
   });
 
+  /**** transactions endpoint ****/
+
+  it('should return transactions by time', function(done) {
+    var url = 'http://localhost:' + port + '/v2/transactions/';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        limit : 100
+      }
+    },
+    function (err, res, body) {
+      var prev;
+
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 100);
+      assert.notStrictEqual(body.marker, undefined);
+      assert.notStrictEqual(body.transactions.length, 0);
+      body.transactions.forEach(function(t) {
+        assert(t.hash);
+        assert(t.date);
+        assert(t.ledger_index);
+        assert(t.tx);
+        assert(t.meta);
+        assert.strictEqual(t.meta.TransactionResult, 'tesSUCCESS');
+
+        if (prev) {
+          assert(moment.utc(t.date).diff(prev) <= 0);
+        }
+
+        prev = t.date;
+      });
+
+      done();
+    });
+  });
+
+  it('should handle descending = false', function(done) {
+    var url = 'http://localhost:' + port + '/v2/transactions/';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        limit : 100,
+        descending : false,
+      }
+    },
+    function (err, res, body) {
+      var prev;
+
+      assert.ifError(err);
+      assert.notStrictEqual(body.transactions.length, 0);
+      body.transactions.forEach(function(t) {
+        if (prev) {
+          assert(moment.utc(t.date).diff(prev) >= 0);
+        }
+
+        prev = t.date;
+      });
+
+      done();
+    });
+  });
+
+  it('should return transactions in binary', function(done) {
+    var url = 'http://localhost:' + port + '/v2/transactions/';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        binary : true,
+      }
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.notStrictEqual(body.transactions.length, 0);
+      body.transactions.forEach(function(t) {
+        assert(t.hash);
+        assert(t.date);
+        assert(t.ledger_index);
+        assert.strictEqual(typeof t.tx, 'string');
+        assert.strictEqual(typeof t.meta, 'string');
+      });
+      done();
+    });
+  });
+
+  it('should restrict results based on time', function(done) {
+    var url = 'http://localhost:' + port + '/v2/transactions/';
+    var start = '2015-02-09T18:14:20+00:00';
+    var end = '2015-02-09T18:14:50+00:00';
+    request({
+      url: url,
+      json: true,
+      qs: {
+        start: start,
+        end: end
+      }
+    },
+    function(err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.transactions.length, 11);
+      body.transactions.forEach(function(t) {
+        var d= moment.utc(t.date);
+        assert.strictEqual(d.isBetween(moment.utc(start), moment.utc(end)), true);
+      });
+      done();
+    });
+  });
+
+  it('should filter by transaction type', function(done) {
+    var url = 'http://localhost:' + port + '/v2/transactions/';
+    var type = 'OfferCreate';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        type: type
+      }
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.notStrictEqual(body.transactions.length, 0);
+      body.transactions.forEach(function(t) {
+        assert.strictEqual(t.tx.TransactionType, type);
+      });
+      done();
+    });
+  });
+
+  it('should filter by transaction result', function(done) {
+    var url = 'http://localhost:' + port + '/v2/transactions/';
+    var result = 'tecUNFUNDED_OFFER';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        result: result
+      }
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.transactions.length, 14);
+      body.transactions.forEach(function(t) {
+        assert.strictEqual(t.meta.TransactionResult, result);
+      });
+      done();
+    });
+  });
+
+  it('should give an error for an invalid transaction result', function(done) {
+    var url = 'http://localhost:' + port + '/v2/transactions/';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        result: 'tecZ'
+      }
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(body.message, 'invalid transaction result');
+      done();
+    });
+  });
+
+  it('should give an error for an invalid transaction type', function(done) {
+    var url = 'http://localhost:' + port + '/v2/transactions/';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        type: 'Transaction'
+      }
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(body.message, 'invalid transaction type');
+      done();
+    });
+  });
+
+  it('should give an error for an invalid start date', function(done) {
+    var url = 'http://localhost:' + port + '/v2/transactions/';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        start: '11111111a'
+      }
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(body.message, 'invalid start date, format must be ISO 8601');
+      done();
+    });
+  });
+
+  it('should give an error for an invalid end date', function(done) {
+    var url = 'http://localhost:' + port + '/v2/transactions/';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        end: '12-12-2014'
+      }
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(body.message, 'invalid end date, format must be ISO 8601');
+      done();
+    });
+  });
+
   // PAYMENTS
   //
   it('should make sure /accounts/:account/payments handles limit correctly', function(done) {
