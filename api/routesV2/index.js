@@ -3,6 +3,7 @@
 module.exports = function(db) {
   var Routes = { };
 
+  Routes.getLedger = require('./getLedger')(db);
   Routes.accountExchanges = require('./accountExchanges')(db);
   Routes.accountPayments = require('./accountPayments')(db);
   Routes.getChanges = require('./accountBalanceChanges')(db);

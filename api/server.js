@@ -32,6 +32,7 @@ var Server = function (options) {
   app.get('/v1/last_validated', routes.getLastValidated);
 
   // v2 routes (hbase)
+  app.get('/v2/ledgers/:ledger_param?', routesV2.getLedger);
   app.get('/v2/accounts/:address/payments/:date?', routesV2.accountPayments);
   app.get('/v2/accounts/:address/reports/:date?', routesV2.accountReports);
   app.get('/v2/accounts/:address/balance_changes', routesV2.getChanges);
