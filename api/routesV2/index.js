@@ -7,6 +7,7 @@ module.exports = function(db) {
   Routes.getTransactions = require('./getTransactions')(db);
   Routes.accountExchanges = require('./accountExchanges')(db);
   Routes.accountPayments = require('./accountPayments')(db);
+  Routes.accountBalances = require('./accountBalances')(db);
   Routes.getChanges = require('./accountBalanceChanges')(db);
   Routes.getExchanges = require('./getExchanges')(db);
   Routes.accountReports = require('./accountReports')(db);
