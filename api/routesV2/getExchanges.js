@@ -33,7 +33,9 @@ var getExchanges = function(req, res) {
       counter: {},
       descending: (/false/i).test(req.query.descending) ? false : true,
       reduce: (/true/i).test(req.query.reduce) ? true : false,
-      format: (req.query.format || 'json').toLowerCase()
+      autobridged: (/true/i).test(req.query.autobridged) ? true : false,
+      format: (req.query.format || 'json').toLowerCase(),
+      marker: req.query.marker
     };
 
     var base = req.params.base.split(/[\+|\.]/); //any of +, |, or .
@@ -107,7 +109,7 @@ var getExchanges = function(req, res) {
    * @param {Object} exchanges
    */
 
-  function successResponse(exchanges) {
+  function successResponse(resp) {
     var filename;
 
     if (options.format === 'csv') {
@@ -115,12 +117,13 @@ var getExchanges = function(req, res) {
         options.base.currency + '-' +
         options.counter.currency +
         '.csv';
-      res.csv(exchanges, filename);
+      res.csv(resp.rows, filename);
     } else {
       response.json({
         result: 'success',
-        count: exchanges.length,
-        exchanges: exchanges
+        count: resp.rows.length,
+        marker: resp.marker,
+        exchanges: resp.rows
       }).pipe(res);
     }
   }
@@ -133,22 +136,23 @@ var getExchanges = function(req, res) {
   } else {
     log.info('EXCHANGES: ' + options.base.currency, options.counter.currency);
 
-    hbase.getExchanges(options, function(err, exchanges) {
+    hbase.getExchanges(options, function(err, resp) {
       if (err) {
         errorResponse(err);
       } else if (options.reduce) {
-        successResponse([exchanges]);
-      } else {
+        resp.rows = [resp.reduced];
+        successResponse(resp);
 
+      } else {
         if (options.interval) {
-          exchanges.forEach(function(ex) {
+          resp.rows.forEach(function(ex) {
             delete ex.rowkey;
             delete ex.sort_open;
             delete ex.sort_close;
           });
 
         } else {
-          exchanges.forEach(function(ex) {
+          resp.rows.forEach(function(ex) {
             delete ex.rowkey;
             delete ex.node_index;
             delete ex.tx_index;
@@ -159,7 +163,7 @@ var getExchanges = function(req, res) {
           });
         }
 
-        successResponse(exchanges);
+        successResponse(resp);
       }
     });
   }

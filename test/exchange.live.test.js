@@ -3,23 +3,15 @@ var Parser       = require('../lib/ledgerParser');
 var Hbase        = require('../lib/hbase/hbase-client');
 var utils        = require('../lib/utils');
 var Importer     = require('../lib/ripple-importer');
-
+var config       = require('../config/import.config');
 var options = {
-  "logLevel" : 4,
-  "hbase" : {
-    "prefix" : 'stage_',
-    "host"   : "54.172.205.78",
-    "port"   : 9090
-  },
-  "ripple" : {
-    "trace"                 : false,
-    "allow_partial_history" : false,
-    "servers" : [
-      { "host" : "s-west.ripple.com", "port" : 443, "secure" : true },
-      { "host" : "s-east.ripple.com", "port" : 443, "secure" : true }
-    ]
-  }
+  logLevel : 2,
+  hbase: config.get('hbase'),
+  ripple: config.get('ripple')
 };
+
+options.hbase.prefix = 'test_';
+options.hbase.logLevel = 4;
 
 var EPOCH_OFFSET = 946684800;
 var live  = new Importer(options);
@@ -68,7 +60,7 @@ function processLedger (ledger) {
               base     : ex.base,
               counter  : ex.counter,
               hbase    : hbase,
-              logLevel : options.logLevel
+              logLevel : 4
             });
           }
 

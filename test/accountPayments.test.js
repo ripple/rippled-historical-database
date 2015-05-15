@@ -3,12 +3,12 @@ var Parser       = require('../lib/ledgerParser');
 var Hbase        = require('../lib/hbase/hbase-client');
 var utils        = require('../lib/utils');
 var fs           = require('fs');
-var options = {
-  "prefix"   : 'test_',
-  "host"     : "54.172.205.78",
-  "port"     : 9090,
-  "logLevel" : 4
-};
+var config       = require('../config/import.config');
+var options = config.get('hbase')
+
+
+options.prefix = 'test_';
+options.logLevel = 4;
 
 var payments     = new Aggregation(options);
 var path         = __dirname + '/ledgers/';
