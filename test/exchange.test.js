@@ -3,22 +3,14 @@ var Parser       = require('../lib/ledgerParser');
 var Hbase        = require('../lib/hbase/hbase-client');
 var utils        = require('../lib/utils');
 var fs           = require('fs');
+var config       = require('../config/import.config');
 var options = {
-  "logLevel" : 4,
-  "hbase" : {
-    "prefix" : 'test_',
-    "host"   : "54.172.205.78",
-    "port"   : 9090
-  },
-  "ripple" : {
-    "trace"                 : false,
-    "allow_partial_history" : false,
-    "servers" : [
-      { "host" : "s-west.ripple.com", "port" : 443, "secure" : true },
-      { "host" : "s-east.ripple.com", "port" : 443, "secure" : true }
-    ]
-  }
+  logLevel : 4,
+  hbase: config.get('hbase')
 };
+
+options.hbase.prefix = 'test_';
+options.hbase.logLevel = options.logLevel;
 
 var path         = __dirname + '/ledgers/';
 var EPOCH_OFFSET = 946684800;
@@ -85,6 +77,7 @@ function processLedger (ledger) {
         });
       }
 
+      console.log(pair);
       pairs[pair].add(ex, function(err, resp) {
         if (err) console.log(err);
       });
