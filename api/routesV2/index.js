@@ -14,6 +14,6 @@ module.exports = function(db) {
   Routes.stats = require('./stats')(db);
   Routes.accounts = require('./accounts')(db);
   Routes.getAccount = require('./getAccount')(db);
-
+  Routes.getLastValidated = require('./getLastValidated')(db);
   return Routes;
 };
