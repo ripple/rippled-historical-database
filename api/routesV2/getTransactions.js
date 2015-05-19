@@ -118,12 +118,8 @@ var getTransactions = function (req, res, next) {
       return;
     }
 
-    // default to tesSUCCESS
-    if (!options.result) {
-      options.result = 'tesSUCCESS';
-
     // require valid transaction result
-    } else if (options.result && txResults.indexOf(options.result) === -1) {
+    if (options.result && txResults.indexOf(options.result) === -1) {
       errorResponse({
         error: 'invalid transaction result',
         code: 400
