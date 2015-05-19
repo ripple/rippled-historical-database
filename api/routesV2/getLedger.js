@@ -30,6 +30,11 @@ var getLedger = function (req, res, next) {
       } else if (!ledger) {
         errorResponse({error: "ledger not found", code: 404});
       } else {
+        if (ledger.transactions) {
+          ledger.transactions.forEach(function(tx) {
+            delete tx.ledger_hash;
+          });
+        }
         successResponse(ledger);
       }
     });
