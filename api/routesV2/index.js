@@ -5,6 +5,7 @@ module.exports = function(db) {
 
   Routes.getLedger = require('./getLedger')(db);
   Routes.getTransactions = require('./getTransactions')(db);
+  Routes.accountTxSeq = require('./accountTxSeq')(db);
   Routes.accountTransactions = require('./accountTransactions')(db);
   Routes.accountExchanges = require('./accountExchanges')(db);
   Routes.accountPayments = require('./accountPayments')(db);

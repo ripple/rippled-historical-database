@@ -127,6 +127,8 @@ var getTransactions = function (req, res, next) {
       return;
     }
 
+    options.include_ledger_hash = true;
+
     log.info(options.start.format(), options.end.format());
     hbase.getTransactions(options, function(err, resp) {
       if (err) {
