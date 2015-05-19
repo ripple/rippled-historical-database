@@ -205,23 +205,34 @@ TransactionBolt.prototype.processStreams = function (parsed, id) {
       });
     }
 
-    //account payments aggregation
-    //should only be payment, emit 1 for source
-    //and 1 for destination
+    // payments aggregation
     if (parsed.data.payments.length) {
       parsed.data.payments.forEach(function(payment) {
+        var key = payment.currency +
+          (payment.issuer ? '|' + payment.issuer : '');
 
-        //self.log('ACCOUNT_PAYMENTS ' + payment.source + ' ' + payment.destination);
+        // self.log('PAYMENT: ' + key);
+
+        // aggregation by currency+issuer
         self.emit({
-          tuple         : [payment, payment.source],
-          anchorTupleId : id,
-          stream        : 'accountPaymentsAggregation'
+          tuple: [payment, key],
+          anchorTupleId: id,
+          stream: 'paymentsAggregation'
+        });
+
+        // account payments aggregation
+        // emit 1 for source
+        // and 1 for destination
+        self.emit({
+          tuple: [payment, payment.source],
+          anchorTupleId: id,
+          stream: 'accountPaymentsAggregation'
         });
 
         self.emit({
-          tuple         : [payment, payment.destination],
-          anchorTupleId : id,
-          stream        : 'accountPaymentsAggregation'
+          tuple: [payment, payment.destination],
+          anchorTupleId: id,
+          stream: 'accountPaymentsAggregation'
         });
       });
     }

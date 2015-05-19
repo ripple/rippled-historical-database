@@ -35,6 +35,9 @@ public class ImportTopology {
     builder.setBolt("exchanges", new ExchangesBolt(), e_count)
       .fieldsGrouping("transactions", "exchangeAggregation", new Fields("pair"));
 
+    builder.setBolt("payments", new PaymentsBolt(), p_count)
+      .fieldsGrouping("transactions", "paymentsAggregation", new Fields("key"));
+
     builder.setBolt("stats", new StatsBolt(), s_count)
       .fieldsGrouping("transactions", "statsAggregation", new Fields("label"))
       .fieldsGrouping("ledgerStream", "statsAggregation", new Fields("label"));
