@@ -36,6 +36,8 @@ var Server = function (options) {
   app.get('/v2/transactions/', routesV2.getTransactions);
   app.get('/v2/transactions/:tx_hash', routesV2.getTransactions);
   app.get('/v2/ledgers/:ledger_param?', routesV2.getLedger);
+  app.get('/v2/accounts/:address/transactions/:sequence', routesV2.accountTxSeq);
+  app.get('/v2/accounts/:address/transactions', routesV2.accountTransactions);
   app.get('/v2/accounts/:address/balances', routesV2.accountBalances);
   app.get('/v2/accounts/:address/payments/:date?', routesV2.accountPayments);
   app.get('/v2/accounts/:address/reports/:date?', routesV2.accountReports);

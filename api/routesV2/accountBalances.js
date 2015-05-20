@@ -34,7 +34,7 @@ var accountBalances = function (req, res, next) {
       return;
     } else if (ledger) {
       options.ledger_index = ledger.ledger_index;
-      options.closeTime = ledger.close_time_human;
+      options.closeTime = moment.unix(ledger.close_time).utc().format();
     }
 
     options.currency = req.query.currency;
