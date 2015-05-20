@@ -16,12 +16,35 @@ You can also [install and run your own instance of the Historical Database](#run
 
 The `rippled` Historical Database provides a REST API, with the following methods:
 
+V1 Methods:
 * [Get Account Transaction History - `GET /v1/accounts/{:address}/transactions`](#get-account-transaction-history)
 * [Get Transaction By Account and Sequence - `GET /v1/accounts/{:address}/transactions/{:sequence}`](#get-transaction-by-account-and-sequence)
 * [Get Ledger - `GET /v1/ledgers/{:ledger_identifier}`](#get-ledger)
 * [Get Transaction - `GET /v1/transactions/{:hash}`](#get-transaction)
 
+V2 Methods:
+* [Get Ledger - `GET /v2/ledgers/{:ledger_identifier}`](#get-ledger-v2)
+* [Get Transaction - `GET /v2/transactions/{:hash}`](#get-transaction-v2)
+* [Get Transactions - `GET /v2/transactions/`](#get-transactions)
+* [Get Exchanges - `GET /v2/exchanges/:base/:counter`](#get-exchanges)
+* [Get Reports - `GET /v2/reports/`](#get-reports)
+* [Get Daily Report - `GET /v2/reports/:date`](#get-daily-report)
+* [Get Stats - `GET /v2/stats/`](#get-stats)
+* [Get Stats By Group - `GET /v2/stats/:group`](#get-stats-group)
+* [Get Stats By Individual Metric - `GET /v2/stats/:group/:metric`](#get-stats-metric)
+* [Get Accounts By Created Time - `GET /v2/accounts`](#get-accounts)
 
+V2 Account Methods:
+* [Get Account - `GET /v2/accounts/{:address}`](#get-account)
+* [Get Account Balances - `GET /v2/accounts/{:address}/balances`](#get-account-balances)
+* [Get Account Transaction History - `GET /v2/accounts/{:address}/transactions`](#get-account-transaction-history-v2)
+* [Get Transaction By Account and Sequence - `GET /v2/accounts/{:address}/transactions/{:sequence}`](#get-transaction-by-account-and-sequence-v2)
+* [Get Account Payments - `GET /v2/accounts/{:address}/payments`](#get-account-payments)
+* [Get Account Exchanges - `GET /v2/accounts/{:address}/exchanges`](#get-account-exchanges)
+* [Get Account Exchanges by Currency Pairs - `GET /v2/accounts/{:address}/exchanges/:base/:counter`](#get-account-exchanges-pairs)
+* [Get Account Balance Changes - `GET /v2/accounts/{:address}/balance_changes`](#get-account-balance-changes)
+* [Get Account Reports - `GET /v2/accounts/{:address}/reports`](#get-account-reports)
+* [Get Account Daily Report - `GET /v2/accounts/{:address}/reports/:date`](#get-account-daily-report)
 
 # API Objects #
 
