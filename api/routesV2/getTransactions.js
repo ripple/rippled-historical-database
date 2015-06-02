@@ -55,7 +55,7 @@ var getTransactions = function (req, res, next) {
     start: req.query.start,
     end: req.query.end,
     binary: (/true/i).test(req.query.binary) ? true : false,
-    descending: (/false/i).test(req.query.descending) ? false : true,
+    descending: (/true/i).test(req.query.descending) ? true : false,
     type: req.query.type,
     result: req.query.result,
     marker: req.query.marker,

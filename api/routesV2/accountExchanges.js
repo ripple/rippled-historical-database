@@ -37,7 +37,7 @@ AccountExchanges = function (req, res, next) {
       counter      : req.params.counter,
       limit        : req.query.limit || 200,
       marker       : req.query.marker,
-      descending   : (/false/i).test(req.query.descending) ? false : true,
+      descending   : (/true/i).test(req.query.descending) ? true : false,
       start        : req.query.start,
       end          : req.query.end,
       format       : (req.query.format || 'json').toLowerCase()

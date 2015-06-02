@@ -31,7 +31,7 @@ var getExchanges = function(req, res) {
       limit: Number(req.query.limit) || 200,
       base: {},
       counter: {},
-      descending: (/false/i).test(req.query.descending) ? false : true,
+      descending: (/true/i).test(req.query.descending) ? true : false,
       reduce: (/true/i).test(req.query.reduce) ? true : false,
       autobridged: (/true/i).test(req.query.autobridged) ? true : false,
       format: (req.query.format || 'json').toLowerCase(),

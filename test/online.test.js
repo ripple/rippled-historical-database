@@ -390,7 +390,7 @@ describe('HBASE client and API endpoints', function () {
         assert(t.meta);
 
         if (prev) {
-          assert(moment.utc(t.date).diff(prev) <= 0);
+          assert(moment.utc(t.date).diff(prev) >= 0);
         }
 
         prev = t.date;
@@ -797,7 +797,7 @@ describe('HBASE client and API endpoints', function () {
     var url = 'http://localhost:' + port + '/v2/accounts/' + account + '/transactions';
     var max  = 11370364;
     var min  = 11370357;
-    var last = max + 1;
+    var last = min - 1;
     request({
       url: url,
       json: true,
@@ -811,7 +811,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
       body.transactions.forEach(function(tx) {
-        assert.strictEqual(tx.tx.Sequence, last-1);
+        assert.strictEqual(tx.tx.Sequence, last+1);
         assert(tx.tx.Sequence <= max);
         assert(tx.tx.Sequence >= min);
         last = tx.tx.Sequence;
@@ -971,7 +971,7 @@ describe('HBASE client and API endpoints', function () {
 
   it('should make sure /accounts/:account/payments handles pagination correctly (the descending false version)', function(done) {
     this.timeout(5000);
-    var url = 'http://localhost:' + port + '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?descending=false';
+    var url = 'http://localhost:' + port + '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?';
     checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.payments.length, 1);
       assert.equal(body.payments[0].amount, ref.payments[i].amount);
@@ -1098,7 +1098,7 @@ describe('HBASE client and API endpoints', function () {
 
   it('should make sure /accounts/:account/exhanges handles pagination correctly (descending)', function(done) {
     this.timeout(5000);
-    var url = 'http://localhost:' + port + '/v2/accounts/rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg/exchanges?descending=false';
+    var url = 'http://localhost:' + port + '/v2/accounts/rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg/exchanges?';
     checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.exchanges.length, 1);
       assert.equal(body.exchanges[0].base_amount, ref.exchanges[i].base_amount);
@@ -1223,7 +1223,7 @@ describe('HBASE client and API endpoints', function () {
 
   it('should make sure /accounts/:account/balance_changes handles pagination correctly (descending)', function(done) {
     this.timeout(5000);
-    var url = 'http://localhost:' + port + '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/balance_changes?descending=false';
+    var url = 'http://localhost:' + port + '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/balance_changes?descending=true';
     checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.balance_changes.length, 1);
       assert.equal(body.balance_changes[0].change, ref.balance_changes[i].change);
@@ -1256,7 +1256,7 @@ describe('HBASE client and API endpoints', function () {
   it('should make sure /accounts/:account/balance_changes handles descending correctly', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/accounts/rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/balance_changes?' +
-        'descending=false';
+        'descending=true';
 
     request({
       url: url,
@@ -1270,7 +1270,7 @@ describe('HBASE client and API endpoints', function () {
       body.balance_changes.forEach(function(bch) {
 
         if (d) {
-          assert(d.diff(bch.executed_time) <= 0);
+          assert(d.diff(bch.executed_time) >= 0);
         }
 
         d = moment.utc(bch.executed_time);

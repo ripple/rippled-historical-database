@@ -2,7 +2,6 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'accounts'});
-var moment = require('moment');
 var response = require('response');
 var hbase;
 
@@ -12,17 +11,6 @@ var hbase;
 
 var getAccount = function(req, res, next) {
   var options;
-
-  // prepareOptions
-  function prepareOptions() {
-    var opts = {
-      account: req.params.address,
-      limit: 1,
-      descending: false // query will be faster
-    };
-
-    return opts;
-  }
 
  /**
   * errorResponse
@@ -67,18 +55,17 @@ var getAccount = function(req, res, next) {
     response.json(result).pipe(res);
   }
 
-  options = prepareOptions();
-
-  if (options.error) {
-    errorResponse(options);
-    return;
-  }
+  options = {
+    account: req.params.address,
+    limit: 1,
+    descending: false // query will be faster
+  };
 
   hbase.getAccounts(options, function(err, resp) {
     if (err) {
       errorResponse(err);
     } else if (!resp || !resp.rows || !resp.rows.length) {
-      errorResponse({error:'Account not found', code:404});
+      errorResponse({error: 'Account not found', code: 404});
     } else {
       successResponse(resp);
     }
