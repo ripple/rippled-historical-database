@@ -46,7 +46,7 @@ var AcccountBalanceChanges = function(req, res) {
       start: req.query.start,
       end: req.query.end,
       marker: req.query.marker,
-      descending: (/false/i).test(req.query.descending) ? false : true,
+      descending: (/true/i).test(req.query.descending) ? true : false,
       format: (req.query.format || 'json').toLowerCase()
     }
 

@@ -22,7 +22,7 @@ var Accounts = function (req, res, next) {
       marker: req.query.marker,
       interval: req.query.interval,
       limit: Number(req.query.limit) || 200,
-      descending: (/false/i).test(req.query.descending) ? false : true,
+      descending: (/true/i).test(req.query.descending) ? true : false,
       reduce: (/true/i).test(req.query.reduce) ? true : false,
       parent: req.query.parent,
       format: (req.query.format || 'json').toLowerCase()

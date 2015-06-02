@@ -23,7 +23,7 @@ var Stats = function(req, res) {
       family: req.params.family || req.query.family,
       start: req.query.start,
       end: req.query.end,
-      descending: (/false/i).test(req.query.descending) ? false : true,
+      descending: (/true/i).test(req.query.descending) ? true : false,
       interval: req.query.interval || 'day',
       limit: req.query.limit || 200,
       marker: req.query.marker,

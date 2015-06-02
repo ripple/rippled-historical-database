@@ -50,7 +50,7 @@ var AccountPayments = function (req, res, next) {
       type: req.query.type ? req.query.type.toLowerCase() : undefined,
       currency: req.query.currency ? req.query.currency.toUpperCase() : undefined,
       marker: req.query.marker,
-      descending: (/false/i).test(req.query.descending) ? false : true,
+      descending: (/true/i).test(req.query.descending) ? true : false,
       limit: Number(req.query.limit) || 200,
       format: (req.query.format || 'json').toLowerCase()
     };

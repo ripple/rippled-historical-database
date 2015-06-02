@@ -56,7 +56,7 @@ var accountTransactions = function (req, res) {
     minSequence: req.query.min_sequence,
     maxSequence: req.query.max_sequence,
     limit: req.query.limit || 20,
-    descending: (/false/i).test(req.query.descending) ? false : true
+    descending: (/true/i).test(req.query.descending) ? true : false
   };
 
   if (options.minLedger && !intMatch.test(options.minLedger)) {
