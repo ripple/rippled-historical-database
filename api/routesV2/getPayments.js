@@ -25,6 +25,13 @@ self.getPayments = function (req, res, next) {
       end     : req.query.end,
       limit   : req.query.limit
     }
+    
+    if(req.query.start) options.start = smoment(req.query.start)
+    else options.start = smoment(0);
+
+    if(req.query.end) options.end = smoment(req.query.end)
+    else options.end = smoment();
+
     return options;
   }
 

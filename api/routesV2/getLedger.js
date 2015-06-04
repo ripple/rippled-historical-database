@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get ledger'});
-var smoment = require('../../lib/smoment');
+var moment = require('moment');
 var response = require('response');
 var hbase;
 
@@ -53,7 +53,7 @@ var getLedger = function (req, res, next) {
     if (ledger_param) {
       var intMatch = /^\d+$/;
       var hexMatch = new RegExp('^(0x)?[0-9A-Fa-f]+$');
-      var iso = smoment(req.params.ledger_param);
+      var iso = moment.utc(req.params.ledger_param, moment.ISO_8601);
 
       // ledger index test
       if (intMatch.test(ledger_param)) {
