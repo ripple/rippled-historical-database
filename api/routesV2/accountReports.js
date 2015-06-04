@@ -1,6 +1,5 @@
 var Logger   = require('../../lib/logger');
 var log      = new Logger({scope : 'Account Reports'});
-var moment   = require('moment');
 var response = require('response');
 var utils    = require('../../lib/utils');
 var hbase;
@@ -59,14 +58,14 @@ var AccountReports = function (req, res, next) {
       return {error: 'Account is required', code:400};
     }
 
-    if (req.params.date) {
-      options.start = moment.utc(req.params.date).startOf('day');
-      options.end   = moment.utc(req.params.date).startOf('day');
+    // if (req.params.date) {
+    //   options.start = moment.utc(req.params.date).startOf('day');
+    //   options.end   = moment.utc(req.params.date).startOf('day');
 
-    } else {
-      if (!options.end)   options.end   = moment.utc().startOf('day');
-      if (!options.start) options.start = moment.utc().startOf('day');
-    }
+    // } else {
+    //   if (!options.end)   options.end   = moment.utc().startOf('day');
+    //   if (!options.start) options.start = moment.utc().startOf('day');
+    // }
 
     return options;
   }

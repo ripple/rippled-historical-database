@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'accounts'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var hbase;
 var intervals = ['hour', 'day', 'week'];
@@ -17,8 +17,8 @@ var Accounts = function (req, res, next) {
   // prepareOptions
   function prepareOptions() {
     var opts = {
-      start: moment.utc(req.query.start || 0),
-      end: moment.utc(req.query.end),
+      start: smoment(req.query.start || 0),
+      end: smoment(req.query.end),
       marker: req.query.marker,
       interval: req.query.interval,
       limit: Number(req.query.limit) || 200,

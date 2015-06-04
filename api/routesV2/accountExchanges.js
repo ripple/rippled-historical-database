@@ -1,6 +1,6 @@
 var Logger   = require('../../lib/logger');
 var log      = new Logger({scope : 'get payments'});
-var moment   = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var hbase;
 
@@ -14,8 +14,7 @@ AccountExchanges = function (req, res, next) {
 
     } else {
       exchanges.rows.forEach(function(ex) {
-        ex.executed_time = moment.unix(ex.executed_time).utc().format();
-
+        ex.executed_time = smoment(ex.executed_time).format();
         delete ex.rowkey;
         delete ex.node_index;
         delete ex.tx_index;
@@ -54,8 +53,8 @@ AccountExchanges = function (req, res, next) {
     options.counter.currency = counter && counter[0] ? counter[0].toUpperCase() : undefined;
     options.counter.issuer   = counter && counter[1] ? counter[1] : undefined;
 
-    if (!options.end)   options.end   = moment.utc('9999-12-31');
-    if (!options.start) options.start = moment.utc(0);
+    if (!options.end)   options.end   = smoment('9999-12-31');
+    if (!options.start) options.start = smoment(0);
 
     return options;
   }

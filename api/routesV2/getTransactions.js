@@ -1,5 +1,5 @@
 'use strict';
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get tx'});
 var response = require('response');
@@ -86,8 +86,8 @@ var getTransactions = function (req, res, next) {
 
   // transactions by time
   } else {
-    options.start = moment.utc(options.start || '2013-01-01', moment.ISO_8601);
-    options.end = moment.utc(options.end || (new Date).toISOString(), moment.ISO_8601);
+    options.start = smoment(options.start || '2013-01-01');
+    options.end = smoment(options.end || (new Date).toISOString());
 
     if (!options.start.isValid()) {
       errorResponse({

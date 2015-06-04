@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'reports'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var hbase;
 
@@ -55,14 +55,14 @@ var Reports = function (req, res, next) {
       options.accounts = (/true/i).test(req.query.counterparties) ? true : false;
     }
 
-    if (req.params.date) {
-      options.start  = moment.utc(req.params.date).startOf('day');
-      options.end    = moment.utc(options.start).add(1, 'day');
+    // if (req.params.date) {
+    //   options.start  = moment.utc(req.params.date).startOf('day');
+    //   options.end    = moment.utc(options.start).add(1, 'day');
 
-    } else {
-      if (!options.end)   options.end   = moment.utc();
-      if (!options.start) options.start = moment.utc().startOf('day');
-    }
+    // } else {
+    //   if (!options.end)   options.end   = moment.utc();
+    //   if (!options.start) options.start = moment.utc().startOf('day');
+    // }
 
     return options;
   }
@@ -103,13 +103,13 @@ var Reports = function (req, res, next) {
         });
       }
 
-      start = moment.utc(options.start);
-      end = moment.utc(options.end);
+      start = smoment(options.start);
+      end = smoment(options.end);
 
       filename += ' ' + start.format('YYYY-MM-DD');
-      if (options.end && end.diff(start.add(1, 'day')) > 0) {
-        filename += ' - ' + end.format('YYYY-MM-DD');
-      }
+      // if (options.end && end.diff(start.add(1, 'day')) > 0) {
+      //   filename += ' - ' + end.format('YYYY-MM-DD');
+      // }
       res.csv(resp, filename + '.csv');
 
     } else {

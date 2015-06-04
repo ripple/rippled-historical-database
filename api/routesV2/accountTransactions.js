@@ -1,6 +1,6 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account tx'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var intMatch = /^\d+$/;
 var hbase;
@@ -90,8 +90,8 @@ var accountTransactions = function (req, res) {
 
   // query by date
   } else {
-    options.start = moment.utc(req.query.start || '2013-01-01', moment.ISO_8601);
-    options.end = moment.utc(req.query.end || (new Date).toISOString(), moment.ISO_8601);
+    options.start = smoment(req.query.start || '2013-01-01');
+    options.end = smoment(req.query.end || (new Date).toISOString());
 
     if (!options.start.isValid()) {
       errorResponse({

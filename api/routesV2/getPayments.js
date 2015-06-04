@@ -1,7 +1,6 @@
 var config   = require('../../storm/multilang/resources/config');
 var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
 var log      = new Logger({scope : 'get payments'});
-var moment   = require('moment');
 var response = require('response');
 
 var accountPayments = function(hbase) {
