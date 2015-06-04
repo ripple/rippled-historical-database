@@ -702,13 +702,16 @@ describe('HBASE client and API endpoints', function () {
   it('should return transactions for a given date range', function(done) {
     var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
     var url = 'http://localhost:' + port + '/v2/accounts/' + account + '/transactions';
+  
+    var start= '2015-01-14T18:27:10';
+    var end= '2015-01-14T18:27:29';
 
     request({
       url: url,
       json: true,
       qs: {
-        start : '2015-01-14T18:27:10',
-        end   : '2015-01-14T18:27:29',
+        start : start,
+        end   : end,
       }
     },
     function (err, res, body) {
@@ -717,6 +720,13 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.count, 8);
       assert.strictEqual(body.transactions.length, 8);
+      body.transactions.forEach( function(trans) {
+        var d= moment.utc(trans.date);
+        console.log(trans.date);
+        assert.strictEqual( d.isBetween(moment.utc(start), moment.utc(end)) 
+                          || d.isSame(moment.utc(start)) || d.isSame(moment.utc(end))
+                          , true);
+      });
       done();
     });
   });
@@ -725,12 +735,15 @@ describe('HBASE client and API endpoints', function () {
     var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
     var url = 'http://localhost:' + port + '/v2/accounts/' + account + '/transactions';
 
+    var start= '2015-01-14T18:27:10';
+    var end= '2015-01-14T18:27:30';
+
     request({
       url: url,
       json: true,
       qs: {
-        start : '2015-01-14T18:27:10',
-        end   : '2015-01-14T18:27:30',
+        start : start,
+        end   : end,
       }
     },
     function (err, res, body) {
@@ -739,6 +752,12 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.count, 13);
       assert.strictEqual(body.transactions.length, 13);
+      body.transactions.forEach( function(trans) {
+        var d= moment.utc(trans.date);
+        assert.strictEqual( d.isBetween(moment.utc(start), moment.utc(end)) 
+                          || d.isSame(moment.utc(start)) || d.isSame(moment.utc(end))
+                          , true);
+      });
       done();
     });
   });
