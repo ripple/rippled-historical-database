@@ -1,7 +1,7 @@
 'use strict';
 
 var Logger = require('../../lib/logger');
-var log = new Logger({scope: 'get payments'});
+var log = new Logger({scope: 'normalize'});
 var smoment = require('../../lib/smoment');
 var Promise = require('bluebird');
 var response = require('response');
@@ -10,7 +10,7 @@ var hbase;
 var normalize = function(req, res) {
 
   var options = {
-    date: req.query.date,
+    date: smoment(req.query.date),
     amount: Number(req.query.amount),
     currency: (req.query.currency || 'XRP').toUpperCase(),
     issuer: req.query.issuer || '',
@@ -47,10 +47,6 @@ var normalize = function(req, res) {
       rate: 1
     });
     return;
-  }
-
-  if (!options.date) {
-    options.date = smoment();
   }
 
   Promise.all([
