@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'get payments'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var hbase;
 
@@ -44,7 +44,7 @@ var getExchanges = function(req, res) {
   }
 
   if (!options.date) {
-    options.date = moment.utc();
+    options.date = smoment();
   }
 
   hbase.getExchangeRate(options)

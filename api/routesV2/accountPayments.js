@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account payments'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var utils = require('../../lib/utils');
 var types = ['sent', 'received'];
@@ -30,7 +30,7 @@ var AccountPayments = function (req, res, next) {
           delete p.rowkey;
           delete p.tx_index;
           delete p.client;
-          p.executed_time = moment.unix(p.executed_time).utc().format();
+          p.executed_time = smoment(p.executed_time).format();
         });
 
         successResponse(payments);
@@ -63,14 +63,11 @@ var AccountPayments = function (req, res, next) {
       return {error: 'limit cannot exceed 1000', code: 400};
     }
 
-    if (req.params.date) {
-      options.start = moment.utc(req.params.date).startOf('day');
-      options.end   = moment.utc(req.params.date).startOf('day').add(1, 'day');
+    if(req.query.start) options.start = smoment(req.query.start)
+    else options.start = smoment(0);
 
-    } else {
-      if (!options.end)   options.end   = moment.utc('9999-12-31');
-      if (!options.start) options.start = moment.utc(0);
-    }
+    if(req.query.end) options.end = smoment(req.query.end)
+    else options.end = smoment();
 
     return options;
   }

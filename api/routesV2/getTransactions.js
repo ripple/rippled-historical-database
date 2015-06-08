@@ -1,5 +1,5 @@
 'use strict';
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get tx'});
 var response = require('response');
@@ -86,19 +86,19 @@ var getTransactions = function (req, res, next) {
 
   // transactions by time
   } else {
-    options.start = moment.utc(options.start || '2013-01-01', moment.ISO_8601);
-    options.end = moment.utc(options.end || (new Date).toISOString(), moment.ISO_8601);
+    options.start = smoment(options.start || 0);
+    options.end = smoment(options.end);
 
-    if (!options.start.isValid()) {
+    if (!options.start) {
       errorResponse({
-        error: 'invalid start date, format must be ISO 8601',
+        error: 'invalid start date format',
         code: 400
       });
       return;
 
-    } else if (!options.end.isValid()) {
+    } else if (!options.end) {
       errorResponse({
-        error: 'invalid end date, format must be ISO 8601',
+        error: 'invalid end date format',
         code: 400
       });
       return;
@@ -129,7 +129,7 @@ var getTransactions = function (req, res, next) {
 
     options.include_ledger_hash = true;
 
-    log.info(options.start.format(), options.end.format());
+    //log.info(options.start.format(), options.end.format());
     hbase.getTransactions(options, function(err, resp) {
       if (err) {
         errorResponse(err);

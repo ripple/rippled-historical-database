@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'get payments'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var intervals = [
   '1minute',
@@ -62,10 +62,10 @@ var getExchanges = function(req, res) {
     }
 
     if (!options.end) {
-      options.end = moment.utc();
+      options.end = smoment();
     }
     if (!options.start) {
-      options.start = moment.utc('2013-01-01');
+      options.start = smoment('2013-01-01');
     }
     if (options.interval) {
       options.interval = options.interval.toLowerCase();
@@ -159,7 +159,7 @@ var getExchanges = function(req, res) {
             delete ex.time;
             delete ex.client;
 
-            ex.executed_time = moment.unix(ex.executed_time).utc().format();
+            ex.executed_time = smoment(ex.executed_time).format();
           });
         }
 

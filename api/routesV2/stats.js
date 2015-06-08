@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'stats'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var utils = require('../../lib/utils');
 var hbase;
@@ -31,10 +31,10 @@ var Stats = function(req, res) {
     };
 
     if (!options.end) {
-      options.end = moment.utc();
+      options.end = smoment();
     }
     if (!options.start) {
-      options.start = moment.utc('2013-01-01');
+      options.start = smoment('2013-01-01');
     }
 
     if (req.params.metric) {

@@ -4,7 +4,7 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account balances'});
 var request = require('request');
 var response = require('response');
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var API = 'https://api.ripple.com/v1';
 var hbase;
 
@@ -34,7 +34,7 @@ var accountBalances = function (req, res, next) {
       return;
     } else if (ledger) {
       options.ledger_index = ledger.ledger_index;
-      options.closeTime = moment.unix(ledger.close_time).utc().format();
+      options.closeTime = smoment(ledger.close_time).format();
     }
 
     options.currency = req.query.currency;

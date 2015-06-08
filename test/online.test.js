@@ -363,6 +363,7 @@ describe('HBASE client and API endpoints', function () {
   /**** transactions endpoint ****/
 
   it('should return transactions by time', function(done) {
+    this.timeout(60000);    
     var url = 'http://localhost:' + port + '/v2/transactions/';
 
     request({
@@ -580,7 +581,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(body.message, 'invalid start date, format must be ISO 8601');
+      assert.strictEqual(body.message, 'invalid start date format');
       done();
     });
   });
@@ -600,7 +601,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(body.message, 'invalid end date, format must be ISO 8601');
+      assert.strictEqual(body.message, 'invalid end date format');
       done();
     });
   });
@@ -701,13 +702,16 @@ describe('HBASE client and API endpoints', function () {
   it('should return transactions for a given date range', function(done) {
     var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
     var url = 'http://localhost:' + port + '/v2/accounts/' + account + '/transactions';
+  
+    var start= '2015-01-14T18:27:10';
+    var end= '2015-01-14T18:27:29';
 
     request({
       url: url,
       json: true,
       qs: {
-        start : '2015-01-14 18:27:10',
-        end   : '2015-01-14 18:27:30',
+        start : start,
+        end   : end,
       }
     },
     function (err, res, body) {
@@ -716,6 +720,44 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.count, 8);
       assert.strictEqual(body.transactions.length, 8);
+      body.transactions.forEach( function(trans) {
+        var d= moment.utc(trans.date);
+        console.log(trans.date);
+        assert.strictEqual( d.isBetween(moment.utc(start), moment.utc(end)) 
+                          || d.isSame(moment.utc(start)) || d.isSame(moment.utc(end))
+                          , true);
+      });
+      done();
+    });
+  });
+
+  it('should return transactions for a given date range (bis)', function(done) {
+    var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
+    var url = 'http://localhost:' + port + '/v2/accounts/' + account + '/transactions';
+
+    var start= '2015-01-14T18:27:10';
+    var end= '2015-01-14T18:27:30';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        start : start,
+        end   : end,
+      }
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 13);
+      assert.strictEqual(body.transactions.length, 13);
+      body.transactions.forEach( function(trans) {
+        var d= moment.utc(trans.date);
+        assert.strictEqual( d.isBetween(moment.utc(start), moment.utc(end)) 
+                          || d.isSame(moment.utc(start)) || d.isSame(moment.utc(end))
+                          , true);
+      });
       done();
     });
   });
@@ -856,7 +898,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(res.statusCode, 400);
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
-      assert.strictEqual(body.message, 'invalid start date, format must be ISO 8601');
+      assert.strictEqual(body.message, 'invalid start date format');
       done();
     });
   });
@@ -1270,7 +1312,7 @@ describe('HBASE client and API endpoints', function () {
       body.balance_changes.forEach(function(bch) {
 
         if (d) {
-          assert(d.diff(bch.executed_time) >= 0);
+          assert(d.diff(bch.executed_time) <= 0);
         }
 
         d = moment.utc(bch.executed_time);

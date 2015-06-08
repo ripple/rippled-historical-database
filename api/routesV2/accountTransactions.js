@@ -1,6 +1,6 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account tx'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var intMatch = /^\d+$/;
 var hbase;
@@ -90,23 +90,16 @@ var accountTransactions = function (req, res) {
 
   // query by date
   } else {
-    options.start = moment.utc(req.query.start || '2013-01-01', moment.ISO_8601);
-    options.end = moment.utc(req.query.end || (new Date).toISOString(), moment.ISO_8601);
-
-    if (!options.start.isValid()) {
-      errorResponse({
-        error: 'invalid start date, format must be ISO 8601',
-        code: 400
-      });
+    options.start = smoment(req.query.start || 0);
+    if (!options.start) {
+      errorResponse({error: 'invalid start date format', code: 400});
       return;
-
-    } else if (!options.end.isValid()) {
-      errorResponse({
-        error: 'invalid end date, format must be ISO 8601',
-        code: 400
-      });
+    }    
+    options.end = smoment(req.query.end);
+    if (!options.end) {
+      errorResponse({error: 'invalid end date format', code: 400});
       return;
-    }
+    }   
   }
 
   // require valid transaction type
@@ -166,10 +159,11 @@ var accountTransactions = function (req, res) {
   function successResponse (resp) {
     var result = {result : 'success'};
 
-    result.count = resp.rows.length;
+    var rows = resp.rows || [];
+    result.count = rows.length;
     result.marker = resp.marker;
-    result.transactions = resp.rows;
-    log.info('Transactions Found:', resp.rows.length);
+    result.transactions = rows;
+    log.info('Transactions Found:', rows.length);
 
     response.json(result).pipe(res);
   }

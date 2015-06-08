@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get account balance changes'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var hbase;
 
@@ -29,7 +29,7 @@ var AcccountBalanceChanges = function(req, res) {
         delete ex.rowkey;
         delete ex.client;
         delete ex.account;
-        ex.executed_time = moment.unix(ex.executed_time).utc().format();
+        ex.executed_time = smoment(ex.executed_time).format();
       });
 
       successResponse(changes);
@@ -43,19 +43,11 @@ var AcccountBalanceChanges = function(req, res) {
       currency: req.query.currency,
       issuer: req.query.issuer,
       limit: req.query.limit,
-      start: req.query.start,
-      end: req.query.end,
+      start: smoment(req.query.start || 0),
+      end: smoment(req.query.end),
       marker: req.query.marker,
       descending: (/true/i).test(req.query.descending) ? true : false,
       format: (req.query.format || 'json').toLowerCase()
-    }
-
-    if (!options.end) {
-      options.end = moment.utc('9999-12-31');
-    }
-
-    if (!options.start) {
-      options.start = moment.utc(0);
     }
 
     if (options.issuer &&
