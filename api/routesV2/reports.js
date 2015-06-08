@@ -18,7 +18,6 @@ var Reports = function (req, res, next) {
     return;
 
   } else {
-    log.info(options.start.toString(), '-', options.end.toString());
 
     hbase.getAggregateAccountPayments(options)
     .nodeify(function(err, resp) {
