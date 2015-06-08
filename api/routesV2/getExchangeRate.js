@@ -9,7 +9,7 @@ var hbase;
 var getExchanges = function(req, res) {
 
   var options = {
-    date: req.query.date,
+    date: smoment(req.query.date),
     base: {},
     counter: {}
   };
@@ -41,10 +41,6 @@ var getExchanges = function(req, res) {
   } else if (options.counter.currency !== 'XRP' && !options.counter.issuer) {
     errorResponse({error: 'counter issuer is required', code: 400});
     return;
-  }
-
-  if (!options.date) {
-    options.date = smoment();
   }
 
   hbase.getExchangeRate(options)
