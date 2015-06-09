@@ -45,7 +45,6 @@ var Reports = function (req, res, next) {
     var options = {
       start: moment.utc(req.params.date),
       end: moment.utc(req.params.date).add(1, 'second'), //make inclusive
-      descending: (/true/i).test(req.query.descending) ? true : false,
       accounts: (/true/i).test(req.query.accounts) ? true : false,
       format: (req.query.format || 'json').toLowerCase(),
     };
@@ -53,9 +52,6 @@ var Reports = function (req, res, next) {
     if (!options.accounts) {
       options.accounts = (/true/i).test(req.query.counterparties) ? true : false;
     }
-
-    //make it inclusive of the provided end
-    options.end.add(1, 'second');
 
     return options;
   }
