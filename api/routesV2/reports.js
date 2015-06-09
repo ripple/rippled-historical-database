@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'reports'});
-var smoment = require('../../lib/smoment');
+var moment = require('moment');
 var response = require('response');
 var hbase;
 
@@ -43,25 +43,19 @@ var Reports = function (req, res, next) {
 
   function prepareOptions() {
     var options = {
-      start      : req.query.start,
-      end        : req.query.end,
-      descending : (/true/i).test(req.query.descending) ? true : false,
-      accounts   : (/true/i).test(req.query.accounts) ? true : false,
-      format     : (req.query.format || 'json').toLowerCase()
+      start: moment.utc(req.params.date),
+      end: moment.utc(req.params.date).add(1, 'second'), //make inclusive
+      descending: (/true/i).test(req.query.descending) ? true : false,
+      accounts: (/true/i).test(req.query.accounts) ? true : false,
+      format: (req.query.format || 'json').toLowerCase(),
     };
 
     if (!options.accounts) {
       options.accounts = (/true/i).test(req.query.counterparties) ? true : false;
     }
 
-    // if (req.params.date) {
-    //   options.start  = moment.utc(req.params.date).startOf('day');
-    //   options.end    = moment.utc(options.start).add(1, 'day');
-
-    // } else {
-    //   if (!options.end)   options.end   = moment.utc();
-    //   if (!options.start) options.start = moment.utc().startOf('day');
-    // }
+    //make it inclusive of the provided end
+    options.end.add(1, 'second');
 
     return options;
   }
@@ -102,10 +96,7 @@ var Reports = function (req, res, next) {
         });
       }
 
-      start = smoment(options.start);
-      end = smoment(options.end);
-
-      filename += ' ' + start.format('YYYY-MM-DD');
+      filename += ' ' + options.start.format('YYYY-MM-DD');
       // if (options.end && end.diff(start.add(1, 'day')) > 0) {
       //   filename += ' - ' + end.format('YYYY-MM-DD');
       // }
