@@ -21,21 +21,14 @@ var Stats = function(req, res) {
   function prepareOptions() {
     var options = {
       family: req.params.family || req.query.family,
-      start: req.query.start,
-      end: req.query.end,
+      start: smoment(req.query.start || '2013-01-01'),
+      end: smoment(req.query.end),
       descending: (/true/i).test(req.query.descending) ? true : false,
       interval: req.query.interval || 'day',
       limit: req.query.limit || 200,
       marker: req.query.marker,
       format: (req.query.format || 'json').toLowerCase(),
     };
-
-    if (!options.end) {
-      options.end = smoment();
-    }
-    if (!options.start) {
-      options.start = smoment('2013-01-01');
-    }
 
     if (req.params.metric) {
       options.metrics = [options.family + ':' + req.params.metric];
