@@ -1,7 +1,8 @@
-var Logger   = require('../../lib/logger');
-var log      = new Logger({scope : 'Account Reports'});
+var Logger = require('../../lib/logger');
+var log = new Logger({scope : 'Account Reports'});
 var response = require('response');
-var utils    = require('../../lib/utils');
+var utils = require('../../lib/utils');
+var smoment = require('../../lib/smoment');
 var hbase;
 
 /**
@@ -16,7 +17,7 @@ var AccountReports = function (req, res, next) {
     return;
 
   } else {
-    log.info(options.account, options.start.toString(), '-', options.end.toString());
+    log.info(options.account, options.start.format(), '-', options.end.format());
 
     hbase.getAggregateAccountPayments(options)
     .nodeify(function(err, resp) {
@@ -41,10 +42,11 @@ var AccountReports = function (req, res, next) {
    */
 
   function prepareOptions() {
+    var days;
     var options = {
       account    : req.params.address,
-      start      : req.query.start,
-      end        : req.query.end,
+      start      : smoment(req.query.start),
+      end        : smoment(req.query.end),
       descending : (/true/i).test(req.query.descending) ? true : false,
       accounts   : (/true/i).test(req.query.accounts) ? true : false,
       format     : (req.query.format || 'json').toLowerCase()
@@ -58,11 +60,23 @@ var AccountReports = function (req, res, next) {
       return {error: 'Account is required', code:400};
     }
 
-    if(req.query.start) options.start = smoment(req.query.start)
-    else options.start = smoment(0);
+    if (req.params.date) {
+      options.start = smoment(req.params.date);
+      options.end = smoment(req.params.date);
+    }
 
-    if(req.query.end) options.end = smoment(req.query.end)
-    else options.end = smoment();
+    if (!options.start) {
+      return {error: 'invalid start time, must be ISO_8601', code: 400};
+    } else if (!options.end) {
+      return {error: 'invalid end time, must be ISO_8601', code: 400};
+    }
+
+    days = options.end.moment.diff(options.start.moment, 'days');
+    if (!days) {
+      options.start.moment.startOf('day');
+    } else if(Math.abs(days) > 200) {
+      return {error: 'choose a date range less than 200 days', code: 400};
+    }
 
     return options;
   }
