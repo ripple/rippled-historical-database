@@ -43,11 +43,17 @@ var AcccountBalanceChanges = function(req, res) {
       currency: req.query.currency,
       issuer: req.query.issuer,
       limit: req.query.limit,
-      start: smoment(req.query.start || 0),
+      start: smoment(req.query.start || '2013-01-01'),
       end: smoment(req.query.end),
       marker: req.query.marker,
       descending: (/true/i).test(req.query.descending) ? true : false,
       format: (req.query.format || 'json').toLowerCase()
+    }
+
+    if (!options.start) {
+      return {error: 'invalid start time, must be ISO_8601', code: 400};
+    } else if (!options.end) {
+      return {error: 'invalid end time, must be ISO_8601', code: 400};
     }
 
     if (options.issuer &&
