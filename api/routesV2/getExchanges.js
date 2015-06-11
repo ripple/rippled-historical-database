@@ -25,8 +25,8 @@ var getExchanges = function(req, res) {
 
   function prepareOptions() {
     var options = {
-      start: req.query.start,
-      end: req.query.end,
+      start: smoment(req.query.start || '2013-01-01'),
+      end: smoment(req.query.end),
       interval: req.query.interval,
       limit: Number(req.query.limit) || 200,
       base: {},
@@ -61,12 +61,12 @@ var getExchanges = function(req, res) {
       return {error:'counter issuer is required', code:400};
     }
 
-    if (!options.end) {
-      options.end = smoment();
-    }
     if (!options.start) {
-      options.start = smoment('2013-01-01');
+      return {error: 'invalid start time, must be ISO_8601', code: 400};
+    } else if (!options.end) {
+      return {error: 'invalid end time, must be ISO_8601', code: 400};
     }
+
     if (options.interval) {
       options.interval = options.interval.toLowerCase();
     }
