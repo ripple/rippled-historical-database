@@ -43,6 +43,12 @@ var Stats = function(req, res) {
       }
     }
 
+    if (!options.start) {
+      return {error: 'invalid start time, must be ISO_8601', code: 400};
+    } else if (!options.end) {
+      return {error: 'invalid end time, must be ISO_8601', code: 400};
+    }
+
     return options;
   }
 
