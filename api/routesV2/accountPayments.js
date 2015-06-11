@@ -45,8 +45,8 @@ var AccountPayments = function (req, res, next) {
   function prepareOptions() {
     var options = {
       account: req.params.address,
-      start: req.query.start,
-      end: req.query.end,
+      start: smoment(req.query.start || '2013-01-01'),
+      end: smoment(req.query.end),
       type: req.query.type ? req.query.type.toLowerCase() : undefined,
       currency: req.query.currency ? req.query.currency.toUpperCase() : undefined,
       marker: req.query.marker,
@@ -55,6 +55,12 @@ var AccountPayments = function (req, res, next) {
       format: (req.query.format || 'json').toLowerCase()
     };
 
+    if (!options.start) {
+      return {error: 'invalid start time, must be ISO_8601', code: 400};
+    } else if (!options.end) {
+      return {error: 'invalid end time, must be ISO_8601', code: 400};
+    }
+
     if (!options.account) {
       return {error: 'Account is required', code: 400};
     } else if (options.type && types.indexOf(options.type) === -1) {
@@ -62,12 +68,6 @@ var AccountPayments = function (req, res, next) {
     } else if (options.limit > 1000) {
       return {error: 'limit cannot exceed 1000', code: 400};
     }
-
-    if(req.query.start) options.start = smoment(req.query.start)
-    else options.start = smoment(0);
-
-    if(req.query.end) options.end = smoment(req.query.end)
-    else options.end = smoment();
 
     return options;
   }
