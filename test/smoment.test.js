@@ -15,6 +15,8 @@ describe('smoment: ', function() {
     assert.strictEqual(smoment(0).format(), '1970-01-01T00:00:00');
     assert.strictEqual(smoment().format(), moment().utc().format('YYYY-MM-DDTHH:mm:ss'));      // This might fail
     assert.strictEqual(smoment(946684800).format(), '2000-01-01T00:00:00');                    // Ripple Epoch
+    assert.strictEqual(smoment('946684800').format(), '2000-01-01T00:00:00');                  // Ripple Epoch
+    assert.strictEqual(smoment('946684d800'), undefined);                   
     assert.strictEqual(smoment('2015-03-04 18:22:33'), undefined);
     assert.strictEqual(smoment('2015-03-04T18:22:33').format(), '2015-03-04T18:22:33');
     done();
@@ -28,6 +30,14 @@ describe('smoment: ', function() {
     assert.strictEqual(smoment('2015-04-10T13').hbaseFormatStopRow(), smoment('2015-04-10T14:00:00').hbaseFormatStartRow()); 
     assert.strictEqual(smoment('2015-04-10T13:12').hbaseFormatStopRow(), smoment('2015-04-10T13:13:00').hbaseFormatStartRow());
     assert.strictEqual(smoment('2015-04-10T13:12:42').hbaseFormatStopRow(), smoment('2015-04-10T13:12:43').hbaseFormatStartRow());                
+    done();
+  });
+
+  it('should check the ctor', function(done) {
+    var m = moment('2015-01-02T13:45:32Z');
+    assert.strictEqual(m.isSame(smoment(m).moment), true);
+    var sm= smoment(1234);
+    assert.strictEqual(sm.moment.isSame(smoment(sm).moment), true);
     done();
   });
 
