@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'reports'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var response = require('response');
 var hbase;
 
@@ -18,6 +18,7 @@ var Reports = function (req, res, next) {
     return;
 
   } else {
+    log.info(options.start.format(), '-', options.end.format());
 
     hbase.getAggregateAccountPayments(options)
     .nodeify(function(err, resp) {
@@ -43,8 +44,8 @@ var Reports = function (req, res, next) {
 
   function prepareOptions() {
     var options = {
-      start: moment.utc(req.params.date),
-      end: moment.utc(req.params.date).add(1, 'second'), //make inclusive
+      start: smoment(req.params.date),
+      end: smoment(req.params.date),
       accounts: (/true/i).test(req.query.accounts) ? true : false,
       format: (req.query.format || 'json').toLowerCase(),
     };
@@ -52,6 +53,13 @@ var Reports = function (req, res, next) {
     if (!options.accounts) {
       options.accounts = (/true/i).test(req.query.counterparties) ? true : false;
     }
+
+    if (!options.start) {
+      return {error: 'invalid date, must be ISO_8601', code: 400};
+    }
+
+    options.start.moment.startOf('day');
+    options.end.granularity = 'second';
 
     return options;
   }
