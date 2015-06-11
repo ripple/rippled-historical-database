@@ -13,7 +13,7 @@ var accountBalances = function (req, res, next) {
   var options = {
     ledger_index: req.query.ledger_index || req.query.ledger,
     ledger_hash: req.query.ledger_hash,
-    closeTime: req.query.close_time || req.query.date,
+    closeTime: smoment(req.query.close_time || req.query.date),
     account: req.params.address,
     format: (req.query.format || 'json').toLowerCase()
   };
@@ -24,6 +24,17 @@ var accountBalances = function (req, res, next) {
       code: 400
     });
     return;
+  }
+
+  if (!options.closeTime) {
+    errorResponse({
+      error: 'invalid date, must be ISO_8601',
+      code: 400
+    });
+    return;
+
+  } else {
+    options.closeTime = options.closeTime.format();
   }
 
   log.info('ACCOUNT BALANCES:', options.account);
