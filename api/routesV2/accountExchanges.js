@@ -8,6 +8,21 @@ AccountExchanges = function (req, res, next) {
 
   var options = prepareOptions();
 
+  if (!options.start) {
+    errorResponse({
+      error: 'invalid start time format',
+      code: 400
+    });
+    return;
+
+  } else if (!options.end) {
+    errorResponse({
+      error: 'invalid start time format',
+      code: 400
+    });
+    return;
+  }
+
   hbase.getAccountExchanges(options, function(err, exchanges) {
     if (err) {
       errorResponse(err);
@@ -37,7 +52,7 @@ AccountExchanges = function (req, res, next) {
       limit        : req.query.limit || 200,
       marker       : req.query.marker,
       descending   : (/true/i).test(req.query.descending) ? true : false,
-      start        : smoment(req.query.start || 0),
+      start        : smoment(req.query.start || '2013-01-01'),
       end          : smoment(req.query.end),
       format       : (req.query.format || 'json').toLowerCase()
     };

@@ -511,7 +511,7 @@ var DB = function(config) {
           else if (/^\d+$/.test(options.date)) {
             query.where('ledgers.closing_time', '<=', options.date);
           }
-          else return {error:'invalid date, format must be ISO 8601or Unix offset', code:400};
+          else return {error:'invalid date, format must be ISO 8601 or Unix offset', code:400};
         }
         if (options.ledger_hash)
           query.where('ledgers.ledger_hash', self.knex.raw("decode('"+options.ledger_hash+"', 'hex')"));

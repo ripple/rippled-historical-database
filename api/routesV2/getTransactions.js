@@ -52,8 +52,6 @@ var getTransactions = function (req, res, next) {
   var hexMatch = new RegExp('^(0x)?[0-9A-Fa-f]+$');
   var options  = {
     tx_hash: req.params.tx_hash,
-    start: req.query.start,
-    end: req.query.end,
     binary: (/true/i).test(req.query.binary) ? true : false,
     descending: (/true/i).test(req.query.descending) ? true : false,
     type: req.query.type,
@@ -86,19 +84,19 @@ var getTransactions = function (req, res, next) {
 
   // transactions by time
   } else {
-    options.start = smoment(options.start || 0);
-    options.end = smoment(options.end);
+    options.start = smoment(req.query.start || '2013-01-01');
+    options.end = smoment(req.query.end);
 
     if (!options.start) {
       errorResponse({
-        error: 'invalid start date format',
+        error: 'invalid start time format',
         code: 400
       });
       return;
 
     } else if (!options.end) {
       errorResponse({
-        error: 'invalid end date format',
+        error: 'invalid end time format',
         code: 400
       });
       return;

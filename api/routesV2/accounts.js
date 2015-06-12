@@ -17,7 +17,7 @@ var Accounts = function (req, res, next) {
   // prepareOptions
   function prepareOptions() {
     var opts = {
-      start: smoment(req.query.start || 0),
+      start: smoment(req.query.start || '2013-01-01'),
       end: smoment(req.query.end),
       marker: req.query.marker,
       interval: req.query.interval,
@@ -28,6 +28,13 @@ var Accounts = function (req, res, next) {
       format: (req.query.format || 'json').toLowerCase()
     };
 
+    if (!opts.start) {
+      return {error: 'invalid start time format', code: 400};
+    } else if (!opts.end) {
+      return {error: 'invalid end time format', code: 400};
+    }
+
+
     if (opts.interval && intervals.indexOf(opts.interval) === -1) {
       return {error: 'invalid interval', code: 400};
     } else if (opts.interval && opts.reduce) {
@@ -35,6 +42,7 @@ var Accounts = function (req, res, next) {
     } else if (opts.limit > 1000) {
       opts.limit = 1000;
     }
+
     return opts;
   }
 
