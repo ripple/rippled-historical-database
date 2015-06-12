@@ -207,6 +207,11 @@ LedgerStreamSpout.prototype.fail = function(id, done) {
   } else {
     self.log('Received FAIL for - ' + id + ' - Stopping after 3 attempts');
 
+    //execute callback, if it exists
+    if (data.cb) {
+      data.cb('failed to save ledger');
+    }
+
     //remove the failed ledger
     delete self.pending[parts[0]];
   }
