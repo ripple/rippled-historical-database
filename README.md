@@ -1271,8 +1271,8 @@ GET /v2/transactions/
 ```
 
 #### Params ####
-  * start (string)...ISO_8601 Formatted UTC start time of query range
-  * end (string)...ISO_8601 Formatted UTC end time of query range
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
   * descending (boolean)...reverse cronological order
   * type (string)...filter transactions for a specific transaction type
   * result (string)...filter transactions for a specific transaction result
@@ -1305,8 +1305,8 @@ GET /v2/exchanges/{:base}/{:counter}
 #### Params ####
   * :base(string)...base currency of the pair in the format currency[+issuer] (required)
   * :counter(string)...counter currency of the pair in the format currency[+issuer] (required)
-  * start (string)...ISO_8601 Formatted UTC start time of query range
-  * end (string)...ISO_8601 Formatted UTC end time of query range
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
   * interval (string)... aggregation interval:
     * 1minute
     * 5minute
@@ -1349,7 +1349,7 @@ GET /v2/reports/{:date}
 ```
 
 #### Params ####
-  * :date (string)...ISO_8601 Formatted UTC query date (defaults to today)
+  * :date (string)...UTC query date (defaults to today)
   * accounts (boolean)...include lists of counterparty accounts
   * format (string)...format of returned results: 'csv','json' defaults to 'json'
 
@@ -1381,8 +1381,8 @@ GET /v2/stats/{:family}/{:metric}
 #### Params ####
   * :family (string)...return only specified family ('type', 'result', or 'metric')
   * :metric (string)...return only a specific metric from the family subset
-  * start (string)...ISO_8601 Formatted UTC start time of query range
-  * end (string)...ISO_8601 Formatted UTC end time of query range
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
   * interval (string)...aggregation interval ('hour','day','week', defaults to 'day')
   * limit (integer)...max results per page (defaults to 200)
   * marker (string)...pagination key from previously returned response
@@ -1413,8 +1413,8 @@ GET /v2/accounts
 ```
 
 #### Params ####
-  * start (string)...ISO_8601 Formatted UTC start time of query range
-  * end (string)...ISO_8601 Formatted UTC end time of query range
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
   * interval (string)...aggregation interval ('hour','day','week', defaults to 'day')
   * limit (integer)...max results per page (defaults to 200)
   * marker (string)...pagination key from previously returned response
@@ -1476,7 +1476,7 @@ GET /v2/account/{:address}/balances
   * :address (string)...ripple address to query
   * ledger_index (integer)...index of ledger for historical balances
   * ledger_hash (string)...ledger hash for historical balances
-  * date (string)...ISO_8601 date for historical balances
+  * date (string)...UTC date for historical balances
   * currency(string)...restrict results to specified currency
   * issuer(string)...restrict results to specified counterparty/issuer
   * limit (integer)...max results per page (defaults to 200)
@@ -1510,8 +1510,8 @@ GET /v2/accounts/{:address}/transactions
 
 #### Params ####
   * :address (string)...ripple address to query
-  * start (string)...ISO_8601 Formatted UTC start time of query range
-  * end (string)...ISO_8601 Formatted UTC end time of query range
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
   * min_sequence (string)...minimum sequence number to query
   * max_sequence (string)...max sequence number to query
   * type(string)...restrict results to a specified transaction type
@@ -1573,8 +1573,8 @@ GET /v2/accounts/{:address}/payments
 
 #### Params ####
   * :address (string)...ripple address to query
-  * start (string)...ISO_8601 Formatted UTC start time of query range
-  * end (string)...ISO_8601 Formatted UTC end time of query range
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
   * type (string)...type of payment - 'sent' or 'received'
   * currency(string)...restrict results to specified currency
   * issuer(string)...restrict results to specified issuer
@@ -1611,8 +1611,8 @@ GET /v2/account/{:address}/exchanges/{:base}/{:counter}
   * :address (string)...ripple address to query
   * :base(string)...base currency of the pair in the format currency[+issuer]
   * :counter(string)...counter currency of the pair in the format currency[+issuer]
-  * start (string)...ISO_8601 Formatted UTC start time of query range
-  * end (string)...ISO_8601 Formatted UTC end time of query range
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
   * descending (boolean)...reverse cronological order
   * limit (integer)...max results per page (defaults to 200)
   * marker (string)...pagination key from previously returned response
@@ -1643,8 +1643,8 @@ GET /v2/account/{:address}/balance_changes/
   * :address (string)...ripple address to query
   * currency(string)...restrict results to specified currency
   * issuer(string)...restrict results to specified counterparty/issuer
-  * start (string)...ISO_8601 Formatted UTC start time of query range
-  * end (string)...ISO_8601 Formatted UTC end time of query range
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
   * descending (boolean)...reverse cronological order
   * limit (integer)...max results per page (defaults to 200)
   * marker (string)...pagination key from previously returned response
@@ -1675,9 +1675,9 @@ GET /v2/account/{:address}/reports/{:date}
 
 #### Params ####
   * :address (string)...ripple address to query
-  * :date (string)...ISO_8601 Formatted UTC date for single report
-  * start (string)...ISO_8601 Formatted UTC start time of query range
-  * end (string)...ISO_8601 Formatted UTC end time of query range
+  * :date (string)...UTC date for single report
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
   * accounts (boolean)...include lists of counterparty accounts
   * descending (boolean)...reverse cronological order
   * format (string)...format of returned results: 'csv','json' defaults to 'json'

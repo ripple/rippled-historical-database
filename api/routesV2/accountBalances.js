@@ -28,7 +28,7 @@ var accountBalances = function (req, res, next) {
 
   if (!options.closeTime) {
     errorResponse({
-      error: 'invalid date, must be ISO_8601',
+      error: 'invalid date format',
       code: 400
     });
     return;

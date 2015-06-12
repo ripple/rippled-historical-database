@@ -14,7 +14,7 @@ var server;
 
 config['hbase-rest'].prefix = PREFIX;
 config.hbase.prefix = PREFIX;
-config.hbase.logLevel = 4;
+config.hbase.logLevel = 2;
 config.hbase.max_sockets = 200;
 config.hbase.timeout = 30000;
 
@@ -584,7 +584,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(body.message, 'invalid start time, must be ISO_8601');
+      assert.strictEqual(body.message, 'invalid start time format');
       done();
     });
   });
@@ -604,7 +604,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(body.message, 'invalid end time, must be ISO_8601');
+      assert.strictEqual(body.message, 'invalid end time format');
       done();
     });
   });

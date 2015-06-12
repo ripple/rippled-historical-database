@@ -56,9 +56,9 @@ var AccountPayments = function (req, res, next) {
     };
 
     if (!options.start) {
-      return {error: 'invalid start time, must be ISO_8601', code: 400};
+      return {error: 'invalid start time format', code: 400};
     } else if (!options.end) {
-      return {error: 'invalid end time, must be ISO_8601', code: 400};
+      return {error: 'invalid end time format', code: 400};
     }
 
     if (!options.account) {

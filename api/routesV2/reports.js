@@ -55,7 +55,7 @@ var Reports = function (req, res, next) {
     }
 
     if (!options.start) {
-      return {error: 'invalid date, must be ISO_8601', code: 400};
+      return {error: 'invalid date format', code: 400};
     }
 
     options.start.moment.startOf('day');

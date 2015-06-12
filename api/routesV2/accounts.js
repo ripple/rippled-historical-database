@@ -29,9 +29,9 @@ var Accounts = function (req, res, next) {
     };
 
     if (!opts.start) {
-      return {error: 'invalid start time, must be ISO_8601', code: 400};
+      return {error: 'invalid start time format', code: 400};
     } else if (!opts.end) {
-      return {error: 'invalid end time, must be ISO_8601', code: 400};
+      return {error: 'invalid end time format', code: 400};
     }
 
 
