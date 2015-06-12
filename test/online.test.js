@@ -8,14 +8,15 @@ var request  = require('request');
 var moment   = require('moment');
 var fs      = require('fs');
 var Server   = require('../api/server');
-var PREFIX  = 'TEST_' + Math.random().toString(36).substr(2, 5) + '_';
+var PREFIX  = 'TESTS_' + Math.random().toString(36).substr(2, 5) + '_';
 var port    = 7111;
 var server;
 
 config['hbase-rest'].prefix = PREFIX;
 config.hbase.prefix = PREFIX;
-config.hbase.logLevel = 2;
-config.hbase.max_sockets = 100;
+config.hbase.logLevel = 4;
+config.hbase.max_sockets = 200;
+config.hbase.timeout = 30000;
 
 var rest = new Rest(config['hbase-rest']);
 var hbase = new HBase(config.hbase);
@@ -28,41 +29,16 @@ server = new Server({
   port     : port
 });
 
+before(function(done) {
+  this.timeout(60000);
+  console.log('creating tables in HBASE');
+  rest.initTables(function(err, resp) {
+    assert.ifError(err);
+    done();
+  });
+});
+
 describe('HBASE client and API endpoints', function () {
-  before(function(done) {
-    this.timeout(60000);
-    console.log('creating tables in HBASE');
-    rest.initTables(function(err, resp) {
-      assert.ifError(err);
-      done();
-    });
-  });
-
-  it('should save ledgers into hbase', function(done) {
-    this.timeout(60000);
-    Promise.map(files, function(filename) {
-      return new Promise(function(resolve, reject) {
-        var ledger = JSON.parse(fs.readFileSync(path + filename, "utf8"));
-        var parsed = Parser.parseLedger(ledger);
-
-        hbase.saveParsedData({data:parsed}, function(err, resp) {
-          assert.ifError(err);
-          hbase.saveTransactions(parsed.transactions, function(err, resp) {
-            assert.ifError(err);
-            hbase.saveLedger(parsed.ledger, function(err, resp) {
-              assert.ifError(err);
-              console.log(ledger.ledger_index, 'saved');
-              resolve();
-            });
-          });
-        });
-      });
-    }).nodeify(function(err, resp) {
-      assert.ifError(err);
-      console.log(resp.length, 'ledgers saved');
-      done();
-    });
-  });
 
   // This function helps build tests that iterate trough a list of results
   //
@@ -100,6 +76,33 @@ describe('HBASE client and API endpoints', function () {
       }
     }
   }
+
+  it('should save ledgers into hbase', function(done) {
+    this.timeout(60000);
+    console.log('saving ledgers');
+    Promise.map(files, function(filename) {
+      return new Promise(function(resolve, reject) {
+        var ledger = JSON.parse(fs.readFileSync(path + filename, "utf8"));
+        var parsed = Parser.parseLedger(ledger);
+
+        hbase.saveParsedData({data:parsed}, function(err, resp) {
+          assert.ifError(err);
+          hbase.saveTransactions(parsed.transactions, function(err, resp) {
+            assert.ifError(err);
+            hbase.saveLedger(parsed.ledger, function(err, resp) {
+              assert.ifError(err);
+              console.log(ledger.ledger_index, 'saved');
+              resolve();
+            });
+          });
+        });
+      });
+    }).nodeify(function(err, resp) {
+      assert.ifError(err);
+      console.log(resp.length, 'ledgers saved');
+      done(err);
+    });
+  });
 
    /*** ledgers API endpoint ***/
 
@@ -363,7 +366,7 @@ describe('HBASE client and API endpoints', function () {
   /**** transactions endpoint ****/
 
   it('should return transactions by time', function(done) {
-    this.timeout(60000);    
+    this.timeout(60000);
     var url = 'http://localhost:' + port + '/v2/transactions/';
 
     request({
@@ -581,7 +584,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(body.message, 'invalid start date format');
+      assert.strictEqual(body.message, 'invalid start time, must be ISO_8601');
       done();
     });
   });
@@ -601,7 +604,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(body.message, 'invalid end date format');
+      assert.strictEqual(body.message, 'invalid end time, must be ISO_8601');
       done();
     });
   });
@@ -702,7 +705,7 @@ describe('HBASE client and API endpoints', function () {
   it('should return transactions for a given date range', function(done) {
     var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
     var url = 'http://localhost:' + port + '/v2/accounts/' + account + '/transactions';
-  
+
     var start= '2015-01-14T18:27:10';
     var end= '2015-01-14T18:27:29';
 
@@ -722,8 +725,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(body.transactions.length, 8);
       body.transactions.forEach( function(trans) {
         var d= moment.utc(trans.date);
-        console.log(trans.date);
-        assert.strictEqual( d.isBetween(moment.utc(start), moment.utc(end)) 
+        assert.strictEqual( d.isBetween(moment.utc(start), moment.utc(end))
                           || d.isSame(moment.utc(start)) || d.isSame(moment.utc(end))
                           , true);
       });
@@ -754,7 +756,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(body.transactions.length, 13);
       body.transactions.forEach( function(trans) {
         var d= moment.utc(trans.date);
-        assert.strictEqual( d.isBetween(moment.utc(start), moment.utc(end)) 
+        assert.strictEqual( d.isBetween(moment.utc(start), moment.utc(end))
                           || d.isSame(moment.utc(start)) || d.isSame(moment.utc(end))
                           , true);
       });
@@ -1368,11 +1370,14 @@ describe('HBASE client and API endpoints', function () {
     });
   });
 
+
   after(function(done) {
     this.timeout(60000);
     console.log('removing tables');
     rest.removeTables(function(err, resp) {
+      console.log(err, resp);
       done();
     });
   });
 });
+

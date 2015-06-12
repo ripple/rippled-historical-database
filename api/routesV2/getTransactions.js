@@ -96,7 +96,7 @@ var getTransactions = function (req, res, next) {
 
     } else if (!options.end) {
       errorResponse({
-        error: 'invalid start time, must be ISO_8601',
+        error: 'invalid end time, must be ISO_8601',
         code: 400
       });
       return;
