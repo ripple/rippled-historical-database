@@ -1,9 +1,9 @@
-var Aggregation  = require('../lib/aggregation/exchanges');
-var Parser       = require('../lib/ledgerParser');
-var Hbase        = require('../lib/hbase/hbase-client');
-var utils        = require('../lib/utils');
-var Importer     = require('../lib/ripple-importer');
-var config       = require('../config/import.config');
+var Aggregation  = require('../../lib/aggregation/exchanges');
+var Parser       = require('../../lib/ledgerParser');
+var Hbase        = require('../../lib/hbase/hbase-client');
+var utils        = require('../../lib/utils');
+var Importer     = require('../../lib/ripple-importer');
+var config       = require('../../config/import.config');
 var options = {
   logLevel : 2,
   hbase: config.get('hbase'),
@@ -55,6 +55,7 @@ function processLedger (ledger) {
             '/' + ex.counter.currency +
             (ex.counter.issuer ? "." + ex.counter.issuer : '');
 
+          console.log('new ex:', pair);
           if (!pairs[pair]) {
             pairs[pair] = new Aggregation({
               base     : ex.base,

@@ -1,9 +1,9 @@
-var Aggregation  = require('../lib/aggregation/accountPayments');
-var Parser       = require('../lib/ledgerParser');
-var Hbase        = require('../lib/hbase/hbase-client');
-var utils        = require('../lib/utils');
+var Aggregation  = require('../../lib/aggregation/accountPayments');
+var Parser       = require('../../lib/ledgerParser');
+var Hbase        = require('../../lib/hbase/hbase-client');
+var utils        = require('../../lib/utils');
 var fs           = require('fs');
-var config       = require('../config/import.config');
+var config       = require('../../config/import.config');
 var options = config.get('hbase')
 
 
@@ -11,7 +11,7 @@ options.prefix = 'test_';
 options.logLevel = 4;
 
 var payments     = new Aggregation(options);
-var path         = __dirname + '/ledgers/';
+var path         = __dirname + '/../ledgers/';
 var EPOCH_OFFSET = 946684800;
 var files        = fs.readdirSync(path);
 var ledgers      = [ ];
