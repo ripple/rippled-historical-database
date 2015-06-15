@@ -1,9 +1,9 @@
-var Aggregation  = require('../lib/aggregation/exchanges');
-var Parser       = require('../lib/ledgerParser');
-var Hbase        = require('../lib/hbase/hbase-client');
-var utils        = require('../lib/utils');
+var Aggregation  = require('../../lib/aggregation/exchanges');
+var Parser       = require('../../lib/ledgerParser');
+var Hbase        = require('../../lib/hbase/hbase-client');
+var utils        = require('../../lib/utils');
 var fs           = require('fs');
-var config       = require('../config/import.config');
+var config       = require('../../config/import.config');
 var options = {
   logLevel : 4,
   hbase: config.get('hbase')
@@ -12,7 +12,7 @@ var options = {
 options.hbase.prefix = 'test_';
 options.hbase.logLevel = options.logLevel;
 
-var path         = __dirname + '/ledgers/';
+var path         = __dirname + '/../ledgers/';
 var EPOCH_OFFSET = 946684800;
 var files        = fs.readdirSync(path);
 
@@ -84,9 +84,3 @@ function processLedger (ledger) {
     });
   });
 }
-
-
-
-
-
-

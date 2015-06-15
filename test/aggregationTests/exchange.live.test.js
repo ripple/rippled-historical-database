@@ -1,9 +1,9 @@
-var Aggregation  = require('../lib/aggregation/exchanges');
-var Parser       = require('../lib/ledgerParser');
-var Hbase        = require('../lib/hbase/hbase-client');
-var utils        = require('../lib/utils');
-var Importer     = require('../lib/ripple-importer');
-var config       = require('../config/import.config');
+var Aggregation  = require('../../lib/aggregation/exchanges');
+var Parser       = require('../../lib/ledgerParser');
+var Hbase        = require('../../lib/hbase/hbase-client');
+var utils        = require('../../lib/utils');
+var Importer     = require('../../lib/ripple-importer');
+var config       = require('../../config/import.config');
 var options = {
   logLevel : 2,
   hbase: config.get('hbase'),

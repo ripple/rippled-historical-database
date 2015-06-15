@@ -8,7 +8,10 @@ var request  = require('request');
 var moment   = require('moment');
 var fs      = require('fs');
 var Server   = require('../api/server');
-var PREFIX  = 'TESTS_' + Math.random().toString(36).substr(2, 5) + '_';
+var random = '_' + Math.random().toString(36).substr(2, 5) + '_';
+random = '';
+
+var PREFIX  = 'TESTS' + random;
 var port    = 7111;
 var server;
 
@@ -1373,6 +1376,9 @@ describe('HBASE client and API endpoints', function () {
 
   after(function(done) {
     this.timeout(60000);
+    done();
+    return;
+
     console.log('removing tables');
     rest.removeTables(function(err, resp) {
       console.log(err, resp);
