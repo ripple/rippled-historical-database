@@ -55,6 +55,7 @@ function processLedger (ledger) {
             '/' + ex.counter.currency +
             (ex.counter.issuer ? "." + ex.counter.issuer : '');
 
+          console.log('new ex:', pair);
           if (!pairs[pair]) {
             pairs[pair] = new Aggregation({
               base     : ex.base,
