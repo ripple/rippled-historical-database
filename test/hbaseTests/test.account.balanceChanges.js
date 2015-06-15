@@ -96,7 +96,7 @@ describe('account balance changes API endpoint', function() {
   it('should make sure /accounts/:account/balance_changes handles pagination correctly', function(done) {
     this.timeout(5000);
     var url = 'http://localhost:' + port + '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/balance_changes?';
-    checkPagination(url, undefined, function(ref, i, body) {
+    utils.checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.balance_changes.length, 1);
       assert.equal(body.balance_changes[0].change, ref.balance_changes[i].change);
       assert.equal(body.balance_changes[0].currency, ref.balance_changes[i].currency);
@@ -107,7 +107,7 @@ describe('account balance changes API endpoint', function() {
   it('should make sure /accounts/:account/balance_changes handles pagination correctly (descending)', function(done) {
     this.timeout(5000);
     var url = 'http://localhost:' + port + '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/balance_changes?descending=true';
-    checkPagination(url, undefined, function(ref, i, body) {
+    utils.checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.balance_changes.length, 1);
       assert.equal(body.balance_changes[0].change, ref.balance_changes[i].change);
       assert.equal(body.balance_changes[0].currency, ref.balance_changes[i].currency);
