@@ -186,13 +186,13 @@ describe('account transactions API endpoint', function() {
   it('should return results in ascending order', function(done) {
     var account = 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q';
     var url  = 'http://localhost:' + port + '/v2/accounts/' + account + '/transactions';
-    var last = 0;
+    var last = Infinity;
 
     request({
       url: url,
       json: true,
       qs: {
-        descending:false,
+        descending:true,
         limit:50
       }
     },
@@ -202,7 +202,7 @@ describe('account transactions API endpoint', function() {
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.transactions.length, 50);
       body.transactions.forEach(function(tx) {
-        assert(last <= tx.ledger_index);
+        assert(last >= tx.ledger_index);
         last = tx.ledger_index;
       });
       done();
