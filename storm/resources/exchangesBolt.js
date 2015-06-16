@@ -1,5 +1,6 @@
 var config      = require('./config');
 var Promise     = require('bluebird');
+var moment      = require('moment');
 var Storm       = require('./storm');
 var Hbase       = require('./lib/hbase/hbase-client');
 var Aggregation = require('./lib/aggregation/exchanges');
@@ -37,7 +38,8 @@ ExchangesBolt.prototype.process = function(tup, done) {
       counter  : ex.counter,
       hbase    : self.hbase,
       logLevel : config.get('logLevel'),
-      logFile  : config.get('logFile')
+      logFile  : config.get('logFile'),
+      earliest : moment.unix(ex.time).utc()
     });
     self.log('#pairs: ' + Object.keys(pairs).length);
 
