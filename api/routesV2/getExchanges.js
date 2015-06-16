@@ -62,9 +62,9 @@ var getExchanges = function(req, res) {
     }
 
     if (!options.start) {
-      return {error: 'invalid start time format', code: 400};
+      return {error: 'invalid start date format', code: 400};
     } else if (!options.end) {
-      return {error: 'invalid end time format', code: 400};
+      return {error: 'invalid end date format', code: 400};
     }
 
     if (options.interval) {
@@ -77,7 +77,7 @@ var getExchanges = function(req, res) {
     if (options.reduce && options.limit > 20000) {
       options.limit = 20000;
     } else if (options.limit > 1000) {
-      return {error: 'limit cannot exceed 1000', code: 400};
+      options.limit = 1000;
     } else if (options.interval &&
                intervals.indexOf(options.interval) === -1) {
       return {error: 'invalid interval: ' + options.interval, code: 400};
