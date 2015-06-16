@@ -5,26 +5,6 @@ var utils = require('../utils');
 var config = require('../../config/import.config');
 var port = config.get('port') || 7111;
 
-
-var config = require('../../config/import.config');
-var Server = require('../../api/server');
-
-var hbaseConfig = config.get('hbase');
-var prefix = config.get('prefix') || 'TEST_';
-var port = config.get('port') || 7111;
-var server;
-
-hbaseConfig.prefix = prefix;
-hbaseConfig.logLevel = 2;
-hbaseConfig.max_sockets = 200;
-hbaseConfig.timeout = 30000;
-
-server = new Server({
-  postgres: undefined,
-  hbase: hbaseConfig,
-  port: port
-});
-
 describe('accounts API endpoint', function() {
 
   it('should get individual accounts created', function(done) {

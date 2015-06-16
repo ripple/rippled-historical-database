@@ -184,14 +184,13 @@ describe('exchanges API endpoint', function() {
 
 
   it('should return an error for an invalid start time', function(done) {
-    var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
     var url = 'http://localhost:' + port + '/v2/exchanges/USD+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/xrp';
 
     request({
       url: url,
       json: true,
       qs: {
-        start : '2015x',
+        start: '2015x',
       }
     },
     function (err, res, body) {
@@ -205,14 +204,13 @@ describe('exchanges API endpoint', function() {
   });
 
   it('should return an error for an invalid end time', function(done) {
-    var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
     var url = 'http://localhost:' + port + '/v2/exchanges/USD+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/xrp';
 
     request({
       url: url,
       json: true,
       qs: {
-        end   : '2015x',
+        end: '2015x',
       }
     },
     function (err, res, body) {

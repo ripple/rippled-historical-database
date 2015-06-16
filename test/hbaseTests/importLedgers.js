@@ -51,8 +51,6 @@ describe('import ledgers', function(done) {
             tx_count     : ledger.transactions.length
           }
         });
-        resolve();
-        return;
 
         hbase.saveParsedData({data:parsed}, function(err, resp) {
           assert.ifError(err);
