@@ -3,6 +3,7 @@ var Parser       = require('../../lib/ledgerParser');
 var Hbase        = require('../../lib/hbase/hbase-client');
 var utils        = require('../../lib/utils');
 var fs           = require('fs');
+var moment       = require('moment');
 var config       = require('../../config/import.config');
 var options = {
   logLevel : 4,
@@ -73,7 +74,8 @@ function processLedger (ledger) {
           base     : ex.base,
           counter  : ex.counter,
           hbase    : hbase,
-          logLevel : options.logLevel
+          logLevel : options.logLevel,
+          earliest : moment.unix(ex.time).utc()
         });
       }
 

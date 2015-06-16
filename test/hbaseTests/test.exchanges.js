@@ -5,25 +5,6 @@ var utils = require('../utils');
 var config = require('../../config/import.config');
 var port = config.get('port') || 7111;
 
-var config = require('../../config/import.config');
-var Server = require('../../api/server');
-
-var hbaseConfig = config.get('hbase');
-var prefix = config.get('prefix') || 'TEST_';
-var port = config.get('port') || 7111;
-var server;
-
-hbaseConfig.prefix = prefix;
-hbaseConfig.logLevel = 2;
-hbaseConfig.max_sockets = 200;
-hbaseConfig.timeout = 30000;
-
-server = new Server({
-  postgres: undefined,
-  hbase: hbaseConfig,
-  port: port
-});
-
 describe('exchanges API endpoint', function() {
   it('should should get individual exchanges', function(done) {
     var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
@@ -195,7 +176,8 @@ describe('exchanges API endpoint', function() {
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
-      assert.strictEqual(body.exchanges.length, 0);
+      assert.strictEqual(body.exchanges.length, 1);
+      assert.strictEqual(body.exchanges[0].count, 5);
       done();
     });
   });
