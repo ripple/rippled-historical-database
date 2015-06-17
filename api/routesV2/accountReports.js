@@ -66,9 +66,9 @@ var AccountReports = function (req, res, next) {
     }
 
     if (!options.start) {
-      return {error: 'invalid start time format', code: 400};
+      return {error: 'invalid date format', code: 400};
     } else if (!options.end) {
-      return {error: 'invalid end time format', code: 400};
+      return {error: 'invalid end date format', code: 400};
     }
 
     days = options.end.moment.diff(options.start.moment, 'days');

@@ -7,6 +7,7 @@ var Promise = require('bluebird');
 var moment = require('moment');
 var exAggregation = require('../../lib/aggregation/exchanges');
 var statsAggregation = require('../../lib/aggregation/stats');
+var paymentsAggregation = require('../../lib/aggregation/accountPayments');
 
 var fs = require('fs');
 var path = __dirname + '/../ledgers/';
@@ -15,9 +16,11 @@ var hbaseConfig = config.get('hbase');
 var statsConfig;
 var updates = [];
 var exchanges = [];
+var payments = [];
 var pairs = { };
 var hbase;
 var stats;
+var aggPayments;
 
 
 hbaseConfig.prefix = config.get('prefix') || 'TEST_';
@@ -27,6 +30,7 @@ hbaseConfig.timeout = 30000;
 
 statsConfig = JSON.parse(JSON.stringify(hbaseConfig));
 statsConfig.logLevel = 4;
+aggPayments = new paymentsAggregation(statsConfig);
 stats = new statsAggregation(statsConfig);
 hbase = new HBase(hbaseConfig);
 
@@ -40,6 +44,9 @@ describe('import ledgers', function(done) {
 
         //save exchanges
         exchanges.push.apply(exchanges, parsed.exchanges);
+
+        //save payments
+        payments.push.apply(payments, parsed.payments);
 
         //save stats
         addStats(parsed);
@@ -100,11 +107,27 @@ describe('import ledgers', function(done) {
   });
 
   it('should save stats into hbase', function(done) {
-    this.timeout(6000);
+    this.timeout(5000);
     updates.forEach(function(u) {
       stats.update(u);
     });
-    setTimeout(done, 5000);
+    setTimeout(done, 4000);
+  });
+
+  it('should aggregate account payments', function(done) {
+    this.timeout(5000);
+    payments.forEach(function(p) {
+      aggPayments.add({
+        data: p,
+        account: p.source
+      });
+
+      aggPayments.add({
+        data: p,
+        account: p.destination
+      });
+    });
+    setTimeout(done, 4000);
   });
 });
 
