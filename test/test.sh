@@ -4,6 +4,7 @@ PSQL_CMD="psql"
 PSQL_USER=""
 PSQL_DATABASE="test_db"
 TAG="TEST_"$((RANDOM%8999+1000))"_"
+#TAG="TEST_"
 PORT=7112
 
 #echo "Initializing $PSQL_DATABASE..."

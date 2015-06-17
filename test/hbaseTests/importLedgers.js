@@ -26,12 +26,10 @@ var aggPayments;
 hbaseConfig.prefix = config.get('prefix') || 'TEST_';
 hbaseConfig.logLevel = 2;
 hbaseConfig.max_sockets = 200;
-hbaseConfig.timeout = 30000;
+hbaseConfig.timeout = 60000;
 
-statsConfig = JSON.parse(JSON.stringify(hbaseConfig));
-statsConfig.logLevel = 4;
-aggPayments = new paymentsAggregation(statsConfig);
-stats = new statsAggregation(statsConfig);
+aggPayments = new paymentsAggregation(hbaseConfig);
+stats = new statsAggregation(hbaseConfig);
 hbase = new HBase(hbaseConfig);
 
 describe('import ledgers', function(done) {
