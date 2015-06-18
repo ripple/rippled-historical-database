@@ -29,9 +29,9 @@ var Accounts = function (req, res, next) {
     };
 
     if (!opts.start) {
-      return {error: 'invalid start time format', code: 400};
+      return {error: 'invalid start date format', code: 400};
     } else if (!opts.end) {
-      return {error: 'invalid end time format', code: 400};
+      return {error: 'invalid end date format', code: 400};
     }
 
 
@@ -96,7 +96,7 @@ var Accounts = function (req, res, next) {
         result: 'success',
         count: resp.rows.length,
         marker: resp.marker,
-        rows: resp.rows
+        accounts: resp.rows
       }).pipe(res);
     }
   }

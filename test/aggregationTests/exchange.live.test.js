@@ -4,6 +4,7 @@ var Hbase        = require('../../lib/hbase/hbase-client');
 var utils        = require('../../lib/utils');
 var Importer     = require('../../lib/ripple-importer');
 var config       = require('../../config/import.config');
+var moment       = require('moment');
 var options = {
   logLevel : 2,
   hbase: config.get('hbase'),
@@ -61,7 +62,8 @@ function processLedger (ledger) {
               base     : ex.base,
               counter  : ex.counter,
               hbase    : hbase,
-              logLevel : 4
+              logLevel : 4,
+              earliest : moment.unix(ex.time).utc()
             });
           }
 

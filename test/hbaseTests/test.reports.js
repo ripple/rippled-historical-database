@@ -1,0 +1,84 @@
+var request = require('request');
+var assert = require('assert');
+var moment = require('moment');
+var utils = require('../utils');
+var config = require('../../config/import.config');
+var port = config.get('port') || 7111;
+
+describe('reports API endpoint', function() {
+
+  it('should get reports', function(done) {
+    var date = '2015-01-14T00:00:00+00:00';
+    var url = 'http://localhost:' + port + '/v2/reports/' + date;
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.reports.length, body.count);
+      assert.strictEqual(body.reports.length, 120);
+      body.reports.forEach(function(a) {
+        assert.strictEqual(a.date, date);
+        assert.strictEqual(typeof a.account, 'string');
+        assert.strictEqual(typeof a.high_value_received, 'number');
+        assert.strictEqual(typeof a.high_value_sent, 'number');
+        assert.strictEqual(typeof a.payments_received, 'number');
+        assert.strictEqual(typeof a.payments_sent, 'number');
+        assert.strictEqual(typeof a.receiving_counterparties, 'number');
+        assert.strictEqual(typeof a.sending_counterparties, 'number');
+        assert.strictEqual(typeof a.total_value, 'number');
+        assert.strictEqual(typeof a.total_value_received, 'number');
+        assert.strictEqual(typeof a.total_value_sent, 'number');
+      });
+      done();
+    });
+  });
+
+  it('should get reports with counterparties', function(done) {
+    var date = '2015-01-14T00:00:00+00:00';
+    var url = 'http://localhost:' + port + '/v2/reports/' + date;
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        accounts: true
+      }
+    },
+    function(err, res, body) {
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.reports.length, body.count);
+      assert.strictEqual(body.reports.length, 120);
+      body.reports.forEach(function(a) {
+        assert.strictEqual(a.date, date);
+        assert(Array.isArray(a.receiving_counterparties));
+        assert(Array.isArray(a.sending_counterparties));
+      });
+      done();
+    });
+  });
+
+  it('should return an error for an invalid date', function(done) {
+    var date = '2015-01x';
+    var url = 'http://localhost:' + port + '/v2/reports/' + date;
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid date format');
+      done();
+    });
+  });
+});

@@ -5,6 +5,7 @@ var log = new Logger({scope: 'stats'});
 var smoment = require('../../lib/smoment');
 var response = require('response');
 var utils = require('../../lib/utils');
+var families = ['type','result','metric'];
 var hbase;
 
 /**
@@ -20,7 +21,7 @@ var Stats = function(req, res) {
 
   function prepareOptions() {
     var options = {
-      family: req.params.family || req.query.family,
+      family: (req.params.family || req.query.family || '').toLowerCase(),
       start: smoment(req.query.start || '2013-01-01'),
       end: smoment(req.query.end),
       descending: (/true/i).test(req.query.descending) ? true : false,
@@ -44,9 +45,13 @@ var Stats = function(req, res) {
     }
 
     if (!options.start) {
-      return {error: 'invalid start time format', code: 400};
+      return {error: 'invalid start date format', code: 400};
     } else if (!options.end) {
-      return {error: 'invalid end time format', code: 400};
+      return {error: 'invalid end date format', code: 400};
+    }
+
+    if (options.family && families.indexOf(options.family) === -1) {
+      return {error: 'invalid family, use: ' + families.join(', '), code: 400};
     }
 
     return options;
@@ -112,7 +117,7 @@ var Stats = function(req, res) {
     return;
 
   } else {
-    log.info(options.start.toString(), '-', options.end.toString());
+    log.info(options.start.format(), '-', options.end.format());
 
     hbase.getStats(options, function(err, resp) {
       if (err) {
