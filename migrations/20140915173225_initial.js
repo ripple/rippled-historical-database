@@ -49,7 +49,10 @@ exports.up = function(knex, Promise) {
         'tecNO_TARGET',
         'tecNO_PERMISSION',
         'tecNO_ENTRY',
-        'tecINSUFFICIENT_RESERVE'
+        'tecINSUFFICIENT_RESERVE',
+        'tecNEED_MASTER_KEY',
+        'tecDST_TAG_NEEDED',
+        'tecINTERNAL'
       ]);
       table.enu('tx_type', [
         'Payment',
@@ -59,13 +62,13 @@ exports.up = function(knex, Promise) {
         'SetRegularKey',
         'TrustSet',
         'EnableAmendment',
-        'SetFee' 
+        'SetFee'
       ]);
       table.binary('account');
       table.bigInteger('account_seq');
     })
   ]).then(function(){
-    
+
     return knex.schema.createTable('account_transactions', function(table) {
       table.binary('account');
       table.binary('tx_hash').references('tx_hash').inTable('transactions');
@@ -111,17 +114,17 @@ exports.up = function(knex, Promise) {
         'SetRegularKey',
         'TrustSet',
         'EnableAmendment',
-        'SetFee' 
+        'SetFee'
       ]);
     })
   });
 };
 
 exports.down = function(knex, Promise) {
-  return Promise.all([ 
-    knex.raw('DROP TABLE IF EXISTS account_transactions; ' + 
-      'DROP TABLE IF EXISTS ledgers CASCADE; ' + 
-      'DROP TABLE IF EXISTS transactions CASCADE; ' + 
+  return Promise.all([
+    knex.raw('DROP TABLE IF EXISTS account_transactions; ' +
+      'DROP TABLE IF EXISTS ledgers CASCADE; ' +
+      'DROP TABLE IF EXISTS transactions CASCADE; ' +
       'DROP TABLE IF EXISTS accounts')
-  ]); 
+  ]);
 };
