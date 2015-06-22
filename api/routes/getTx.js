@@ -1,4 +1,4 @@
-var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var Logger   = require('../../lib/logger');
 var log      = new Logger({scope : 'get tx'});
 var response = require('response');
 var postgres;
@@ -30,13 +30,15 @@ var getTx = function (req, res, next) {
   * return an error response
   * @param {Object} err
   */
-  function errorResponse (err) {
-    log.error(err.error || err);
 
+  function errorResponse(err) {
+    log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result:'error', message:err.error}).status(err.code).pipe(res);
+      response.json({result: 'error', message: err.error})
+        .status(err.code).pipe(res);
     } else {
-      response.json({result:'error', message:'unable to retrieve transaction'}).status(500).pipe(res);
+      response.json({result: 'error', message: 'unable to retrieve transaction'})
+        .status(500).pipe(res);
     }
   }
 
@@ -45,10 +47,11 @@ var getTx = function (req, res, next) {
   * return a successful response
   * @param {Object} transactions
   */
-  function successResponse (transaction) {
+
+  function successResponse(transaction) {
     var result = {
-      result       : 'success',
-      transaction : transaction
+      result: 'success',
+      transaction: transaction
     };
 
     log.info('TX: Transaction Found.');

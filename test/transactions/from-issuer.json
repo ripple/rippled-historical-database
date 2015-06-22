@@ -1,0 +1,80 @@
+{
+    "Account": "r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN",
+    "Amount": {
+      "currency": "JPY",
+      "issuer": "r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN",
+      "value": "75000000"
+    },
+    "Destination": "rHENTPe3nMDLGJd59e5a3tYH9BXz1nFhvA",
+    "Fee": "10000",
+    "Flags": 2147483648,
+    "Sequence": 3337,
+    "SigningPubKey": "023B13ADE6C5658EB72F773E354CFBEF17684A6AFE669349142B6D33C4A5031897",
+    "TransactionType": "Payment",
+    "TxnSignature": "30450221009B31D1947F80EAD6DC77326C58B9B6BA60988B9AA909C84F752D8FA0457D0656022075C356D27E5836DC92607942FC6913AE9587FCF139C1674DC1807A5F0B1E08F9",
+    "date": 482390600,
+    "hash": "F9D0ADC20903DC6B7FAC7251E21069E45DEEE3DD2249021EAD800C80E21A24C0",
+    "inLedger": 12870963,
+    "ledger_index": 12870963,
+    "meta": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Balance": {
+                "currency": "JPY",
+                "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+                "value": "-75228705.4478663"
+              },
+              "Flags": 131072,
+              "HighLimit": {
+                "currency": "JPY",
+                "issuer": "rHENTPe3nMDLGJd59e5a3tYH9BXz1nFhvA",
+                "value": "1000000000"
+              },
+              "HighNode": "0000000000000000",
+              "LowLimit": {
+                "currency": "JPY",
+                "issuer": "r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN",
+                "value": "0"
+              },
+              "LowNode": "0000000000000018"
+            },
+            "LedgerEntryType": "RippleState",
+            "LedgerIndex": "E05A771B691DE49FA7EB418F46F8F0C8AEDD10E3D7C361D38B1BA4FE464ADB9C",
+            "PreviousFields": {
+              "Balance": {
+                "currency": "JPY",
+                "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+                "value": "-228705.4478663"
+              }
+            },
+            "PreviousTxnID": "2EA167ABEA7CF64346F52AC83D786FD1C879BE02584954077B28A135638E9797",
+            "PreviousTxnLgrSeq": 12870922
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN",
+              "Balance": "522652443477",
+              "Flags": 0,
+              "OwnerCount": 132,
+              "Sequence": 3338
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "EE12999E134D4200C247E23F5FF5142B2F80B331F873A70DF93D32C26452FE3A",
+            "PreviousFields": {
+              "Balance": "522652453477",
+              "Sequence": 3337
+            },
+            "PreviousTxnID": "2EA167ABEA7CF64346F52AC83D786FD1C879BE02584954077B28A135638E9797",
+            "PreviousTxnLgrSeq": 12870922
+          }
+        }
+      ],
+      "TransactionIndex": 3,
+      "TransactionResult": "tesSUCCESS"
+    },
+    "validated": true
+  }

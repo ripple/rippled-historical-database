@@ -1,9 +1,9 @@
 var config   = require('../../config/import.config');
-var Importer = require('../../storm/multilang/resources/src/lib/modules/ripple-importer');
-var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
-var Hbase    = require('../../storm/multilang/resources/src/lib/hbase-client');
-var Parser   = require('../../storm/multilang/resources/src/lib/modules/ledgerParser');
-var utils    = require('../../storm/multilang/resources/src/lib/utils.js');
+var Importer = require('../../lib/ripple-importer');
+var Logger   = require('../../lib/logger');
+var Hbase    = require('../../lib/hbase/hbase-client');
+var Parser   = require('../../lib/ledgerParser');
+var utils    = require('../../lib/utils.js');
 var Promise  = require('bluebird');
 var moment   = require('moment');
 

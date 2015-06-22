@@ -2,7 +2,7 @@ var Knex    = require('knex');
 var Promise = require('bluebird');
 var moment  = require('moment');
 var sjcl    = require('ripple-lib').sjcl;
-var Logger  = require('../../storm/multilang/resources/src/lib/modules/logger');
+var Logger  = require('../../lib/logger');
 var log     = new Logger({scope : 'postgres'});
 
 var EPOCH_OFFSET = 946684800;

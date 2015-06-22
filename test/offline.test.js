@@ -34,6 +34,7 @@ describe('ETL and API:', function() {
   /*** import ledgers into Postgres ***/
 
   it('should save ledgers and transactions into the database', function(done) {
+    this.timeout(10000);
     Promise.map(files, function(filename) {
       return new Promise(function(resolve, reject) {
         var ledger = JSON.parse(fs.readFileSync(path + filename, "utf8"));
@@ -94,7 +95,7 @@ describe('ETL and API:', function() {
         assert.strictEqual(typeof body, 'object');
         assert.strictEqual(body.result, 'success');
         assert.strictEqual(typeof body.ledger, 'object');
-        assert.strictEqual(body.ledger.ledger_index, 11119607);
+        assert.strictEqual(body.ledger.ledger_index, 11616413);
         assert.strictEqual(body.ledger.transactions, undefined);
         done();
       });
@@ -299,7 +300,7 @@ describe('ETL and API:', function() {
         assert.ifError(err);
         assert.strictEqual(typeof body, 'object');
         assert.strictEqual(body.result, 'success');
-        assert.strictEqual(body.count, 21);
+        assert.strictEqual(body.count, 107);
         assert.strictEqual(typeof body.transactions, 'undefined');
         done();
       });
@@ -458,14 +459,14 @@ describe('ETL and API:', function() {
         json: true,
         qs: {
           descending:false,
-          limit:100
+          limit:200
         }
       },
       function (err, res, body) {
         assert.ifError(err);
         assert.strictEqual(typeof body, 'object');
         assert.strictEqual(body.result, 'success');
-        assert.strictEqual(body.transactions.length, 72);
+        assert.strictEqual(body.transactions.length, 179);
         body.transactions.forEach(function(tx) {
           assert(last <= tx.ledger_index);
           last = tx.ledger_index;

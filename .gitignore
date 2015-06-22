@@ -26,8 +26,8 @@ node_modules
 
 .idea
 config/*.config.json
-persist/*
 .DS_Store
 storm/target
-storm/multilang/resources/test/ledgers/*
-storm/multilang/resources/config.js
+storm/local/target
+storm/production/target
+

@@ -1,7 +1,7 @@
 
 var config    = require('../config/import.config');
-var Logger    = require('../storm/multilang/resources/src/lib/modules/logger');
-var Importer  = require('../storm/multilang/resources/src/lib/modules/ripple-importer');
+var Logger    = require('../lib/logger');
+var Importer  = require('../lib/ripple-importer');
 var Postgres  = require('../import/postgres/client');
 var Validator = require('../import/postgres/validator');
 

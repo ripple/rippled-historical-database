@@ -11,17 +11,18 @@ import java.util.Map;
 public class LedgerStreamSpout extends ShellSpout implements IRichSpout {
 
   public LedgerStreamSpout() {
-    super("node", "src/ledgerStreamSpout.js");
+    super("node", "ledgerStreamSpout.js");
   }
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declare(new Fields("ledger"));
+    declarer.declareStream("txStream", new Fields("tx"));
+    declarer.declareStream("statsAggregation", new Fields("stat", "label"));
   }
 
   @Override
   public Map<String, Object> getComponentConfiguration() {
-		Config conf = new Config();
+    Config conf = new Config();
         return conf;
   }
 }

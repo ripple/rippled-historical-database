@@ -1,5 +1,5 @@
 var config   = require('../../config/import.config');
-var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var Logger   = require('../../lib/logger');
 var Knex     = require('knex');
 var Promise  = require('bluebird');
 var moment   = require('moment');
@@ -511,7 +511,7 @@ var DB = function(config) {
           else if (/^\d+$/.test(options.date)) {
             query.where('ledgers.closing_time', '<=', options.date);
           }
-          else return {error:'invalid date, format must be ISO 8601or Unix offset', code:400};
+          else return {error:'invalid date, format must be ISO 8601 or Unix offset', code:400};
         }
         if (options.ledger_hash)
           query.where('ledgers.ledger_hash', self.knex.raw("decode('"+options.ledger_hash+"', 'hex')"));

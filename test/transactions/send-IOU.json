@@ -1,0 +1,117 @@
+{
+  "TransactionType": "Payment",
+  "Flags": 2147483648,
+  "SourceTag": 58749,
+  "Sequence": 40690,
+  "Amount": {
+    "value": "6",
+    "currency": "BTC",
+    "issuer": "raspZSGNiTKi5jmvFxUYCuYXPv1V8WhL5g"
+  },
+  "Fee": "10",
+  "SendMax": {
+    "value": "6.012",
+    "currency": "BTC",
+    "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+  },
+  "SigningPubKey": "03334036A48CADBAF67F95DD344C2FC17A33213697F6F10B9994D5D1D77F439291",
+  "TxnSignature": "304402207EC6C43CF01EF57249BA7C47E24F11855B954F1FE6D59956715F91566DBA5BEA0220576440D90060DC0C057AFF81F8BB80E80CEC35E472C1073D7EA6E3C7A7DF5689",
+  "Account": "rrpNnNLKrartuEqfJGpqyDwPj1AFPg9vn1",
+  "Destination": "raspZSGNiTKi5jmvFxUYCuYXPv1V8WhL5g",
+  "meta": {
+    "TransactionIndex": 5,
+    "AffectedNodes": [
+      {
+        "ModifiedNode": {
+          "LedgerEntryType": "RippleState",
+          "PreviousTxnLgrSeq": 6793203,
+          "PreviousTxnID": "418FE5D1DBA5C44903811143F8A3CCE1BC62292AA25A1C9A249B4C71086C5C9E",
+          "LedgerIndex": "222C5EE551FE92806C4F17EAB0863AB21E571CBC2B78FFA56A971AD36C0A884D",
+          "PreviousFields": {
+            "Balance": {
+              "value": "-1.26",
+              "currency": "BTC",
+              "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji"
+            }
+          },
+          "FinalFields": {
+            "Flags": 2228224,
+            "LowNode": "0000000000000013",
+            "HighNode": "0000000000000000",
+            "Balance": {
+              "value": "-7.26",
+              "currency": "BTC",
+              "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji"
+            },
+            "LowLimit": {
+              "value": "0",
+              "currency": "BTC",
+              "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+            },
+            "HighLimit": {
+              "value": "8",
+              "currency": "BTC",
+              "issuer": "raspZSGNiTKi5jmvFxUYCuYXPv1V8WhL5g"
+            }
+          }
+        }
+      },
+      {
+        "ModifiedNode": {
+          "LedgerEntryType": "AccountRoot",
+          "PreviousTxnLgrSeq": 6793090,
+          "PreviousTxnID": "872CA6C6F1D245A85BD0F941A4D2C3AAC575FBE193A5FB363EB31DEA3ECEAEE5",
+          "LedgerIndex": "61DF00F848528FFCE51CF06EB39FBB36593F7D2F752F9E52DDDF85ED02C30152",
+          "PreviousFields": {
+            "Sequence": 40690,
+            "Balance": "5968062909297"
+          },
+          "FinalFields": {
+            "Flags": 131072,
+            "Sequence": 40691,
+            "OwnerCount": 7,
+            "Balance": "5968062909287",
+            "Account": "rrpNnNLKrartuEqfJGpqyDwPj1AFPg9vn1"
+          }
+        }
+      },
+      {
+        "ModifiedNode": {
+          "LedgerEntryType": "RippleState",
+          "PreviousTxnLgrSeq": 6793090,
+          "PreviousTxnID": "872CA6C6F1D245A85BD0F941A4D2C3AAC575FBE193A5FB363EB31DEA3ECEAEE5",
+          "LedgerIndex": "C154D262E674ACE1B4D3A7B03885815AD9CA77AFC46A8FEFEE995FAF3BB47200",
+          "PreviousFields": {
+            "Balance": {
+              "value": "866.5114242732327",
+              "currency": "BTC",
+              "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji"
+            }
+          },
+          "FinalFields": {
+            "Flags": 65536,
+            "LowNode": "0000000000000001",
+            "HighNode": "000000000000006F",
+            "Balance": {
+              "value": "860.4994242732327",
+              "currency": "BTC",
+              "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji"
+            },
+            "LowLimit": {
+              "value": "1000",
+              "currency": "BTC",
+              "issuer": "rrpNnNLKrartuEqfJGpqyDwPj1AFPg9vn1"
+            },
+            "HighLimit": {
+              "value": "0",
+              "currency": "BTC",
+              "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+            }
+          }
+        }
+      }
+    ],
+    "TransactionResult": "tesSUCCESS"
+  }
+}
+

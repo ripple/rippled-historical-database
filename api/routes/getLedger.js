@@ -1,4 +1,4 @@
-var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
+var Logger   = require('../../lib/logger');
 var log      = new Logger({scope : 'get ledger'});
 var moment   = require('moment');
 var response = require('response');
@@ -62,12 +62,15 @@ var getLedger = function (req, res, next) {
   * return an error response
   * @param {Object} err
   */
-  function errorResponse (err) {
+
+  function errorResponse(err) {
     log.error(err.error || err);
-    if (err.code.toString()[0] === '4') {
-      response.json({result:'error', message:err.error}).status(err.code).pipe(res);
+    if (err.code && err.code.toString()[0] === '4') {
+      response.json({result: 'error', message: err.error})
+        .status(err.code).pipe(res);
     } else {
-      response.json({result:'error', message:'unable to retrieve ledger'}).status(500).pipe(res);
+      response.json({result: 'error', message: 'unable to retrieve ledger'})
+        .status(500).pipe(res);
     }
   }
 
@@ -76,16 +79,12 @@ var getLedger = function (req, res, next) {
   * return a successful response
   * @param {Object} ledger
   */
-  function successResponse (ledger) {
-    var result = {
-      result : 'success',
-      ledger : ledger
-    };
-    if (ledger.transactions)
-      log.info('LEDGER: Ledger Found with', ledger.transactions.length, 'transactions.');
-    else
-      log.info('LEDGER: Ledger Found.');
-    response.json(result).pipe(res);
+
+  function successResponse(ledger) {
+    response.json({
+      result: 'success',
+      ledger: ledger
+    }).pipe(res);
   }
 
 };
