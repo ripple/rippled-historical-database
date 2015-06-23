@@ -48,7 +48,9 @@ var getAccount = function(req, res, next) {
         initial_balance: resp.rows[0].balance,
         inception: resp.rows[0].executed_time,
         ledger_index: resp.rows[0].ledger_index,
-        tx_hash: resp.rows[0].tx_hash
+        tx_hash: resp.rows[0].tx_hash,
+        genesis_balance: resp.rows[0].genesis_balance,
+        genesis_index: resp.rows[0].genesis_index
       }
     };
 
