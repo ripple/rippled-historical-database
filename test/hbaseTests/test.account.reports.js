@@ -100,6 +100,33 @@ describe('account reports API endpoint', function() {
     });
   });
 
+  it('should get reports with individual payments', function(done) {
+    var account = 'r3fRiC42XCDHFkE4vLdJUhsVcx7hFbE5gU';
+    var start = moment.utc('2015-01-14');
+    var end = moment.utc('2015-01-16');
+    var url = 'http://localhost:' + port + '/v2/accounts/' + account + '/reports';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        payments: true,
+        start: start.format(),
+        end: end.format()
+      }
+    },
+    function(err, res, body) {
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      body.reports.forEach(function(a) {
+        assert(Array.isArray(a.payments));
+        assert.strictEqual(a.payments.length, a.payments_received + a.payments_sent);
+      });
+      done();
+    });
+  });
+
   it('should get reports for a single date', function(done) {
     var date = '2015-01-14';
     var account = 'r3fRiC42XCDHFkE4vLdJUhsVcx7hFbE5gU';

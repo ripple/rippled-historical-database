@@ -1351,6 +1351,7 @@ GET /v2/reports/{:date}
 #### Params ####
   * :date (string)...UTC query date (defaults to today)
   * accounts (boolean)...include lists of counterparty accounts
+  * payments (boolean)...include lists of individual payments
   * format (string)...format of returned results: 'csv','json' defaults to 'json'
 
 
@@ -1679,6 +1680,7 @@ GET /v2/account/{:address}/reports/{:date}
   * start (string)...UTC start time of query range
   * end (string)...UTC end time of query range
   * accounts (boolean)...include lists of counterparty accounts
+  * payments (boolean)...include lists of individual payments
   * descending (boolean)...reverse cronological order
   * format (string)...format of returned results: 'csv','json' defaults to 'json'
 

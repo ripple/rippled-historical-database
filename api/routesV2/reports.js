@@ -33,6 +33,12 @@ var Reports = function (req, res, next) {
           });
         }
 
+        if(!options.payments) {
+          resp.forEach(function(row) {
+            delete row.payments;
+          });
+        }
+
         successResponse(resp);
       }
     });
@@ -47,6 +53,7 @@ var Reports = function (req, res, next) {
       start: smoment(req.params.date),
       end: smoment(req.params.date),
       accounts: (/true/i).test(req.query.accounts) ? true : false,
+      payments: (/true/i).test(req.query.payments) ? true : false,
       format: (req.query.format || 'json').toLowerCase(),
     };
 
