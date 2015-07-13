@@ -10,6 +10,7 @@ var getExchanges = function(req, res) {
 
   var options = {
     date: smoment(req.query.date),
+    strict: (/false/i).test(req.query.strict) ? false : true,
     base: {},
     counter: {}
   };

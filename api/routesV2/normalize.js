@@ -15,7 +15,8 @@ var normalize = function(req, res) {
     currency: (req.query.currency || 'XRP').toUpperCase(),
     issuer: req.query.issuer || '',
     exchange_currency: (req.query.exchange_currency || 'XRP').toUpperCase(),
-    exchange_issuer: req.query.exchange_issuer || ''
+    exchange_issuer: req.query.exchange_issuer || '',
+    strict: (/false/i).test(req.query.strict) ? false : true
   };
 
 
@@ -58,7 +59,7 @@ var normalize = function(req, res) {
       errorResponse(err);
 
     } else {
-      var rate = resp[0] / resp[1];
+      var rate = resp[1] ? resp[0] / resp[1] : 0;
       successResponse({
         amount: options.amount,
         converted: options.amount * rate,
@@ -74,6 +75,7 @@ var normalize = function(req, res) {
     } else {
       return hbase.getExchangeRate({
         date: options.date,
+        strict: options.strict,
         base: {
           currency: options.currency,
           issuer: options.issuer
@@ -89,6 +91,7 @@ var normalize = function(req, res) {
     } else {
       return hbase.getExchangeRate({
         date: options.date,
+        strict: options.strict,
         base: {
           currency: options.exchange_currency,
           issuer: options.exchange_issuer
