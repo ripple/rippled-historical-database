@@ -16,7 +16,7 @@ var hbase;
     less than 2 is failing score
 */
 
-var checkHealth = function(req, res, next) {
+var checkHealth = function(req, res) {
   var d = Date.now();
 
   log.info(moment.utc().format());
@@ -25,7 +25,7 @@ var checkHealth = function(req, res, next) {
     var now = moment.utc().unix();
     var closeTimeGap = ledger ? now - ledger.close_time : Infinity;
 
-    d = (Date.now() - d)/1000;
+    d = (Date.now() - d) / 1000;
 
     // error from hbase;
     if (err) {
@@ -58,6 +58,7 @@ var checkHealth = function(req, res, next) {
         score: 3,
         responseTime: d + 's',
         closeTimeGap: closeTimeGap + 's',
+        message: 'last ledger more than 5 minutes ago'
       }).pipe(res);
 
     // last ledger over 60 seconds ago
@@ -66,13 +67,14 @@ var checkHealth = function(req, res, next) {
         score: 4,
         responseTime: d + 's',
         closeTimeGap: closeTimeGap + 's',
+        message: 'last ledger more than 60 seconds ago'
       }).pipe(res);
 
     } else {
 
       d = Date.now();
       hbase.getLastValidated(function(err, resp) {
-        d = (Date.now() - d)/1000;
+        d = (Date.now() - d) / 1000;
         var closeTime;
         var validatorGap;
 
@@ -95,7 +97,8 @@ var checkHealth = function(req, res, next) {
               score: 5,
               responseTime: d + 's',
               closeTimeGap: closeTimeGap + 's',
-              validatorGap: validatorGap + 's'
+              validatorGap: validatorGap + 's',
+              message: 'last validated ledger over 5 minutes ago'
             }).pipe(res);
 
           // best health
