@@ -40,6 +40,7 @@ var Server = function (options) {
     hbase = new Hbase(options.hbase);
     routesV2 = RoutesV2(hbase);
 
+    app.get('/v2/health', routesV2.checkHealth);
     app.get('/v2/last_validated', routesV2.getLastValidated);
     app.get('/v2/transactions/', routesV2.getTransactions);
     app.get('/v2/transactions/:tx_hash', routesV2.getTransactions);
