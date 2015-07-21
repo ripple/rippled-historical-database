@@ -21,7 +21,7 @@ var postgresValidator;
 var HBase;
 var hbase;
 
-var typeList = config.get('type') || 'postgres';
+var typeList = config.get('type') || 'hbase';
 var types    = { };
 typeList = typeList.split(',');
 typeList.forEach(function(type) {
