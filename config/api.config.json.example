@@ -11,7 +11,7 @@
     "logLevel" : 2,
     "prefix" : "test_",
     "servers" : [
-      {"host" : "52.4.159.217", "port": 9090}
+      {"host" : "", "port": 9090}
     ]
   }
 }
