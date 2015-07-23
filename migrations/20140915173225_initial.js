@@ -104,7 +104,10 @@ exports.up = function(knex, Promise) {
         'tecNO_TARGET',
         'tecNO_PERMISSION',
         'tecNO_ENTRY',
-        'tecINSUFFICIENT_RESERVE'
+        'tecINSUFFICIENT_RESERVE',
+        'tecNEED_MASTER_KEY',
+        'tecDST_TAG_NEEDED',
+        'tecINTERNAL',
       ]);
       table.enu('tx_type', [
         'Payment',
