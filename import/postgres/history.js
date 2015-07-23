@@ -30,11 +30,13 @@ var HistoricalImport = function () {
   this.importer.on('ledger', function(ledger) {
     db.saveLedger(ledger, function(err, resp) {
       self.count++;
-      log.info('ledger saved:', ledger.ledger_index, '---', self.count, 'of', self.total);
+
       if (err) {
         self.section.error = true;
+        process.exit();
 
       } else if (resp) {
+        log.info('ledger saved:', ledger.ledger_index, '---', self.count, 'of', self.total);
         if (resp.ledger_index === self.section.stopIndex) {
           self.section.stopHash = resp.ledger_hash;
         }

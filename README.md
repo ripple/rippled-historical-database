@@ -1726,7 +1726,7 @@ For v1 (postgres):
     The install script will also create the required config files: `config/api.config.json` and `config/import.config.json`
   4. Modify the API and import config files as needed. If you only wish to run the v1 endpoints, remove the `hbase` section from the api config.
   5. Load the latest database schema for the rippled Historical Database:
-    `NODE_ENV=migration ./node_modules/knex/lib/bin/cli.js migrate:latest`
+    `./node_modules/knex/lib/bin/cli.js migrate:latest`
 
 For v2 (hbase):
   1. Set up an hbase cluster
