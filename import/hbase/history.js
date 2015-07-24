@@ -137,7 +137,13 @@ var HistoricalImport = function () {
         log.error(err);
 
       } else if (resp) {
-        self.importer.backFill(resp.startIndex, resp.stopIndex);
+        self.importer.backFill(resp.startIndex, resp.stopIndex, function(err) {
+          console.log(err);
+          if (err) {
+            if (cb) cb(err);
+          }
+        });
+
         self.count   = 0;
         self.total   = resp.stopIndex - resp.startIndex + 1;
         self.section = resp;

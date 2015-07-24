@@ -28,6 +28,9 @@ var hbase;
       1 last ledger imported < 60 seconds ago
       2 last ledger imported over 60 seconds ago
       3 hbase response error or invalid response time
+
+      `threshold` parameter corresponds to the ledger validator gap, measured in seconds, defaults to 300
+      'threshold2' parameter corresponds to the ledger close time gap, measured in seconds, defaults to 60
 */
 
 var checkHealth = function(req, res) {
