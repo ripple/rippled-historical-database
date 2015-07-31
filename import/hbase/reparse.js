@@ -7,8 +7,8 @@ var utils    = require('../../lib/utils');
 var types     = ['full', 'parsed'];
 var LI_PAD    = 12;
 var options   = config.get('hbase');
-var type      = config.get('type') || 'full';
-var prefix    = config.get('prefix') || options.prefix;
+var type      = config.get('type') || '';
+var prefix    = 'prod_';
 var start     = config.get('startIndex');
 var stop      = config.get('stopIndex');
 var batchSize = config.get('batchSize') || 20;
@@ -30,6 +30,7 @@ var min;
 options.logLevel  = 2;
 originOpts        = JSON.parse(JSON.stringify(options));
 originOpts.prefix = prefix;
+originOpts.logLevel = 1;
 
 //get connection to origin tables
 origin = new Hbase(originOpts);
@@ -45,7 +46,7 @@ min = batchSize > 20 ? batchSize * 5.5 : 100;
 iterator = origin.iterator({
   table      : 'lu_ledgers_by_index',
   startRow   : utils.padNumber(start || 0, LI_PAD),
-  stopRow    : utils.padNumber(stop  || 0, LI_PAD),
+  stopRow    : utils.padNumber(stop  || 900000000, LI_PAD),
   descending : false,
   count      : batchSize,
   caching    : config.get('cache') || 30
@@ -55,6 +56,7 @@ function getNext(cb) {
   fetching = true;
 
   iterator.getNext(function(err, resp) {
+
     fetching = false;
 
     if (err) {
@@ -85,7 +87,11 @@ function getNext(cb) {
 
 function processLedger(l) {
 
-  origin.getLedger({ledger_hash : l.ledger_hash, transactions:true}, function(err, ledger) {
+  origin.getLedger({
+    ledger_hash: l.ledger_hash,
+    transactions: true,
+    expand: true
+  }, function(err, ledger) {
     if (err || !ledger) {
       console.log(err, l.rowkey);
       counter--;
@@ -99,6 +105,7 @@ function processLedger(l) {
     //ledgers must be formatted according to the output from
     //rippled's ledger command
     ledger.transactions.forEach(function(tx, i) {
+
       var transaction      = tx.tx;
       transaction.metaData = tx.meta,
       transaction.hash     = tx.hash,
@@ -117,7 +124,10 @@ function saveParsedData (ledger) {
   var parsed = Parser.parseLedger(ledger);
 
   //save to staging tables
-  hbase.saveParsedData({data:parsed}, function(err, resp) {
+  hbase.saveParsedData({
+    data: parsed,
+    tableNames: ['account_balance_changes']
+  }, function(err, resp) {
     counter--;
 
     if (err) {

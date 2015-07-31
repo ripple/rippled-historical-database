@@ -27,8 +27,9 @@
   },
   "hbase" : {
     "prefix" : "test_",
-    "host"   : "",
-    "port"   : 9090
+    "servers" : [
+      {"host" : "", "port": 9090}
+    ]
   },
   "hbase-rest" : {
     "prefix" : "test_",

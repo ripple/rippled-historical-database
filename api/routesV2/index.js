@@ -20,5 +20,6 @@ module.exports = function(db) {
   Routes.accounts = require('./accounts')(db);
   Routes.getAccount = require('./getAccount')(db);
   Routes.getLastValidated = require('./getLastValidated')(db);
+  Routes.checkHealth = require('./checkHealth')(db);
   return Routes;
 };

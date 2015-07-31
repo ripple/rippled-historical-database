@@ -8,8 +8,10 @@
     "charset"  : "utf8"
   },
   "hbase" : {
+    "logLevel" : 2,
     "prefix" : "test_",
-    "host"   : "",
-    "port"   : 9090
+    "servers" : [
+      {"host" : "", "port": 9090}
+    ]
   }
 }

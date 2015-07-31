@@ -32,6 +32,12 @@ var AccountReports = function (req, res, next) {
           });
         }
 
+        if(!options.payments) {
+          resp.forEach(function(row) {
+            delete row.payments;
+          });
+        }
+
         successResponse(resp);
       }
     });
@@ -44,12 +50,13 @@ var AccountReports = function (req, res, next) {
   function prepareOptions() {
     var days;
     var options = {
-      account    : req.params.address,
-      start      : smoment(req.query.start),
-      end        : smoment(req.query.end),
-      descending : (/true/i).test(req.query.descending) ? true : false,
-      accounts   : (/true/i).test(req.query.accounts) ? true : false,
-      format     : (req.query.format || 'json').toLowerCase()
+      account: req.params.address,
+      start: smoment(req.query.start),
+      end: smoment(req.query.end),
+      descending: (/true/i).test(req.query.descending) ? true : false,
+      accounts: (/true/i).test(req.query.accounts) ? true : false,
+      payments: (/true/i).test(req.query.payments) ? true : false,
+      format: (req.query.format || 'json').toLowerCase()
     };
 
     if (!options.accounts) {

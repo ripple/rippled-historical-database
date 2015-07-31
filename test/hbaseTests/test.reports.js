@@ -64,6 +64,32 @@ describe('reports API endpoint', function() {
     });
   });
 
+  it('should get reports with individual payments', function(done) {
+    var date = '2015-01-14T00:00:00+00:00';
+    var url = 'http://localhost:' + port + '/v2/reports/' + date;
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        payments: true
+      }
+    },
+    function(err, res, body) {
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.reports.length, body.count);
+      assert.strictEqual(body.reports.length, 120);
+      body.reports.forEach(function(a) {
+        assert.strictEqual(a.date, date);
+        assert(Array.isArray(a.payments));
+        assert.strictEqual(a.payments.length, a.payments_received + a.payments_sent);
+      });
+      done();
+    });
+  });
+
   it('should return an error for an invalid date', function(done) {
     var date = '2015-01x';
     var url = 'http://localhost:' + port + '/v2/reports/' + date;

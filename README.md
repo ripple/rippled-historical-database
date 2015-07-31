@@ -1351,6 +1351,7 @@ GET /v2/reports/{:date}
 #### Params ####
   * :date (string)...UTC query date (defaults to today)
   * accounts (boolean)...include lists of counterparty accounts
+  * payments (boolean)...include lists of individual payments
   * format (string)...format of returned results: 'csv','json' defaults to 'json'
 
 
@@ -1679,6 +1680,7 @@ GET /v2/account/{:address}/reports/{:date}
   * start (string)...UTC start time of query range
   * end (string)...UTC end time of query range
   * accounts (boolean)...include lists of counterparty accounts
+  * payments (boolean)...include lists of individual payments
   * descending (boolean)...reverse cronological order
   * format (string)...format of returned results: 'csv','json' defaults to 'json'
 
@@ -1704,25 +1706,38 @@ You can also run your own instance of the Historical Database software, and popu
 ### Dependencies ###
 
 The Historical Database requires the following software installed first:
-* [PostgreSQL](http://www.postgresql.org/) (recommended), [HBase](http://hbase.apache.org/), or [CouchDB](http://couchdb.apache.org/).
+* [PostgreSQL](http://www.postgresql.org/) (required for v1),
+* [HBase](http://hbase.apache.org/) (required for v2),
 * [Node.js](http://nodejs.org/)
 * [npm](https://www.npmjs.org/)
 * [git](http://git-scm.com/) (optional) for installation and updating.
 
 ### Installation Process ###
 
-1. Clone the rippled Historical Database Git Repository:
+For v1 (postgres):
+  1. Create a new postgres database:
+    `createdb ripple_historical` in PostgreSQL
+  2. Clone the rippled Historical Database Git Repository:
     `git clone https://github.com/ripple/rippled-historical-database.git`
     (You can also download and extract a zipped release instead.)
-2. Use npm to install additional modules:
+  3. Use npm to install additional modules:
     `cd rippled-historical-database`
     `npm install`
-3. Create a new postgres database:
-    `createdb ripple_historical` in PostgreSQL
-4. Load the latest database schema for the rippled Historical Database:
-    `NODE_ENV=migration ./node_modules/knex/lib/bin/cli.js migrate:latest`
-5. Create configuration files (and modify as necessary):
-    `cp config/api.config.json.example config/api.config.json`
+    The install script will also create the required config files: `config/api.config.json` and `config/import.config.json`
+  4. Modify the API and import config files as needed. If you only wish to run the v1 endpoints, remove the `hbase` section from the api config.
+  5. Load the latest database schema for the rippled Historical Database:
+    `./node_modules/knex/lib/bin/cli.js migrate:latest`
+
+For v2 (hbase):
+  1. Set up an hbase cluster
+  2. Clone the rippled Historical Database Git Repository:
+    `git clone https://github.com/ripple/rippled-historical-database.git`
+    (You can also download and extract a zipped release instead.)
+  3. Use npm to install additional modules:
+    `cd rippled-historical-database`
+    `npm install`
+    The install script will also create the required config files: `config/api.config.json` and `config/import.config.json`
+  4. Modify the API and import config files as needed. If you only wish to run the v2 endpoints, remove the `postgres` section from the api config file.
 
 At this point, the rippled Historical Database is installed. See [Services](#services) for the different components that you can run.
 
@@ -1759,14 +1774,14 @@ The Live Ledger Importer can import to one or more different data stores concurr
 Here are some examples:
 
 ```
-// defaults to PostgreSQL:
+// defaults to Hbase:
 $ node import/live
 
-// Use HBase instead:
-$ node import/live --type hbase
+// Use Postgres instead:
+$ node import/live --type postgres
 
-// Use PostgreSQL and CouchDB simultaneously:
-$ node import/live --type postgres,couchdb
+// Use PostgreSQL and Hbase simultaneously:
+$ node import/live --type postgres,hbase
 ```
 
 ## Backfiller ##
@@ -1777,7 +1792,7 @@ The `--startIndex` parameter defines the most-recent ledger to retrieve. The Bac
 
 The `--stopIndex` parameter defines the oldest ledger to retrieve. The Backfiller stops after it retrieves this ledger. If omitted, the Backfiller continues as far back as possible. Because backfilling goes from most recent to least recent, the stop index should be a smaller than the start index.
 
-**Warning:** The Backfiller is best for filling in relatively short histories of transactions. Importing a complete history of all Ripple transactions using the Backfiller could take months. If you want a full history, we recommend acquiring a database dump with early transctions, and importing it directly. Ripple Labs used the internal SQLite database from an offline `rippled` to populate its historical databases with the early transactions, then used the Backfiller to catch up to date after the import finished.
+**Warning:** The Backfiller is best for filling in relatively short histories of transactions. Importing a complete history of all Ripple transactions using the Backfiller could take weeks. If you want a full history, we recommend acquiring a database dump with early transctions, and importing it directly. Ripple Labs used the internal SQLite database from an offline `rippled` to populate its historical databases with the early transactions, then used the Backfiller to catch up to date after the import finished.
 
 Here are some examples:
 
@@ -1785,8 +1800,8 @@ Here are some examples:
 // retrieve everything to PostgreSQL
 node import/postgres/backfill
 
-// get ledgers #1,000,000 to #2,000,000 (inclusive) and store in CouchDB
-node import/couchdb/backfill --startIndex 2000000 --stopIndex 1000000
+// get ledgers #1,000,000 to #2,000,000 (inclusive) and store in hbase
+node import/hbase/backfill --startIndex 2000000 --stopIndex 1000000
 ```
 
 
