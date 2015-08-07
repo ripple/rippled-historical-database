@@ -6,9 +6,10 @@ var v;
 
 config.logFile = null;
 v = new Validator({
-  ripple : config.get('ripple'),
-  hbase  : config.get('hbase'),
-  start  : config.get('startIndex')
+  ripple: config.get('ripple'),
+  hbase: config.get('hbase'),
+  start: config.get('startIndex'),
+  recipients: config.get('recipients')
 });
 v.start();
 

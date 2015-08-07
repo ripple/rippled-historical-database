@@ -26,6 +26,7 @@
     "nconf": "^0.6.9",
     "nice-json2csv": "^0.2.0",
     "node-persist": "0.0.2",
+    "nodemailer": "^1.4.0",
     "nodemon": "^1.2.1",
     "pg": "^3.5.0",
     "request": "^2.39.0",

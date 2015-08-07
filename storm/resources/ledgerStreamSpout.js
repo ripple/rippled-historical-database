@@ -5,10 +5,11 @@ var Spout        = Storm.Spout;
 var ledgerSpout;
 var stream;
 var options = {
-  logLevel : config.get('logLevel'),
-  logFile  : config.get('logFile'),
-  ripple   : config.get('ripple'),
-  hbase    : config.get('hbase')
+  logLevel: config.get('logLevel'),
+  logFile: config.get('logFile'),
+  ripple: config.get('ripple'),
+  hbase: config.get('hbase'),
+  recipients: config.get('recipients')
 }
 
 stream = new LedgerStream(options);
