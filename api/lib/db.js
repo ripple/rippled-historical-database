@@ -1,15 +1,15 @@
 var Knex    = require('knex');
 var Promise = require('bluebird');
 var moment  = require('moment');
-var sjcl    = require('ripple-lib').sjcl;
+var sjcl    = require('sjcl');
 var Logger  = require('../../lib/logger');
 var log     = new Logger({scope : 'postgres'});
 
 var EPOCH_OFFSET = 946684800;
 log.level(3);
 
-var SerializedObject = require('ripple-lib').SerializedObject;
-var UInt160 = require('ripple-lib').UInt160;
+var SerializedObject = require('ripple-lib')._DEPRECATED.SerializedObject;
+var UInt160 = require('ripple-lib')._DEPRECATED.UInt160;
 
 var DB = function(config) {
   var self  = this;

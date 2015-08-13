@@ -125,9 +125,9 @@ var saveLedgerRecursive = function (ledger, attempts, callback) {
 */
 var formatRemoteLedger = function(ledger) {
 
-  ledger.close_time_rpepoch   = ledger.close_time;
-  ledger.close_time_timestamp = ripple.utils.toTimestamp(ledger.close_time);
-  ledger.close_time_human     = moment(ripple.utils.toTimestamp(ledger.close_time))
+  ledger.close_time_rpepoch = ledger.close_time;
+  ledger.close_time_timestamp = ripple._DEPRECATED.ripple.utils.toTimestamp(ledger.close_time);
+  ledger.close_time_human = moment(ripple._DEPRECATED.utils.toTimestamp(ledger.close_time))
     .utc().format('YYYY-MM-DD HH:mm:ss Z');
   ledger.from_rippled_api = true;
 
@@ -160,7 +160,7 @@ var formatRemoteLedger = function(ledger) {
       var fields = node.FinalFields || node.NewFields;
 
       if (typeof fields.BookDirectory === 'string') {
-        node.exchange_rate = ripple.Amount.from_quality(fields.BookDirectory).to_json().value;
+        node.exchange_rate = ripple._DEPRECATED.Amount.from_quality(fields.BookDirectory).to_json().value;
       }
 
     });

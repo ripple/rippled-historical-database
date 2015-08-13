@@ -5,7 +5,6 @@ var indexer  = require('./indexer');
 var db       = require('./client');
 var moment   = require('moment');
 var diff     = require('deep-diff');
-var ripple   = require('ripple-lib');
 
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
 
