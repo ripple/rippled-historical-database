@@ -1,7 +1,11 @@
 {
-  "name": "ripple-historical-database",
-  "version": "1.0.0",
+  "name": "rippled-historical-database",
+  "version": "0.0.1",
   "description": "SQL database storing historical data from Rippled.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ripple/rippled-historical-database.git"
+  },
   "scripts": {
     "postinstall": "node install.js",
     "test": "test/test.sh",
@@ -26,11 +30,12 @@
     "nconf": "^0.6.9",
     "nice-json2csv": "^0.2.0",
     "node-persist": "0.0.2",
+    "nodemailer": "^1.4.0",
     "nodemon": "^1.2.1",
     "pg": "^3.5.0",
     "request": "^2.39.0",
     "response": "https://github.com/mikeal/response/archive/master.tar.gz",
-    "ripple-lib": "^0.12.6",
+    "ripple-lib": "0.12.6",
     "ripple-lib-transactionparser": "^0.3.1",
     "thrift": "^0.9.2",
     "underscore": "^1.6.0",
