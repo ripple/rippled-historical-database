@@ -190,8 +190,8 @@ describe('account reports API endpoint', function() {
   });
 
   it('should return an error for an invalid start date', function(done) {
-    var start = moment.utc('2015x');
-    var end = moment.utc('2015-01-16');
+    var start = '2015x';
+    var end = '2015-01-16';
     var account = 'r3fRiC42XCDHFkE4vLdJUhsVcx7hFbE5gU';
     var url = 'http://localhost:' + port + '/v2/accounts/' + account + '/reports';
 
@@ -199,8 +199,8 @@ describe('account reports API endpoint', function() {
       url: url,
       json: true,
       qs: {
-        start: start.format(),
-        end: end.format()
+        start: start,
+        end: end
       }
     },
     function (err, res, body) {
