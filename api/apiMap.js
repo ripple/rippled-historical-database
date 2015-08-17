@@ -78,7 +78,8 @@ function generateMap(req, res) {
     ]
   };
 
-  res.send(json);
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify(json, undefined, 2));
 }
 
 module.exports = generateMap;
