@@ -7,6 +7,7 @@ var cors = require('cors');
 var Postgres = require('./lib/db');
 var Routes = require('./routes');
 var RoutesV2 = require('./routesV2');
+var generateMap = require('./apiMap');
 var json2csv = require('nice-json2csv');
 
 var Server = function (options) {
@@ -67,6 +68,9 @@ var Server = function (options) {
     // app.get('/v2/payments/:date?', routesV2.payments);
   }
 
+  // index page
+  app.get('/', generateMap);
+  app.get('/v2', generateMap);
 
   // start the server
   server = app.listen(options.port);
