@@ -154,8 +154,6 @@ var getExchanges = function(req, res) {
         } else {
           resp.rows.forEach(function(ex) {
             delete ex.rowkey;
-            delete ex.node_index;
-            delete ex.tx_index;
             delete ex.time;
             delete ex.client;
 
