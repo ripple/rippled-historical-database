@@ -71,7 +71,7 @@ describe('import ledgers', function(done) {
       });
     }).nodeify(function(err, resp) {
       assert.ifError(err);
-      console.log(resp.length, 'ledgers saved');
+      console.log(resp.length + ' ledgers saved');
       done(err);
     });
   });
@@ -94,7 +94,7 @@ describe('import ledgers', function(done) {
         });
       }
 
-      console.log(pair);
+      //console.log(pair);
       pairs[pair].add(ex, function(err, resp) {
         if (err) console.log(err);
         if (i===exchanges.length-1) {
@@ -104,16 +104,17 @@ describe('import ledgers', function(done) {
     });
   });
 
+  // NOTE: would be better to have a callback here
   it('should save stats into hbase', function(done) {
-    this.timeout(5000);
+    this.timeout(10000);
     updates.forEach(function(u) {
       stats.update(u);
     });
-    setTimeout(done, 4000);
+    setTimeout(done, 9000);
   });
 
   it('should aggregate account payments', function(done) {
-    this.timeout(5000);
+    this.timeout(10000);
     payments.forEach(function(p) {
       aggPayments.add({
         data: p,
@@ -125,7 +126,7 @@ describe('import ledgers', function(done) {
         account: p.destination
       });
     });
-    setTimeout(done, 4000);
+    setTimeout(done, 9000);
   });
 });
 
