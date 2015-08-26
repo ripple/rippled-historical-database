@@ -117,6 +117,47 @@ var getExchanges = function(req, res) {
         options.base.currency + '-' +
         options.counter.currency +
         '.csv';
+
+      // ensure consistent order and
+      // inclusion of all fields
+      if (resp.rows.length &&
+         (options.reduce || options.interval)) {
+
+        resp.rows[0] = {
+          open: resp.rows[0].open,
+          high: resp.rows[0].high,
+          low: resp.rows[0].low,
+          close: resp.rows[0].close,
+          vwap: resp.rows[0].vwap,
+          count: resp.rows[0].count,
+          base_volume: resp.rows[0].base_volume,
+          counter_volume: resp.rows[0].counter_volume,
+          open_time: resp.rows[0].open_time,
+          close_time: resp.rows[0].close_time,
+          start: resp.rows[0].start
+        };
+
+      } else if (resp.rows.length) {
+        resp.rows[0] = {
+          base_amount: resp.rows[0].base_amount,
+          counter_amount: resp.rows[0].counter_amount,
+          rate: resp.rows[0].rate,
+          executed_time: resp.rows[0].executed_time,
+          ledger_index: resp.rows[0].ledger_index,
+          buyer: resp.rows[0].buyer,
+          seller: resp.rows[0].seller,
+          taker: resp.rows[0].taker,
+          provider: resp.rows[0].provider,
+          autobridged_currency: resp.rows[0].autobridged_currency,
+          autobridged_issuer: resp.rows[0].autobridged_issuer,
+          offer_sequence: resp.rows[0].offer_sequence,
+          tx_type: resp.rows[0].tx_type,
+          tx_index: resp.rows[0].tx_index,
+          node_index: resp.rows[0].node_index,
+          tx_hash: resp.rows[0].tx_hash
+        };
+      }
+
       res.csv(resp.rows, filename);
     } else {
       response.json({
@@ -149,13 +190,15 @@ var getExchanges = function(req, res) {
             delete ex.rowkey;
             delete ex.sort_open;
             delete ex.sort_close;
+
+            ex.open_time = smoment(ex.open_time).format();
+            ex.close_time = smoment(ex.close_time).format();
+            ex.start = smoment(ex.start).format();
           });
 
         } else {
           resp.rows.forEach(function(ex) {
             delete ex.rowkey;
-            delete ex.node_index;
-            delete ex.tx_index;
             delete ex.time;
             delete ex.client;
 

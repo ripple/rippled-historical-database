@@ -31,8 +31,6 @@ AccountExchanges = function (req, res, next) {
       exchanges.rows.forEach(function(ex) {
         ex.executed_time = smoment(parseInt(ex.executed_time)).format();
         delete ex.rowkey;
-        delete ex.node_index;
-        delete ex.tx_index;
       });
 
       successResponse(exchanges);
@@ -107,6 +105,33 @@ AccountExchanges = function (req, res, next) {
       }
 
       filename += '.csv';
+
+      //ensure consistency in ordering
+      if (exchanges.rows.length) {
+        exchanges.rows[0] = {
+          base_currency: exchanges.rows[0].base_currency,
+          base_issuer: exchanges.rows[0].base_issuer,
+          counter_currency: exchanges.rows[0].counter_currency,
+          counter_issuer: exchanges.rows[0].counter_issuer,
+          base_amount: exchanges.rows[0].base_amount,
+          counter_amount: exchanges.rows[0].counter_amount,
+          rate: exchanges.rows[0].rate,
+          executed_time: exchanges.rows[0].executed_time,
+          ledger_index: exchanges.rows[0].ledger_index,
+          buyer: exchanges.rows[0].buyer,
+          seller: exchanges.rows[0].seller,
+          taker: exchanges.rows[0].taker,
+          provider: exchanges.rows[0].provider,
+          autobridged_currency: exchanges.rows[0].autobridged_currency,
+          autobridged_issuer: exchanges.rows[0].autobridged_issuer,
+          offer_sequence: exchanges.rows[0].offer_sequence,
+          tx_type: exchanges.rows[0].tx_type,
+          tx_index: exchanges.rows[0].tx_index,
+          node_index: exchanges.rows[0].node_index,
+          tx_hash: exchanges.rows[0].tx_hash
+        };
+      }
+
       res.csv(exchanges.rows, filename);
 
     } else {
