@@ -153,7 +153,8 @@ var Validator = function (config) {
       //make sure the hash of the
       //transactions is accurate to the known result
       try {
-        txHash = ripple.Ledger.from_json(ledger).calc_tx_hash().to_hex();
+        txHash = ripple._DEPRECATED.Ledger.from_json(ledger)
+          .calc_tx_hash().to_hex();
       } catch(e) {
         log.error('hash calc error:', ledger.ledger_index, e.stack || e);
         self.stop();

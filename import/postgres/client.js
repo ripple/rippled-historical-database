@@ -3,9 +3,9 @@ var Logger   = require('../../lib/logger');
 var Knex     = require('knex');
 var Promise  = require('bluebird');
 var moment   = require('moment');
-var UInt160  = require('ripple-lib').UInt160;
+var UInt160  = require('ripple-lib')._DEPRECATED.UInt160;
 var winston  = require('winston');
-var SerializedObject = require('ripple-lib').SerializedObject;
+var SerializedObject = require('ripple-lib')._DEPRECATED.SerializedObject;
 
 var EPOCH_OFFSET = 946684800;
 var hashErrorLog = new (require('winston').Logger)({
