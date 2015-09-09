@@ -59,6 +59,7 @@ var accountTransactions = function (req, res) {
     binary: (/true/i).test(req.query.binary) ? true : false,
     minSequence: req.query.min_sequence,
     maxSequence: req.query.max_sequence,
+    marker: req.query.marker,
     limit: req.query.limit || 20,
     descending: (/true/i).test(req.query.descending) ? true : false
   };
