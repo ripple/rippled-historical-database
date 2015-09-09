@@ -178,10 +178,6 @@ if (!options.save) {
   hbaseOptions.logLevel = 3;
 }
 
-var stageOpt = JSON.parse(JSON.stringify(hbaseOptions));
-stageOpt.prefix = 'stage_';
-var stage = new Hbase(stageOpt);
-
 // long timeout needed
 // for month interval
 hbaseOptions.timeout = 120000;
@@ -478,7 +474,7 @@ function handleAggregation (params, done) {
         rowkey += params.live ? 'live' : params.interval + '|' + params.start.hbaseFormatStartRow();
 
         console.log('saving:', table, rowkey);
-        return stage.putRow(table, rowkey, result)
+        return hbase.putRow(table, rowkey, result)
         .nodeify(function(err, resp) {
           if (err) {
             reject(err);
