@@ -175,16 +175,20 @@ var marketPairs = [
 
 
 if (!options.save) {
-  hbaseOptions.logLevel = 3;
+  hbaseOptions.logLevel = 1;
 }
 
 // long timeout needed
 // for month interval
 hbaseOptions.timeout = 120000;
-
 hbase = new Hbase(hbaseOptions);
 
+// run aggregations
 aggregateTradeVolume(options);
+
+/**
+ * aggregateTradeVolume
+ */
 
 function aggregateTradeVolume(params) {
 
@@ -246,6 +250,7 @@ function aggregateTradeVolume(params) {
     });
   }
 
+  // aggregate each in series
   async.mapSeries(list, handleAggregation, function(err, resp) {
 
     if (err) {
@@ -260,9 +265,13 @@ function aggregateTradeVolume(params) {
       process.stdout.write(JSON.stringify(resp, null, 2)+'\n');
     }
 
-    process.exit();
+    process.exit(err ? 1 : 0);
   });
 }
+
+/**
+ * handleAggregation
+ */
 
 function handleAggregation (params, done) {
 
