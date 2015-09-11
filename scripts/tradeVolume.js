@@ -459,7 +459,7 @@ function handleAggregation (params, done) {
 
 
     return {
-      startTime: params.start.format(),
+      startTime: params.start.moment.format(),
       exchange: {currency: 'XRP'},
       exchangeRate: 1,
       total: total,
