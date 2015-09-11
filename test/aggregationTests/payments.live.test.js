@@ -1,13 +1,13 @@
-var Aggregation  = require('../lib/aggregation/payments');
-var Parser       = require('../lib/ledgerParser');
-var Hbase        = require('../lib/hbase/hbase-client');
-var utils        = require('../lib/utils');
-var Importer     = require('../lib/ripple-importer');
+var Aggregation  = require('../../lib/aggregation/payments');
+var Parser       = require('../../lib/ledgerParser');
+var Hbase        = require('../../lib/hbase/hbase-client');
+var utils        = require('../../lib/utils');
+var Importer     = require('../../lib/ripple-importer');
 
 var options = {
   "logLevel" : 4,
   "hbase" : {
-    "prefix" : 'test_',
+    "prefix" : 'stage_',
     "host"   : "54.172.205.78",
     "port"   : 9090
   },
