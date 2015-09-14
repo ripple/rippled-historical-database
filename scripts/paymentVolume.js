@@ -67,7 +67,6 @@ aggregatePayments(options);
 function aggregatePayments(params) {
 
   var list = [];
-  var keybase;
   var start;
   var end;
   var interval;
@@ -84,6 +83,7 @@ function aggregatePayments(params) {
   // invalid start time
   // or end time
   if (!start || !end) {
+    console.log('invalid start or end time');
     process.exit(1);
   }
 
