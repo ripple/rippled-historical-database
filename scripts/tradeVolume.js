@@ -336,6 +336,7 @@ function handleAggregation (params, done) {
    */
 
   function getVolumes(markets) {
+
     markets.forEach(function(market) {
       var swap;
 
@@ -438,7 +439,7 @@ function handleAggregation (params, done) {
         market.amount = market.rate * market.amount;
         market.convertedAmount = market.amount / data.rates[counter];
         market.rate /= data.rates[counter];
-        console.log(counter, market.rate);
+
       } else {
         console.log('no rate for:', base, counter);
       }
