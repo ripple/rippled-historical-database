@@ -126,7 +126,7 @@ function saveParsedData (ledger) {
   //save to staging tables
   hbase.saveParsedData({
     data: parsed,
-    tableNames: ['account_balance_changes']
+    tableNames: ['exchanges']
   }, function(err, resp) {
     counter--;
 

@@ -44,7 +44,11 @@ var txResults = [
   'tecNO_TARGET',
   'tecNO_PERMISSION',
   'tecNO_ENTRY',
-  'tecINSUFFICIENT_RESERVE'
+  'tecINSUFFICIENT_RESERVE',
+  'tecNEED_MASTER_KEY',
+  'tecDST_TAG_NEEDED',
+  'tecINTERNAL',
+  'tecOVERSIZE'
 ];
 
 

@@ -44,7 +44,11 @@ var txResults = [
   'tecNO_TARGET',
   'tecNO_PERMISSION',
   'tecNO_ENTRY',
-  'tecINSUFFICIENT_RESERVE'
+  'tecINSUFFICIENT_RESERVE',
+  'tecNEED_MASTER_KEY',
+  'tecDST_TAG_NEEDED',
+  'tecINTERNAL',
+  'tecOVERSIZE'
 ];
 
 var accountTransactions = function (req, res) {
@@ -55,6 +59,7 @@ var accountTransactions = function (req, res) {
     binary: (/true/i).test(req.query.binary) ? true : false,
     minSequence: req.query.min_sequence,
     maxSequence: req.query.max_sequence,
+    marker: req.query.marker,
     limit: req.query.limit || 20,
     descending: (/true/i).test(req.query.descending) ? true : false
   };
@@ -94,12 +99,12 @@ var accountTransactions = function (req, res) {
     if (!options.start) {
       errorResponse({error: 'invalid start date format', code: 400});
       return;
-    }    
+    }
     options.end = smoment(req.query.end);
     if (!options.end) {
       errorResponse({error: 'invalid end date format', code: 400});
       return;
-    }   
+    }
   }
 
   // require valid transaction type

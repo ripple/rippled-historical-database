@@ -1,6 +1,7 @@
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
+var utils = require('../utils');
 var config = require('../../config/import.config');
 var port = config.get('port') || 7111;
 
@@ -203,6 +204,21 @@ describe('transactions API endpoint', function() {
       });
       done();
     });
+  });
+
+  it('should handle pagination correctly', function(done) {
+    this.timeout(5000);
+    var start = '2015-02-09T18:14:40';
+    var end = '2015-02-09T18:14:50';
+    var url = 'http://localhost:' + port +
+        '/v2/transactions?start=' + start +
+        '&end=' + end;
+
+    utils.checkPagination(url, undefined, function(ref, i, body) {
+      assert.strictEqual(body.transactions.length, 1);
+      assert.equal(body.transactions[0].hash, ref.transactions[i].hash);
+      assert.equal(body.transactions[0].ledger_index, ref.transactions[i].ledger_index);
+    }, done);
   });
 
   it('should filter by transaction type', function(done) {

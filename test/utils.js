@@ -15,6 +15,7 @@ var utils = {};
           assert.strictEqual(res.statusCode, 200);
           assert.strictEqual(typeof body, 'object');
           assert.strictEqual(body.result, 'success');
+          assert(body.count > 1, 'must be at least 2 : ' + body.count + ' found');
           return checkIter(body, 0, body.count, initalMarker);
     });
 

@@ -39,6 +39,8 @@ var Accounts = function (req, res, next) {
       return {error: 'invalid interval', code: 400};
     } else if (opts.interval && opts.reduce) {
       return {error: 'cannot use reduce with interval', code: 400};
+    } else if (opts.interval && opts.parent) {
+      return {error: 'cannot use parent with interval', code: 400};
     } else if (opts.limit > 1000) {
       opts.limit = 1000;
     }

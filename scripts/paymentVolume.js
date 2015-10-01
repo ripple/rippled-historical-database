@@ -67,7 +67,6 @@ aggregatePayments(options);
 function aggregatePayments(params) {
 
   var list = [];
-  var keybase;
   var start;
   var end;
   var interval;
@@ -84,6 +83,7 @@ function aggregatePayments(params) {
   // invalid start time
   // or end time
   if (!start || !end) {
+    console.log('invalid start or end time');
     process.exit(1);
   }
 
@@ -127,11 +127,9 @@ function aggregatePayments(params) {
 
     if (err) {
       console.log(err);
-      process.exit(1);
-    }
 
     // print to stdout
-    if (!options.save) {
+    } else if (!options.save) {
       if (resp.length === 1) {
         resp = resp[0];
       }
@@ -139,9 +137,13 @@ function aggregatePayments(params) {
       process.stdout.write(JSON.stringify(resp, null, 2)+'\n');
     }
 
-    process.exit();
+    process.exit(err ? 1 : 0);
   });
 }
+
+/**
+ * handleAggregation
+ */
 
 function handleAggregation(params, done) {
 
@@ -236,6 +238,10 @@ function handleAggregation(params, done) {
     });
   }
 
+  /**
+   * handleResult
+   */
+
   function handleResult(result) {
 
     // save data into hbase
@@ -326,4 +332,3 @@ function getExchangeRates(params, callback) {
     return callback(null, results);
   });
 }
-

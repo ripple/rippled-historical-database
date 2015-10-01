@@ -1,6 +1,7 @@
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
+var utils = require('../utils');
 var config = require('../../config/import.config');
 var port = config.get('port') || 7111;
 
@@ -175,6 +176,7 @@ describe('account transactions API endpoint', function() {
       assert.ifError(err);
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 5);
       body.transactions.forEach(function(tx) {
         assert.strictEqual(typeof tx.meta, 'string');
         assert.strictEqual(typeof tx.tx, 'string');
@@ -207,6 +209,24 @@ describe('account transactions API endpoint', function() {
       });
       done();
     });
+  });
+
+  it('should handle pagination correctly', function(done) {
+    this.timeout(12000);
+    var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
+    var start= '2015-01-14T18:27:20';
+    var end= '2015-01-14T18:27:20';
+    var url  = 'http://localhost:' + port +
+        '/v2/accounts/' + account +
+        '/transactions?start=' + start +
+        '&end=' + end;
+
+    console.log(url);
+    utils.checkPagination(url, undefined, function(ref, i, body) {
+      assert.strictEqual(body.transactions.length, 1);
+      assert.equal(body.transactions[0].hash, ref.transactions[i].hash);
+      assert.equal(body.transactions[0].ledger_index, ref.transactions[i].ledger_index);
+    }, done);
   });
 
   it('should return a specific account transaction for a given sequence #', function(done) {
