@@ -22,6 +22,7 @@ var Server = function (options) {
   app.use(bodyParser.urlencoded({extended:true}));
   app.use(json2csv.expressDecorator);
   app.use(cors());
+  app.use(filterDuplicateQueryParams);
 
   // v1 routes (requires postgres)
   if (options.postgres) {
@@ -93,6 +94,23 @@ var Server = function (options) {
     }
   };
 };
+
+/**
+ * filterDuplicateQueryParams
+ * NOTE: this only works if we dont pass
+ * an array as a query param intentionally
+ */
+
+function filterDuplicateQueryParams(req, res, next) {
+
+  for (var key in req.query) {
+    if (Array.isArray(req.query[key])) {
+      req.query[key] = req.query[key][0];
+    }
+  }
+
+  next();
+}
 
 module.exports = Server;
 
