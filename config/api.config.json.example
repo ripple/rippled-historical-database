@@ -7,6 +7,9 @@
     "database" : "ripple_data",
     "charset"  : "utf8"
   },
+  "ripple": {
+    "servers": ["wss://s-west.ripple.com:443"]
+  },
   "hbase" : {
     "logLevel" : 2,
     "prefix" : "test_",

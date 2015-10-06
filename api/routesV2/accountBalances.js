@@ -6,14 +6,19 @@ var request = require('request');
 var response = require('response');
 var smoment = require('../../lib/smoment');
 var API = 'https://api.ripple.com/v1';
+var config  = require('../../config/api.config');
+var ripple = require('ripple-lib');
+var rippleAPI = new ripple.RippleAPI(config.get('ripple'));
 var hbase;
+
+rippleAPI.connect();
 
 var accountBalances = function (req, res, next) {
 
   var options = {
     ledger_index: req.query.ledger_index || req.query.ledger,
     ledger_hash: req.query.ledger_hash,
-    closeTime: smoment(req.query.close_time || req.query.date),
+    closeTime: req.query.close_time || req.query.date,
     account: req.params.address,
     format: (req.query.format || 'json').toLowerCase()
   };
@@ -26,15 +31,17 @@ var accountBalances = function (req, res, next) {
     return;
   }
 
-  if (!options.closeTime) {
-    errorResponse({
-      error: 'invalid date format',
-      code: 400
-    });
-    return;
-
-  } else {
-    options.closeTime = options.closeTime.format();
+  if (options.closeTime) {
+    options.closeTime = smoment(options.closeTime);
+    if (options.closeTime) {
+      options.closeTime = options.closeTime.format();
+    } else {
+      errorResponse({
+        error: 'invalid date format',
+        code: 400
+      });
+      return;
+    }
   }
 
   log.info('ACCOUNT BALANCES:', options.account);
@@ -51,7 +58,6 @@ var accountBalances = function (req, res, next) {
     options.currency = req.query.currency;
     options.counterparty = req.query.counterparty || req.query.issuer;
     options.limit = req.query.limit;
-    options.marker = req.query.marker;
     getBalances(options);
   });
 
@@ -62,6 +68,38 @@ var accountBalances = function (req, res, next) {
   */
 
   function getBalances(opts) {
+    var params = {
+      ledgerVersion: opts.ledger_index,
+      currency: opts.currency,
+      counterparty: opts.counterparty,
+      limit: opts.limit ? Number(opts.limit) : undefined
+    };
+
+    rippleAPI.getBalances(opts.account, params)
+    .then(function(balances) {
+      var results = {
+        result: 'success'
+      };
+
+      results.ledger_index = opts.ledger_index;
+      results.close_time = opts.closeTime + 'Z';
+      results.limit = opts.limit;
+      results.balances = balances;
+
+      successResponse(results, opts);
+    }).catch(function(e) {
+      if (e.message &&
+         e.message.remote &&
+         e.message.remote.error === 'actNotFound') {
+        errorResponse({code:404, error: e.message.remote.error_message});
+      } else {
+        errorResponse(e.toString());
+      }
+    });
+
+    return;
+
+q
     var url = API + '/accounts/' + opts.account + '/balances';
     var results = {
       result: 'success',
