@@ -29,15 +29,15 @@ describe('account reports API endpoint', function() {
       assert.strictEqual(body.reports.length, 3);
       body.reports.forEach(function(r) {
         assert.strictEqual(typeof r.date, 'string');
-        assert.strictEqual(typeof r.high_value_received, 'number');
-        assert.strictEqual(typeof r.high_value_sent, 'number');
+        assert.strictEqual(typeof r.high_value_received, 'string');
+        assert.strictEqual(typeof r.high_value_sent, 'string');
         assert.strictEqual(typeof r.payments_received, 'number');
         assert.strictEqual(typeof r.payments_sent, 'number');
         assert.strictEqual(typeof r.receiving_counterparties, 'number');
         assert.strictEqual(typeof r.sending_counterparties, 'number');
-        assert.strictEqual(typeof r.total_value, 'number');
-        assert.strictEqual(typeof r.total_value_received, 'number');
-        assert.strictEqual(typeof r.total_value_sent, 'number');
+        assert.strictEqual(typeof r.total_value, 'string');
+        assert.strictEqual(typeof r.total_value_received, 'string');
+        assert.strictEqual(typeof r.total_value_sent, 'string');
         assert(start.diff(moment.utc(r.date))<=0, 'date less than start time');
         assert(end.diff(moment.utc(r.date))>=0, 'date greater than end time');
       });

@@ -24,15 +24,15 @@ describe('reports API endpoint', function() {
       body.reports.forEach(function(a) {
         assert.strictEqual(a.date, date);
         assert.strictEqual(typeof a.account, 'string');
-        assert.strictEqual(typeof a.high_value_received, 'number');
-        assert.strictEqual(typeof a.high_value_sent, 'number');
+        assert.strictEqual(typeof a.high_value_received, 'string');
+        assert.strictEqual(typeof a.high_value_sent, 'string');
         assert.strictEqual(typeof a.payments_received, 'number');
         assert.strictEqual(typeof a.payments_sent, 'number');
         assert.strictEqual(typeof a.receiving_counterparties, 'number');
         assert.strictEqual(typeof a.sending_counterparties, 'number');
-        assert.strictEqual(typeof a.total_value, 'number');
-        assert.strictEqual(typeof a.total_value_received, 'number');
-        assert.strictEqual(typeof a.total_value_sent, 'number');
+        assert.strictEqual(typeof a.total_value, 'string');
+        assert.strictEqual(typeof a.total_value_received, 'string');
+        assert.strictEqual(typeof a.total_value_sent, 'string');
       });
       done();
     });

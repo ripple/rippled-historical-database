@@ -25,18 +25,32 @@ var AccountReports = function (req, res, next) {
         errorResponse(err);
       } else {
         if (options.descending) resp.reverse();
-        if (!options.accounts) {
-          resp.forEach(function(row) {
+
+        resp.forEach(function(row) {
+
+          // return the count only
+          if (!options.accounts) {
             row.receiving_counterparties = row.receiving_counterparties.length;
             row.sending_counterparties   = row.sending_counterparties.length;
-          });
-        }
+          }
 
-        if(!options.payments) {
-          resp.forEach(function(row) {
+          // convert amount to string
+          if (options.payments) {
+            row.payments.forEach(function(p) {
+              p.amount = p.amount.toString();
+            });
+
+          // delete the payments array
+          } else {
             delete row.payments;
-          });
-        }
+          }
+
+          row.high_value_received = row.high_value_received.toString();
+          row.high_value_sent = row.high_value_sent.toString();
+          row.total_value_received = row.total_value_received.toString();
+          row.total_value_sent = row.total_value_sent.toString();
+          row.total_value = row.total_value.toString();
+        });
 
         successResponse(resp);
       }
