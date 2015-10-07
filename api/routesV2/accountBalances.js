@@ -20,7 +20,8 @@ var accountBalances = function (req, res, next) {
     ledger_hash: req.query.ledger_hash,
     closeTime: req.query.close_time || req.query.date,
     account: req.params.address,
-    format: (req.query.format || 'json').toLowerCase()
+    format: (req.query.format || 'json').toLowerCase(),
+    limit: req.query.limit
   };
 
   if (!options.account) {
@@ -31,6 +32,7 @@ var accountBalances = function (req, res, next) {
     return;
   }
 
+  // validate and fomat close time
   if (options.closeTime) {
     options.closeTime = smoment(options.closeTime);
     if (options.closeTime) {
@@ -44,21 +46,40 @@ var accountBalances = function (req, res, next) {
     }
   }
 
+  // validate and format limit
+  if (options.limit && options.limit === 'all') {
+    options.limit = undefined;
+
+  } else if (options.limit) {
+    options.limit = Number(options.limit);
+    if (isNaN(options.limit)) {
+      errorResponse({
+        error: 'invalid limit',
+        code: 400
+      });
+      return;
+    }
+  }
+
+
   log.info('ACCOUNT BALANCES:', options.account);
 
   hbase.getLedger(options, function(err, ledger) {
     if (err) {
       errorResponse(err);
       return;
+
     } else if (ledger) {
       options.ledger_index = ledger.ledger_index;
       options.closeTime = smoment(ledger.close_time).format();
-    }
+      options.currency = req.query.currency;
+      options.counterparty = req.query.counterparty || req.query.issuer;
+      options.limit = options.limit;
+      getBalances(options);
 
-    options.currency = req.query.currency;
-    options.counterparty = req.query.counterparty || req.query.issuer;
-    options.limit = req.query.limit;
-    getBalances(options);
+    } else {
+      errorResponse('ledger not found');
+    }
   });
 
   /**
