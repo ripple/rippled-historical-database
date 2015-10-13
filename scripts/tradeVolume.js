@@ -77,6 +77,11 @@ var marketPairs = [
     counter: {currency:'XRP'}
   },
   {
+    // Mr Ripple JPY
+    base: {currency:'JPY', issuer: 'rB3gZey7VWHYRqJHLoHDEJXJ2pEPNieKiS'},
+    counter: {currency:'XRP'}
+  },
+  {
     // Ripple Fox STR
     base: {currency:'STR', issuer: 'rKiCet8SdvWxPXnAgYarFUXMh1zCPz432Y'},
     counter: {currency:'XRP'}
@@ -94,6 +99,11 @@ var marketPairs = [
   {
     // Bitso BTC
     base: {currency:'BTC', issuer: 'rG6FZ31hDHN1K5Dkbma3PSB5uVCuVVRzfn'},
+    counter: {currency:'XRP'}
+  },
+  {
+    // The Rock BTC
+    base: {currency:'BTC', issuer: 'rLEsXccBGNR3UPuPu2hUXPjziKC3qKSBun'},
     counter: {currency:'XRP'}
   },
   {
