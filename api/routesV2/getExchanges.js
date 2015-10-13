@@ -130,7 +130,11 @@ var getExchanges = function(req, res) {
           close: resp.rows[0].close,
           vwap: resp.rows[0].vwap,
           count: resp.rows[0].count,
+          base_currency: resp.rows[0].base_currency,
+          base_issuer: resp.rows[0].base_issuer,
           base_volume: resp.rows[0].base_volume,
+          counter_currency: resp.rows[0].counter_currency,
+          counter_issuer: resp.rows[0].counter_issuer,
           counter_volume: resp.rows[0].counter_volume,
           open_time: resp.rows[0].open_time,
           close_time: resp.rows[0].close_time,
@@ -139,8 +143,12 @@ var getExchanges = function(req, res) {
 
       } else if (resp.rows.length) {
         resp.rows[0] = {
+          base_currency: resp.rows[0].base_currency,
+          base_issuer: resp.rows[0].base_issuer,
           base_amount: resp.rows[0].base_amount,
           counter_amount: resp.rows[0].counter_amount,
+          counter_currency: resp.rows[0].counter_currency,
+          counter_issuer: resp.rows[0].counter_issuer,
           rate: resp.rows[0].rate,
           executed_time: resp.rows[0].executed_time,
           ledger_index: resp.rows[0].ledger_index,
@@ -194,6 +202,10 @@ var getExchanges = function(req, res) {
             ex.open_time = smoment(ex.open_time).format();
             ex.close_time = smoment(ex.close_time).format();
             ex.start = smoment(ex.start).format();
+            ex.base_currency = options.base.currency;
+            ex.base_issuer = options.base.issuer;
+            ex.counter_currency = options.counter.currency;
+            ex.counter_issuer = options.counter.issuer;
           });
 
         } else {
@@ -203,6 +215,10 @@ var getExchanges = function(req, res) {
             delete ex.client;
 
             ex.executed_time = smoment(ex.executed_time).format();
+            ex.base_currency = options.base.currency;
+            ex.base_issuer = options.base.issuer;
+            ex.counter_currency = options.counter.currency;
+            ex.counter_issuer = options.counter.issuer;
           });
         }
 
