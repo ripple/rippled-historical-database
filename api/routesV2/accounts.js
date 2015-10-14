@@ -84,13 +84,13 @@ var Accounts = function (req, res, next) {
 
     // reduced, csv
     if (options.reduce && options.format === 'csv') {
-      res.csv([{count: resp.rows[0]}], 'accounts-count.csv');
+      res.csv([{count: resp}], 'accounts-count.csv');
 
     // reduced json
     } else if (options.reduce) {
       response.json({
         result: 'success',
-        count: resp.rows[0]
+        count: resp
       }).pipe(res);
 
     // csv
@@ -117,9 +117,27 @@ var Accounts = function (req, res, next) {
   }
 
   hbase.getAccounts(options, function(err, resp) {
-    if (err) {
+    var accounts = [];
+    if (err || !resp) {
       errorResponse(err);
+    } else if (options.reduce) {
+      successResponse(resp.rows[0]);
+    } else if (options.interval) {
+      successResponse(resp);
     } else {
+      resp.rows.forEach(function(row) {
+        accounts.push({
+          account: row.account,
+          parent: row.parent,
+          initial_balance: row.balance,
+          inception: smoment(row.executed_time).format(),
+          ledger_index: row.ledger_index,
+          tx_hash: row.tx_hash,
+          genesis_balance: row.genesis_balance,
+          genesis_index: row.genesis_index
+        });
+      });
+      resp.rows = accounts;
       successResponse(resp);
     }
   });

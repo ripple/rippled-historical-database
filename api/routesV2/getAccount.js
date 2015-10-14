@@ -3,6 +3,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'accounts'});
 var response = require('response');
+var smoment = require('../../lib/smoment');
 var hbase;
 
 /**
@@ -42,11 +43,11 @@ var getAccount = function(req, res, next) {
   function successResponse(resp) {
     var result = {
       result: 'success',
-      account: {
-        address: resp.rows[0].account,
+      account_data: {
+        account: resp.rows[0].account,
         parent: resp.rows[0].parent,
         initial_balance: resp.rows[0].balance,
-        inception: resp.rows[0].executed_time,
+        inception: smoment(resp.rows[0].executed_time).format(),
         ledger_index: resp.rows[0].ledger_index,
         tx_hash: resp.rows[0].tx_hash,
         genesis_balance: resp.rows[0].genesis_balance,
