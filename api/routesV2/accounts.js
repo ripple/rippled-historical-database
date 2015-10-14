@@ -41,6 +41,11 @@ var Accounts = function (req, res, next) {
       return {error: 'cannot use reduce with interval', code: 400};
     } else if (opts.interval && opts.parent) {
       return {error: 'cannot use parent with interval', code: 400};
+    }
+
+    if (isNaN(opts.limit)) {
+      opts.limit = 200;
+
     } else if (opts.limit > 1000) {
       opts.limit = 1000;
     }

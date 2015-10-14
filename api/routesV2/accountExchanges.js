@@ -66,6 +66,13 @@ AccountExchanges = function (req, res, next) {
     options.counter.currency = counter && counter[0] ? counter[0].toUpperCase() : undefined;
     options.counter.issuer   = counter && counter[1] ? counter[1] : undefined;
 
+    if (isNaN(options.limit)) {
+      options.limit = 200;
+
+    } else if (options.limit > 1000) {
+      options.limit = 1000;
+    }
+
     return options;
   }
 

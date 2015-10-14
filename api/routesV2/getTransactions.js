@@ -106,8 +106,10 @@ var getTransactions = function (req, res, next) {
       return;
     }
 
-    // max limit 100
-    if (options.limit > 100) {
+    if (isNaN(options.limit)) {
+      options.limit = 20;
+
+    } else if (options.limit > 100) {
       options.limit = 100;
     }
 

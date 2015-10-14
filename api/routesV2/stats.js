@@ -54,6 +54,13 @@ var Stats = function(req, res) {
       return {error: 'invalid family, use: ' + families.join(', '), code: 400};
     }
 
+    if (isNaN(options.limit)) {
+      options.limit = 200;
+
+    } else if (options.limit > 1000) {
+      options.limit = 1000;
+    }
+
     return options;
   }
 
