@@ -24,8 +24,8 @@ describe('accounts API endpoint', function() {
       assert.strictEqual(body.accounts.length, 12);
       body.accounts.forEach(function(a) {
         assert.strictEqual(typeof a.ledger_index, 'number');
-        assert.strictEqual(typeof a.balance, 'string');
-        assert.strictEqual(typeof a.executed_time, 'string');
+        assert.strictEqual(typeof a.initial_balance, 'string');
+        assert.strictEqual(typeof a.inception, 'string');
         assert.strictEqual(typeof a.account, 'string');
         assert.strictEqual(typeof a.parent, 'string');
         assert.strictEqual(typeof a.tx_hash, 'string');
@@ -57,8 +57,8 @@ describe('accounts API endpoint', function() {
       assert.strictEqual(body.accounts.length, body.count);
       assert.strictEqual(body.accounts.length, 9);
       body.accounts.forEach(function(a) {
-        assert(start.diff(moment.utc(a.executed_time))<=0, 'executed time less than start time');
-        assert(end.diff(moment.utc(a.executed_time))>=0, 'executed time greater than end time');
+        assert(start.diff(moment.utc(a.inception))<=0, 'inception less than start time');
+        assert(end.diff(moment.utc(a.inception))>=0, 'inception greater than end time');
       });
       done();
     });
@@ -209,13 +209,13 @@ describe('accounts API endpoint', function() {
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
-      assert.strictEqual(typeof body.account, 'object');
-      assert.strictEqual(body.account.address, account);
-      assert.strictEqual(typeof body.account.parent, 'string');
-      assert.strictEqual(typeof body.account.initial_balance, 'string');
-      assert.strictEqual(typeof body.account.inception, 'string');
-      assert.strictEqual(typeof body.account.tx_hash, 'string');
-      assert.strictEqual(typeof body.account.ledger_index, 'number');
+      assert.strictEqual(typeof body.account_data, 'object');
+      assert.strictEqual(body.account_data.account, account);
+      assert.strictEqual(typeof body.account_data.parent, 'string');
+      assert.strictEqual(typeof body.account_data.initial_balance, 'string');
+      assert.strictEqual(typeof body.account_data.inception, 'string');
+      assert.strictEqual(typeof body.account_data.tx_hash, 'string');
+      assert.strictEqual(typeof body.account_data.ledger_index, 'number');
       done();
     });
   });
