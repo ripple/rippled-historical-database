@@ -23,14 +23,21 @@ self.getPayments = function (req, res, next) {
       account : req.params.address,
       start   : req.query.start,
       end     : req.query.end,
-      limit   : req.query.limit
+      limit   : req.query.limit || 200
     }
-    
+
     if(req.query.start) options.start = smoment(req.query.start)
     else options.start = smoment(0);
 
     if(req.query.end) options.end = smoment(req.query.end)
     else options.end = smoment();
+
+    if (isNaN(options.limit)) {
+      options.limit = 200;
+
+    } else if (options.limit > 1000) {
+      options.limit = 1000;
+    }
 
     return options;
   }

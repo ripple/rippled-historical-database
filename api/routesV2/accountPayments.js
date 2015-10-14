@@ -65,8 +65,13 @@ var AccountPayments = function (req, res, next) {
       return {error: 'Account is required', code: 400};
     } else if (options.type && types.indexOf(options.type) === -1) {
       return {error: 'invalid type - use: ' + types.join(', '), code: 400};
+    }
+
+    if (isNaN(options.limit)) {
+      options.limit = 200;
+
     } else if (options.limit > 1000) {
-      return {error: 'limit cannot exceed 1000', code: 400};
+      options.limit = 1000;
     }
 
     return options;
