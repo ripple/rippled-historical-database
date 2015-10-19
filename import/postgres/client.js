@@ -5,7 +5,7 @@ var Promise  = require('bluebird');
 var moment   = require('moment');
 var UInt160  = require('ripple-lib')._DEPRECATED.UInt160;
 var winston  = require('winston');
-var SerializedObject = require('ripple-lib')._DEPRECATED.SerializedObject;
+var binary   = require('ripple-binary-codec');
 
 var EPOCH_OFFSET = 946684800;
 var hashErrorLog = new (require('winston').Logger)({
@@ -243,8 +243,7 @@ var DB = function(config) {
 
   //Convert json to binary/hex to store as raw data
   function to_hex(input){
-    hex = new SerializedObject.from_json(input).to_hex();
-    return hex;
+    return binary.encode(input);
   }
 
   //Check all fields for ripple accounts to add to database
@@ -553,8 +552,8 @@ var DB = function(config) {
 
           if (options.tx_return === "json") {
             try {
-              row.tx   = new SerializedObject(row.tx).to_json();
-              row.meta = new SerializedObject(row.meta).to_json();
+              row.tx   = binary.decode(row.tx);
+              row.meta = binary.decode(row.meta);
             } catch(e) {
 
               log.error('serialization error:', e.toString());

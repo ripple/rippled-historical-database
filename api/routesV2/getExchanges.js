@@ -74,7 +74,9 @@ var getExchanges = function(req, res) {
       options.interval = '7day';
     }
 
-    if (options.reduce && options.limit > 20000) {
+    if (isNaN(options.limit)) {
+      return {error: 'invalid limit: ' + options.limit, code: 400};
+    } else if (options.reduce && options.limit > 20000) {
       options.limit = 20000;
     } else if (options.limit > 1000) {
       options.limit = 1000;

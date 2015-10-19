@@ -8,7 +8,7 @@ var log     = new Logger({scope : 'postgres'});
 var EPOCH_OFFSET = 946684800;
 log.level(3);
 
-var SerializedObject = require('ripple-lib')._DEPRECATED.SerializedObject;
+var binary  = require('ripple-binary-codec');
 var UInt160 = require('ripple-lib')._DEPRECATED.UInt160;
 
 var DB = function(config) {
@@ -78,8 +78,8 @@ var DB = function(config) {
 
       if (!options.binary) {
         try {
-          transaction.tx   = new SerializedObject(transaction.tx).to_json();
-          transaction.meta = new SerializedObject(transaction.meta).to_json();
+          transaction.tx   = binary.decode(transaction.tx.toUpperCase());
+          transaction.meta = binary.decode(transaction.meta.toUpperCase());
         } catch (e) {
           log.error('serialization error:', e.toString());
           callback({error:e, code:500});
@@ -197,8 +197,8 @@ var DB = function(config) {
 
           if (options.tx_return === "json") {
             try {
-              row.tx   = new SerializedObject(row.tx).to_json();
-              row.meta = new SerializedObject(row.meta).to_json();
+              row.tx   = binary.decode(row.tx.toUpperCase());
+              row.meta = binary.decode(row.meta.toUpperCase());
             } catch(e) {
 
               log.error('serialization error:', e.toString());
@@ -350,8 +350,8 @@ var DB = function(config) {
 
         } else {
           try {
-            data.tx   = new SerializedObject(row.tx).to_json();
-            data.meta = new SerializedObject(row.meta).to_json();
+            data.tx   = binary.decode(row.tx.toUpperCase());
+            data.meta = binary.decode(row.meta.toUpperCase());
 
           } catch (e) {
             log.error('serialization error:', e.toString());
@@ -525,8 +525,8 @@ var DB = function(config) {
 
         } else {
           try {
-            data.tx   = new SerializedObject(row.tx).to_json();
-            data.meta = new SerializedObject(row.meta).to_json();
+            data.tx   = binary.decode(row.tx.toUpperCase());
+            data.meta = binary.decode(row.meta.toUpperCase());
 
           } catch (e) {
             log.error('serialization error:', e.toString());
