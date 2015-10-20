@@ -1,0 +1,21 @@
+{
+    "jscodehints.detectedExclusions": [
+        "/Users/matthew/Sites/rdb/import/importer.js",
+        "/Users/matthew/Sites/rdb/storm/src/main/multilang/resources/importer/storm.js",
+        "/Users/matthew/Sites/rdb/storm/src/main/multilang/resources/importer/ledgerStreamSpout.js",
+        "/Users/matthew/Sites/rdb/lib/hbase/client.js",
+        "/Users/matthew/Sites/rdb/import/hbase/client.js",
+        "/Users/matthew/Sites/rdb/local_modules/test/Hbase_types.js",
+        "/Users/matthew/Sites/rdb/local_modules/hbase-thrift/index.js",
+        "/Users/matthew/Sites/rdb/local_modules/ripple-importer/index.js",
+        "/Users/matthew/Sites/rdb/storm/src/main/multilang/resources/test/ledgerStreamSpout.test.js",
+        "/Users/matthew/Sites/rdb/storm/src/main/multilang/resources/config.js",
+        "/Users/matthew/Sites/rdb/local_modules/ripple-importer/test/main.test.js",
+        "/Users/matthew/Sites/rdb/local_modules/ripple-importer/importer.js",
+        "/Users/matthew/Sites/rdb/storm/src/main/multilang/resources/src/lib/modules/ripple-importer.js",
+        "/Users/matthew/Sites/rdb/storm/multilang/resources/src/lib/modules/ripple-importer.js",
+        "/Users/matthew/Sites/rdb/import/hbase/history.js",
+        "/Users/matthew/Sites/rdb/import/postgres/history.js",
+        "/Users/matthew/Sites/ripplecharts-frontend/src/common/activeAccounts.js"
+    ]
+}

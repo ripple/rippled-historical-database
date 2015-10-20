@@ -1,0 +1,8 @@
+# vim:ft=ansible:
+---
+- hosts: all
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+    - nodesource.node
+    - ripple-import

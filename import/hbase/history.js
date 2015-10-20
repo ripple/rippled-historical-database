@@ -13,8 +13,8 @@ var EPOCH_OFFSET   = 946684800;
 var HistoricalImport = function () {
   this.importer = new Importer({
     ripple : config.get('ripple'),
-    logLevel : config.get('logLevel') || 0,
-    logFile  : config.get('logFile')
+    logLevel: config.get('logLevel') || 0,
+    logFile: config.get('logFile')
   });
 
   this.count    = 0;
@@ -22,10 +22,10 @@ var HistoricalImport = function () {
   this.section  = { };
 
 
-  var log       = new Logger({
-    scope : 'hbase_history',
-    level : config.get('logLevel') || 0,
-    file  : config.get('logFile')
+  var log = new Logger({
+    scope: 'hbase_history',
+    level: config.get('logLevel') || 0,
+    file: config.get('logFile')
   });
 
   var hbaseOptions = config.get('hbase');
@@ -104,7 +104,7 @@ var HistoricalImport = function () {
     //get latest validated ledger as the
     //stop point for historical importing
     } else {
-      self._getLedgerRecursive('validated', 0, function(err, ledger) {
+      self._getLedgerRecursive(undefined, 0, function(err, ledger) {
         if (err) {
           log.error('failed to get latest validated ledger');
           callback('failed to get latest validated ledger');
@@ -133,7 +133,7 @@ var HistoricalImport = function () {
       return;
     }
 
-    self.importer.getLedger({index:index}, function(err, ledger) {
+    self.importer.getLedger({ledgerVersion:index}, function(err, ledger) {
       if (err) {
         log.error(err, "retrying");
         self._getLedgerRecursive(index, ++attempts, callback);
@@ -164,8 +164,8 @@ var HistoricalImport = function () {
           }
         });
 
-        self.count   = 0;
-        self.total   = resp.stopIndex - resp.startIndex + 1;
+        self.count = 0;
+        self.total = resp.stopIndex - resp.startIndex + 1;
         self.section = resp;
       }
     });
