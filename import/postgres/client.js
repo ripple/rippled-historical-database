@@ -1,11 +1,12 @@
-var config   = require('../../config/import.config');
-var Logger   = require('../../lib/logger');
-var Knex     = require('knex');
-var Promise  = require('bluebird');
-var moment   = require('moment');
-var UInt160  = require('ripple-lib')._DEPRECATED.UInt160;
-var winston  = require('winston');
-var binary   = require('ripple-binary-codec');
+var config = require('../../config/import.config');
+var Logger = require('../../lib/logger');
+var Knex = require('knex');
+var Promise = require('bluebird');
+var moment = require('moment');
+var winston = require('winston');
+var binary = require('ripple-binary-codec');
+var validator = require('ripple-address-codec');
+
 
 var EPOCH_OFFSET = 946684800;
 var hashErrorLog = new (require('winston').Logger)({
@@ -87,7 +88,7 @@ var DB = function(config) {
 
     } catch (e) {
       hashErrorLog.error(ledger.ledger_index, e.message);
-      log.info("Unable to save ledger:", ledger.ledger_index);
+      log.error("Unable to save ledger:", ledger.ledger_index, e);
       callback(null, ledger);
       return;
     }
@@ -249,17 +250,12 @@ var DB = function(config) {
   //Check all fields for ripple accounts to add to database
   function check_fields(fields, addresses){
 
-      //CHANGE VALIDATION to:
-      //Base.decode_check(Base.VER_ACCOUNT_ID, j);
-      //From:
-      /*var address = UInt160.from_json();
-      console.log(address.is_valid())*/
       var candidate;
       //Iterate through all keys
-      for (var key in fields){
+      for (var key in fields) {
+
           //Check if valid Ripple Address
-          var address = UInt160.from_json(String(fields[key]));
-          if(address.is_valid() && fields[key].charAt(0) == "r"){
+          if(validator.isValidAddress(fields[key])) {
               if (check_unique(fields[key], addresses)){
                   addresses.push(fields[key]);
               }
@@ -287,13 +283,12 @@ var DB = function(config) {
   }
 
   //Check if ripple id is valid
-  function check_ripple_id(candidate, addresses){
-      var address = UInt160.from_json(String(candidate));
-          if(address.is_valid() && candidate.charAt(0) == "r"){
-              if (check_unique(candidate, addresses)){
-                  addresses.push(candidate);
-              }
+  function check_ripple_id(candidate, addresses) {
+    if(validator.isValidAddress(candidate)) {
+      if (check_unique(candidate, addresses)) {
+        addresses.push(candidate);
       }
+    }
   }
 
   //Checks whether a token is in an array
@@ -552,8 +547,8 @@ var DB = function(config) {
 
           if (options.tx_return === "json") {
             try {
-              row.tx   = binary.decode(row.tx);
-              row.meta = binary.decode(row.meta);
+              row.tx   = binary.decode(row.tx.toUpperCase());
+              row.meta = binary.decode(row.meta.toUpperCase());
             } catch(e) {
 
               log.error('serialization error:', e.toString());

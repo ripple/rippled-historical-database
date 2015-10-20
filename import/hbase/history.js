@@ -12,7 +12,9 @@ var EPOCH_OFFSET   = 946684800;
 
 var HistoricalImport = function () {
   this.importer = new Importer({
-    ripple : config.get('ripple')
+    ripple : config.get('ripple'),
+    logLevel : config.get('logLevel') || 0,
+    logFile  : config.get('logFile')
   });
 
   this.count    = 0;
