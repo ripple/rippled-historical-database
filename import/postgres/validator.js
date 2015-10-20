@@ -7,10 +7,11 @@ var ripple   = require('ripple-lib');
 var events   = require('events');
 
 var GENESIS_LEDGER = 32570; // https://ripple.com/wiki/Genesis_ledger
+var EPOCH_OFFSET = 946684800;
 
 var Validator = function (config) {
   var self     = this;
-  var importer = new Importer({ripple:config.ripple});
+  var importer = new Importer({ripple:config.ripple,logLevel:config.logLevel});
   var db       = new Postgres(config.postgres);
   var log      = new Logger({
     scope : 'validator',
@@ -142,39 +143,8 @@ var Validator = function (config) {
         }
       }
 
-      //form transactions for hash calc
-      ledger.transactions.forEach(function(tx, i) {
-        var transaction = tx.tx;
-        transaction.metaData = tx.meta;
-        transaction.hash = tx.hash;
-        ledger.transactions[i] = transaction;
-      });
-
-      //make sure the hash of the
-      //transactions is accurate to the known result
-      try {
-        txHash = ripple._DEPRECATED.Ledger.from_json(ledger)
-          .calc_tx_hash().to_hex();
-      } catch(e) {
-        log.error('hash calc error:', ledger.ledger_index, e.stack || e);
-        self.stop();
-        return;
-      }
-
-
-      if (txHash !== ledger.transactions_hash.toUpperCase()) {
-        log.error('transactions do not hash to the expected value for ' +
-          'ledger_index: ' + ledger.ledger_index + '\n' +
-          'ledger_hash: ' + ledger.ledger_hash + '\n' +
-          'actual transaction_hash:   ' + txHash + '\n' +
-          'expected transaction_hash: ' + ledger.transactions_hash);
-
-        //importLedger(lastValid.ledger_index + 1);
-        self.stop();
-        return;
-
       //make sure the hash chain is intact
-      } else if (lastValid.ledger_hash && lastValid.ledger_hash != ledger.parent_hash) {
+      if (lastValid.ledger_hash && lastValid.ledger_hash != ledger.parent_hash) {
         log.error('incorrect parent_hash:\n' +
           'ledger_index: ' + ledger.ledger_index + '\n' +
           'parent_hash: ' + ledger.parent_hash + '\n' +

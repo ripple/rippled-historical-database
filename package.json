@@ -35,6 +35,7 @@
     "pg": "^3.5.0",
     "request": "^2.39.0",
     "response": "https://github.com/mikeal/response/archive/master.tar.gz",
+    "ripple-address-codec": "^2.0.1",
     "ripple-binary-codec": "0.0.6",
     "ripple-lib": "0.13.0-rc15",
     "ripple-lib-transactionparser": "^0.3.1",

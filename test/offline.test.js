@@ -90,6 +90,7 @@ describe('ETL and API:', function() {
         json: true,
       },
       function (err, res, body) {
+        console.log(err, body);
         assert.ifError(err);
         assert.strictEqual(res.statusCode, 200);
         assert.strictEqual(typeof body, 'object');

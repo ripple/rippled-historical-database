@@ -7,7 +7,8 @@ var v;
 v = new Validator({
   ripple   : config.get('ripple'),
   postgres : config.get('postgres'),
-  start    : config.get('startIndex')
+  start    : config.get('startIndex'),
+  logLevel : config.get('logLevel')
 });
 
 v.start();

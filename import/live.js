@@ -64,7 +64,7 @@ if (types.postgres) {
   }
 
   live.on('ledger', function(ledger) {
-    postgres.saveLedger(ledger, function(err, resp){
+    postgres.saveLedger(ledger, function(err, resp) {
       if (err) {
         log.error('error saving ledger:', err);
       } else {

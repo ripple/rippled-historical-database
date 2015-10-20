@@ -9,7 +9,6 @@ var EPOCH_OFFSET = 946684800;
 log.level(3);
 
 var binary  = require('ripple-binary-codec');
-var UInt160 = require('ripple-lib')._DEPRECATED.UInt160;
 
 var DB = function(config) {
   var self  = this;
