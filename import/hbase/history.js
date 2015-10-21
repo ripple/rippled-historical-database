@@ -140,7 +140,6 @@ var HistoricalImport = function () {
 
       } else if (resp) {
         self.importer.backFill(resp.startIndex, resp.stopIndex, function(err) {
-          console.log(err);
           if (err) {
             if (cb) cb(err);
           }

@@ -75,7 +75,7 @@ var HistoricalImport = function () {
         if (err) {
           log.error('failed to get latest validated ledger');
           callback('failed to get latest validated ledger');
-          return;
+          process.exit(1);
         }
 
         var index = parseInt(ledger.ledger_index, 10) - 1;
@@ -128,7 +128,13 @@ var HistoricalImport = function () {
           resp.stopIndex = GENESIS_LEDGER;
         }
 
-        self.importer.backFill(resp.stopIndex, resp.startIndex);
+        self.importer.backFill(resp.stopIndex, resp.startIndex, function(err) {
+          if (err) {
+            log.error(err);
+            process.exit(1);
+          }
+        });
+
         self.count   = 0;
         self.total   = resp.startIndex - resp.stopIndex + 1;
         self.section = resp;
