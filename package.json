@@ -1,6 +1,6 @@
 {
   "name": "rippled-historical-database",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "SQL database storing historical data from Rippled.",
   "repository": {
     "type": "git",
