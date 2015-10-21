@@ -4,10 +4,12 @@ var packageJSON = require('../package.json');
 
 function generateMap(req, res) {
   var url = 'https://data.ripple.com/v2';
+  var repo = 'https://github.com/ripple/rippled-historical-database';
   var json = {
     'name': packageJSON.name,
     'version': packageJSON.version,
-    'documentation': 'https://github.com/ripple/rippled-historical-database',
+    'documentation': repo,
+    'release-notes': repo + '/releases/tag/v' + packageJSON.version,
     'endpoints': [
       {
         action: 'Get Account Transactions',
