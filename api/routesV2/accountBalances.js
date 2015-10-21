@@ -21,7 +21,7 @@ var accountBalances = function (req, res, next) {
     closeTime: req.query.close_time || req.query.date,
     account: req.params.address,
     format: (req.query.format || 'json').toLowerCase(),
-    limit: req.query.limit
+    limit: req.query.limit || 200
   };
 
   if (!options.account) {
@@ -50,7 +50,7 @@ var accountBalances = function (req, res, next) {
   if (options.limit && options.limit === 'all') {
     options.limit = undefined;
 
-  } else if (options.limit) {
+  } else {
     options.limit = Number(options.limit);
     if (isNaN(options.limit)) {
       errorResponse({
@@ -58,6 +58,10 @@ var accountBalances = function (req, res, next) {
         code: 400
       });
       return;
+
+    // max limit of 400
+    } else if (options.limit > 400) {
+      options.limit = 400
     }
   }
 
