@@ -47,11 +47,6 @@ var marketPairs = [
     counter: {currency: 'XRP'}
   },
   {
-    // SnapSwap USD market
-    base: {currency: 'USD', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'},
-    counter: {currency: 'XRP'}
-  },
-  {
     // SnapSwap EUR market
     base: {currency: 'EUR', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'},
     counter: {currency: 'XRP'}
@@ -107,9 +102,9 @@ var marketPairs = [
     counter: {currency:'XRP'}
   },
   {
-    // Snapswap EUR/ Snapswap USD
-    base    : {currency: 'EUR', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'},
-    counter : {currency: 'USD', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'}
+    // EXRP KRW
+    base: {currency:'KRW', issuer: 'rPxU6acYni7FcXzPCMeaPSwKcuS2GTtNVN'},
+    counter: {currency:'XRP'}
   },
   {
     // Bitstamp BTC/USD
@@ -117,19 +112,9 @@ var marketPairs = [
     counter : {currency: 'USD', issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'},
   },
   {
-    // Bitstamp BTC/USD
-    base    : {currency: 'BTC', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'},
-    counter : {currency: 'USD', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'},
-  },
-  {
     // Bitstamp BTC/ Snapswap BTC
     base    : {currency: 'BTC', issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'},
     counter : {currency: 'BTC', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'},
-  },
-  {
-    // Bitstamp USD/ Snapswap USD
-    base    : {currency: 'USD', issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'},
-    counter : {currency: 'USD', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'},
   },
   {
     // Bitstamp USD/ rippleCN CNY
@@ -145,11 +130,6 @@ var marketPairs = [
     // Bitstamp USD/ rippleFox CNY
     base    : {currency: 'CNY', issuer: 'rKiCet8SdvWxPXnAgYarFUXMh1zCPz432Y'},
     counter : {currency: 'USD', issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'}
-  },
-  {
-    // Snapswap USD/ rippleFox CNY
-    base    : {currency: 'CNY', issuer: 'rKiCet8SdvWxPXnAgYarFUXMh1zCPz432Y'},
-    counter : {currency: 'USD', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'}
   },
   {
     // Snapswap USD/ rippleFox CNY
@@ -175,11 +155,6 @@ var marketPairs = [
     // TokyoJPY JPY/ Bitstamp USD
     base    : {currency: 'JPY', issuer: 'r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN'},
     counter : {currency: 'USD', issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'}
-  },
-  {
-    // Bitso MXN / Snapswap USD
-    base    : {currency: 'MXN', issuer: 'rG6FZ31hDHN1K5Dkbma3PSB5uVCuVVRzfn'},
-    counter : {currency: 'USD', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'}
   }
 ];
 
