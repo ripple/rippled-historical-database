@@ -113,10 +113,8 @@ var accountBalances = function (req, res, next) {
 
       successResponse(results, opts);
     }).catch(function(e) {
-      if (e.message &&
-         e.message.remote &&
-         e.message.remote.error === 'actNotFound') {
-        errorResponse({code:404, error: e.message.remote.error_message});
+      if (e.message === 'Account not found.') {
+        errorResponse({code:404, error: e.message});
       } else {
         errorResponse(e.toString());
       }
@@ -127,7 +125,7 @@ var accountBalances = function (req, res, next) {
 q
     var url = API + '/accounts/' + opts.account + '/balances';
     var results = {
-      result: 'success',
+      result: 'success'
     };
 
     request({
