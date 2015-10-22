@@ -45,6 +45,9 @@ var Server = function (options) {
     routesV2 = RoutesV2(hbase);
 
     app.get('/v2/health/:aspect?', routesV2.checkHealth);
+    app.get('/v2/gateways/:gateway?', routesV2.gateways.Gateways);
+    app.get('/v2/gateways/:gateway/assets/:filename?', routesV2.gateways.Assets);
+    app.get('/v2/currencies/:currencyAsset?', routesV2.gateways.Currencies);
     app.get('/v2/last_validated', routesV2.getLastValidated);
     app.get('/v2/transactions/', routesV2.getTransactions);
     app.get('/v2/transactions/:tx_hash', routesV2.getTransactions);
