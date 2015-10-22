@@ -1,3 +1,5 @@
+var Logger = require('../../lib/logger');
+var log = new Logger({scope: 'gateways'});
 var path = require('path');
 var validator = require('ripple-address-codec');
 var assetPath = path.resolve(__dirname + '/../gateways/gatewayAssets/');
@@ -139,6 +141,7 @@ var Gateways = function(req, res) {
   // single gateway
   if (address) {
     gateway = getGateway(address);
+    log.info('gateway:', gateway ? gateway.name : address);
     if (gateway) {
       res.send(JSON.stringify(gateway, null));
     } else {
@@ -151,6 +154,7 @@ var Gateways = function(req, res) {
 
   // entire list
   } else {
+    log.info('gateway list');
     res.send(JSON.stringify(gatewaysByCurrency, null));
   }
 };
@@ -166,6 +170,7 @@ var Assets = function(req, res) {
   var gateway = getGateway(address);
   var name;
 
+  log.info('asset:', gateway ? gateway.name : address, filename);
   if (!gateway) {
     res.status(400).send({
       result: 'error',
@@ -194,6 +199,7 @@ var Assets = function(req, res) {
 var Currencies = function (req, res, next) {
   var filename = (req.params.currencyAsset || 'default.svg').toLowerCase();
 
+  log.info('currency:', filename);
   res.sendFile(currencies + '/' + filename, null, function(err) {
 
     //send default svg if its not found
