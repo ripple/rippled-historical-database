@@ -119,8 +119,8 @@ var checkHealth = function(req, res) {
     // get last validated ledger
     hbase.getLastValidated(function(err, resp) {
       var now = Date.now();
-      var closeTime = moment.utc(resp.close_time).unix() * 1000;
-      var validatorGap = (now - closeTime)/1000;
+      var closeTime = moment.utc(resp ? resp.close_time : undefined);
+      var validatorGap = (now - (closeTime.unix() * 1000))/1000;
       var score;
       var message;
 
