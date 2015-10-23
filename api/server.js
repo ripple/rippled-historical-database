@@ -9,6 +9,7 @@ var Routes = require('./routes');
 var RoutesV2 = require('./routesV2');
 var generateMap = require('./apiMap');
 var json2csv = require('nice-json2csv');
+var favicon = require('serve-favicon');
 
 var Server = function (options) {
   var app = express();
@@ -23,6 +24,7 @@ var Server = function (options) {
   app.use(json2csv.expressDecorator);
   app.use(cors());
   app.use(filterDuplicateQueryParams);
+  app.use(favicon(__dirname + '/favicon.png'));
 
   // v1 routes (requires postgres)
   if (options.postgres) {
