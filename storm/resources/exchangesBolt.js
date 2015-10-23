@@ -8,6 +8,17 @@ var BasicBolt   = Storm.BasicBolt;
 var pairs       = { };
 var bolt;
 
+var Logger = require('./lib/logger');
+var log = new Logger({
+  scope: 'exchanges-bolt',
+  file: config.get('logFile'),
+  level: config.get('logLevel')
+});
+
+process.on('uncaughtException', function(e) {
+  log.error(e);
+});
+
 function ExchangesBolt() {
   var options = config.get('hbase2');
 

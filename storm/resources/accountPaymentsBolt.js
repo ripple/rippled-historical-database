@@ -5,6 +5,16 @@ var Aggregation = require('./lib/aggregation/accountPayments');
 var BasicBolt   = Storm.BasicBolt;
 var bolt;
 
+var Logger = require('./lib/logger');
+var log = new Logger({
+  scope: 'account-payments-bolt',
+  file: config.get('logFile'),
+  level: config.get('logLevel')
+});
+
+process.on('uncaughtException', function(e) {
+  log.error(e);
+});
 
 function AccountPaymentsBolt() {
   var options = config.get('hbase2');

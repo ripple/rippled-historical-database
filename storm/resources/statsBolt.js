@@ -5,6 +5,16 @@ var Aggregation = require('./lib/aggregation/stats');
 var BasicBolt   = Storm.BasicBolt;
 var bolt;
 
+var Logger = require('./lib/logger');
+var log = new Logger({
+  scope: 'stats-bolt',
+  file: config.get('logFile'),
+  level: config.get('logLevel')
+});
+
+process.on('uncaughtException', function(e) {
+  log.error(e);
+});
 
 function StatsBolt() {
   var options = config.get('hbase2');
