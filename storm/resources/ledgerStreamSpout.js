@@ -1,7 +1,8 @@
-var config       = require('./config');
-var Storm        = require('./storm');
+var config = require('./config');
+var Storm = require('./storm');
 var LedgerStream = require('./lib/ledgerStream');
-var Spout        = Storm.Spout;
+var Spout = Storm.Spout;
+
 var ledgerSpout;
 var stream;
 var options = {
@@ -12,7 +13,20 @@ var options = {
   recipients: config.get('recipients')
 }
 
+var Logger = require('./lib/logger');
+var log = new Logger({
+  scope: 'ledger-stream-spout',
+  file: config.get('logFile'),
+  level: config.get('logLevel')
+});
+
+process.on('uncaughtException', function(e) {
+  log.error(e);
+});
+
+
 stream = new LedgerStream(options);
+
 
 /**
  * LedgerStreamSpout

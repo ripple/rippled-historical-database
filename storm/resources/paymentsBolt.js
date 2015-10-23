@@ -8,6 +8,17 @@ var BasicBolt = Storm.BasicBolt;
 var currencies = { };
 var bolt;
 
+var Logger = require('./lib/logger');
+var log = new Logger({
+  scope: 'payments-bolt',
+  file: config.get('logFile'),
+  level: config.get('logLevel')
+});
+
+process.on('uncaughtException', function(e) {
+  log.error(e);
+});
+
 function PaymentsBolt() {
   var options = config.get('hbase2');
 
