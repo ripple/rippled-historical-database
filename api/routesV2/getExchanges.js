@@ -28,7 +28,7 @@ var getExchanges = function(req, res) {
       start: smoment(req.query.start || '2013-01-01'),
       end: smoment(req.query.end),
       interval: req.query.interval,
-      limit: Number(req.query.limit) || 200,
+      limit: Number(req.query.limit || 200),
       base: {},
       counter: {},
       descending: (/true/i).test(req.query.descending) ? true : false,
@@ -76,8 +76,10 @@ var getExchanges = function(req, res) {
 
     if (isNaN(options.limit)) {
       return {error: 'invalid limit: ' + options.limit, code: 400};
-    } else if (options.reduce && options.limit > 20000) {
-      options.limit = 20000;
+    } else if (options.reduce && options.interval) {
+      return {error: 'cannot use reduce with interval', code: 400};
+    } else if (options.reduce) {
+      options.limit = 30000;
     } else if (options.limit > 1000) {
       options.limit = 1000;
     } else if (options.interval &&
