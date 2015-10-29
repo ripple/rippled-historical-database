@@ -1,5 +1,5 @@
 var Logger   = require('../../lib/logger');
-var log      = new Logger({scope : 'get payments'});
+var log      = new Logger({scope : 'account exchanges'});
 var smoment = require('../../lib/smoment');
 var response = require('response');
 var hbase;

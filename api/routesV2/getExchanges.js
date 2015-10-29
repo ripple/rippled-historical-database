@@ -1,7 +1,7 @@
 'use strict';
 
 var Logger = require('../../lib/logger');
-var log = new Logger({scope: 'get payments'});
+var log = new Logger({scope: 'exchanges'});
 var smoment = require('../../lib/smoment');
 var response = require('response');
 var intervals = [
@@ -187,7 +187,7 @@ var getExchanges = function(req, res) {
     errorResponse(options);
 
   } else {
-    log.info('EXCHANGES: ' + options.base.currency, options.counter.currency);
+    log.info(options.base.currency, options.counter.currency);
 
     hbase.getExchanges(options, function(err, resp) {
       if (err) {

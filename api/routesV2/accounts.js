@@ -21,7 +21,7 @@ var Accounts = function (req, res, next) {
       end: smoment(req.query.end),
       marker: req.query.marker,
       interval: req.query.interval,
-      limit: Number(req.query.limit) || 200,
+      limit: Number(req.query.limit || 200),
       descending: (/true/i).test(req.query.descending) ? true : false,
       reduce: (/true/i).test(req.query.reduce) ? true : false,
       parent: req.query.parent,
