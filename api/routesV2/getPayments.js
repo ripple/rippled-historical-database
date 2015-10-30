@@ -1,48 +1,100 @@
-var config   = require('../../storm/multilang/resources/config');
-var Logger   = require('../../storm/multilang/resources/src/lib/modules/logger');
-var log      = new Logger({scope : 'get payments'});
+'use strict';
+
+var Logger = require('../../lib/logger');
+var log = new Logger({scope : 'payments'});
+var smoment = require('../../lib/smoment');
+var utils = require('../../lib/utils');
 var response = require('response');
+var intervals = ['day', 'week', 'month'];
+var validator = require('ripple-address-codec');
+var hbase;
 
-var accountPayments = function(hbase) {
-  self = this;
+var getPayments = function (req, res, next) {
 
-self.getPayments = function (req, res, next) {
-  var options = prepareOptions();
+  var options = {
+    start: smoment(req.query.start || 0),
+    end: smoment(req.query.end),
+    interval: req.query.interval,
+    descending: (/true/i).test(req.query.descending) ? true : false,
+    limit: Number(req.query.limit || 200),
+    marker: req.query.marker,
+    format: (req.query.format || 'json').toLowerCase()
+  };
 
-  log.info("PAYMENTS: " + options.account);
+  // any of +, |, or .
+  var currency = req.params.currency;
 
-  hbase.getPayments(options, function(err, payments) {
-    if (err) errorResponse(err);
-    else if
-      (payments.length === 0) errorResponse({error: "no payments found", code: 404});
-    else successResponse(payments);
-  });
-
-  function prepareOptions() {
-    var options = {
-      account : req.params.address,
-      start   : req.query.start,
-      end     : req.query.end,
-      limit   : req.query.limit || 200
-    }
-
-    if(req.query.start) options.start = smoment(req.query.start)
-    else options.start = smoment(0);
-
-    if(req.query.end) options.end = smoment(req.query.end)
-    else options.end = smoment();
-
-    if (isNaN(options.limit)) {
-      options.limit = 200;
-
-    } else if (options.limit > 1000) {
-      options.limit = 1000;
-    }
-
-    return options;
+  if (currency) {
+    currency = currency.split(/[\+|\.]/);
+    options.currency = currency[0].toUpperCase();
+    options.issuer = currency[1];
   }
 
-  /**
+  if (options.issuer && !validator.isValidAddress(options.issuer)) {
+    errorResponse({error: 'invalid issuer address', code: 400});
+    return;
+
+  } else if (!options.start) {
+    errorResponse({error: 'invalid start date format', code: 400});
+    return;
+
+  } else if (!options.end) {
+    errorResponse({error: 'invalid end date format', code: 400});
+    return;
+
+  } else if (options.interval &&
+             intervals.indexOf(options.interval) === -1) {
+    errorResponse({error: 'invalid interval', code: 400});
+    return;
+
+  } else if (options.currency &&
+             options.currency !== 'XRP' &&
+            !options.issuer) {
+    errorResponse({error: 'issuer is required', code: 400});
+    return;
+
+  } else if (options.interval && !options.currency) {
+    errorResponse({error: 'currency is required for aggregated payments', code: 400});
+    return;
+  }
+
+  if (isNaN(options.limit)) {
+    options.limit = 200;
+
+  } else if (options.limit > 1000) {
+    options.limit = 1000;
+  }
+
+    hbase.getPayments(options, function(err, resp) {
+      if (err || !resp) {
+        errorResponse(err);
+        return;
+      }
+
+      console.log(resp);
+      resp.rows.forEach(function(r) {
+        delete r.rowkey;
+        if (options.interval) {
+          r.start = r.date;
+          r.total_amount = r.amount;
+          r.average_amount = r.average;
+          delete r.date;
+          delete r.amount;
+          delete r.average;
+
+          if (r.issuer === '') {
+            delete r.issuer;
+          }
+
+        } else {
+          r.executed_time = smoment(r.executed_time).moment.format();
+        }
+      });
+
+      successResponse(resp);
+    });
+
+ /**
   * errorResponse
   * return an error response
   * @param {Object} err
@@ -54,32 +106,44 @@ self.getPayments = function (req, res, next) {
       response.json({result: 'error', message: err.error})
         .status(err.code).pipe(res);
     } else {
-      response.json({result: 'error', message: 'unable to retrieve payments'})
+      response.json({result: 'error', message: 'unable to retrieve ledger'})
         .status(500).pipe(res);
     }
   }
 
-  /**
+ /**
   * successResponse
   * return a successful response
-  * @param {Object} payments
+  * @param {Object} resp
   */
 
-  function successResponse(payments) {
-    var result = {
-      result: 'success',
-      count: payments.length,
-      payments: payments
-    };
+  function successResponse(resp) {
+    var filename;
 
-    response.json(result).pipe(res);
+    if (options.format === 'csv') {
+      filename = 'payments' +
+        (resp.currency ? ' - ' + resp.currency : ' ') +
+        (resp.issuer ? ' ' + resp.currency : ' ') + '.csv';
+      resp.rows.forEach(function(r,i) {
+        resp.rows[i] = utils.flattenJSON(r);
+      });
+      res.csv(resp.rows, filename);
+
+    // json
+    } else {
+      response.json({
+        result: 'success',
+        currency: resp.currency,
+        issuer: resp.issuer,
+        count: resp.rows.length,
+        marker: resp.marker,
+        payments: resp.rows
+      }).pipe(res);
+    }
   }
 };
 
-  return this;
-};
-
 module.exports = function(db) {
-  ap = accountPayments(db);
-  return ap.getPayments;
+  hbase = db;
+  return getPayments;
 };

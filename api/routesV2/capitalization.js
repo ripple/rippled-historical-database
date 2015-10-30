@@ -1,7 +1,7 @@
 'use strict';
 
 var Logger = require('../../lib/logger');
-var log = new Logger({scope : 'get ledger'});
+var log = new Logger({scope: 'capitalization'});
 var smoment = require('../../lib/smoment');
 var response = require('response');
 var intervals = ['day', 'week', 'month'];
