@@ -71,6 +71,7 @@ var Server = function (options) {
     // app.get('/v2/accounts/:address/offers', routesV2.accountOffers);
     app.get('/v2/accounts/:address', routesV2.getAccount);
     app.get('/v2/accounts', routesV2.accounts);
+    app.get('/v2/payments/:currency?', routesV2.getPayments);
     app.get('/v2/exchanges/:base/:counter', routesV2.getExchanges);
     app.get('/v2/exchange_rates/:base/:counter', routesV2.getExchangeRate);
     app.get('/v2/normalize', routesV2.normalize);
@@ -78,7 +79,6 @@ var Server = function (options) {
     app.get('/v2/stats', routesV2.stats);
     app.get('/v2/stats/:family', routesV2.stats);
     app.get('/v2/stats/:family/:metric', routesV2.stats);
-    // app.get('/v2/payments/:date?', routesV2.payments);
   }
 
   // index page
