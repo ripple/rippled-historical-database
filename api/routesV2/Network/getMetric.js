@@ -131,7 +131,7 @@ function getMetric(metric, req, res) {
     // csv
     if (options.format === 'csv') {
       resp.rows.forEach(function(r, i) {
-        rows[i] = utils.flattenJSON(r);
+        resp.rows[i] = utils.flattenJSON(r);
       });
       res.csv(resp.rows, metric + '.csv');
 
