@@ -587,7 +587,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(body.message, 'invalid start time format');
+      assert.strictEqual(body.message, 'invalid start date format');
       done();
     });
   });
@@ -607,7 +607,7 @@ describe('HBASE client and API endpoints', function () {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(body.message, 'invalid end time format');
+      assert.strictEqual(body.message, 'invalid end date format');
       done();
     });
   });

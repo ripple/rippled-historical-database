@@ -192,8 +192,8 @@ function aggregateTradeVolume(params) {
   end = smoment(params.end);
   start.granularity = 'second';
 
-  // invalid start time
-  // or end time
+  // invalid start date
+  // or end date
   if (!start || !end) {
     console.log('invalid start or end time');
     process.exit(1);

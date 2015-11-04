@@ -587,7 +587,7 @@ describe('ETL and API:', function() {
         assert.strictEqual(res.statusCode, 400);
         assert.strictEqual(typeof body, 'object');
         assert.strictEqual(body.result, 'error');
-        assert.strictEqual(body.message, 'invalid start time, format must be ISO 8601');
+        assert.strictEqual(body.message, 'invalid start date, format must be ISO 8601');
         done();
       });
     });
