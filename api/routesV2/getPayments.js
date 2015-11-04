@@ -21,11 +21,10 @@ var getPayments = function (req, res, next) {
     format: (req.query.format || 'json').toLowerCase()
   };
 
-  // any of +, |, or .
   var currency = req.params.currency;
 
   if (currency) {
-    currency = currency.split(/[\+|\.]/);
+    currency = currency.split(/[\+|\.]/);  // any of +, |, or .
     options.currency = currency[0].toUpperCase();
     options.issuer = currency[1];
   }

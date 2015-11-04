@@ -48,7 +48,7 @@ var Server = function (options) {
     app.get('/v2/gateways/:gateway?', routesV2.gateways.Gateways);
     app.get('/v2/gateways/:gateway/assets/:filename?', routesV2.gateways.Assets);
     app.get('/v2/currencies/:currencyAsset?', routesV2.gateways.Currencies);
-    app.get('/v2/capitalization/:currency/:issuer', routesV2.capitalization);
+    app.get('/v2/capitalization/:currency', routesV2.capitalization);
     app.get('/v2/active_accounts/:base/:counter', routesV2.activeAccounts);
     app.get('/v2/network/exchange_volume', routesV2.network.exchangeVolume);
     app.get('/v2/network/payment_volume', routesV2.network.paymentVolume);
