@@ -11,8 +11,6 @@ var hbase;
 var getCapitalization = function (req, res, next) {
 
   var options = {
-    currency: req.params.currency,
-    issuer: req.params.issuer,
     start: smoment(req.query.start || 0),
     end: smoment(req.query.end),
     interval: req.query.interval,
@@ -22,6 +20,14 @@ var getCapitalization = function (req, res, next) {
     marker: req.query.marker,
     format: (req.query.format || 'json').toLowerCase()
   };
+
+  var currency = req.params.currency;
+
+  if (currency) {
+    currency = currency.split(/[\+|\.]/);  // any of +, |, or .
+    options.currency = currency[0].toUpperCase();
+    options.issuer = currency[1];
+  }
 
   if (!validator.isValidAddress(options.issuer)) {
     errorResponse({error: 'invalid issuer address', code: 400});

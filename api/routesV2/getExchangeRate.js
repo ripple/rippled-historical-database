@@ -6,7 +6,7 @@ var smoment = require('../../lib/smoment');
 var response = require('response');
 var hbase;
 
-var getExchanges = function(req, res) {
+var getExchangeRate = function(req, res) {
 
   var options = {
     date: smoment(req.query.date),
@@ -87,5 +87,5 @@ var getExchanges = function(req, res) {
 
 module.exports = function(db) {
   hbase = db;
-  return getExchanges;
+  return getExchangeRate;
 };
