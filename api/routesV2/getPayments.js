@@ -71,7 +71,6 @@ var getPayments = function (req, res, next) {
         return;
       }
 
-      console.log(resp);
       resp.rows.forEach(function(r) {
         delete r.rowkey;
         if (options.interval) {

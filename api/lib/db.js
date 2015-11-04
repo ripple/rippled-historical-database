@@ -426,7 +426,7 @@ var DB = function(config) {
         if (start.isValid()) {
           query.where('account_transactions.executed_time', '>=', start.unix());
         } else {
-          return {error:'invalid start time, format must be ISO 8601', code:400};
+          return {error:'invalid start date, format must be ISO 8601', code:400};
         }
       }
 

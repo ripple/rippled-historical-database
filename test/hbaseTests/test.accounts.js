@@ -237,7 +237,7 @@ describe('accounts API endpoint', function() {
     });
   });
 
-  it('should return an error for an invalid start time', function(done) {
+  it('should return an error for an invalid start date', function(done) {
     var url = 'http://localhost:' + port + '/v2/accounts';
 
     request({

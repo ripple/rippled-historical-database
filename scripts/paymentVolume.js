@@ -90,8 +90,8 @@ function aggregatePayments(params) {
   start = smoment(params.start);
   end = smoment(params.end);
 
-  // invalid start time
-  // or end time
+  // invalid start date
+  // or end date
   if (!start || !end) {
     console.log('invalid start or end time');
     process.exit(1);

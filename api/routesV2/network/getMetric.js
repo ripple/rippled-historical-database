@@ -1,7 +1,7 @@
 'use strict';
 
 var Logger = require('../../../lib/logger');
-var log = new Logger({scope: 'exchange volume'});
+var log = new Logger({scope: 'metrics'});
 var smoment = require('../../../lib/smoment');
 var response = require('response');
 var utils = require('../../../lib/utils');
@@ -38,7 +38,14 @@ function getMetric(metric, req, res) {
 
   if (exchange.currency !== 'XRP' && !exchange.issuer) {
     errorResponse({
-      error: 'this exchange currency must have an issuer',
+      error: 'exchange currency must have an issuer',
+      code: 400
+    });
+    return;
+
+  } else if (exchange.currency === 'XRP' && exchange.issuer) {
+    errorResponse({
+      error: 'XRP cannot have an issuer',
       code: 400
     });
     return;
@@ -50,14 +57,14 @@ function getMetric(metric, req, res) {
   // historical data
   if (req.query.start && !options.start) {
     errorResponse({
-      error: 'invalid start time format',
+      error: 'invalid start date format',
       code: 400
     });
     return;
 
   } else if (req.query.end && !options.end) {
     errorResponse({
-      error: 'invalid end time format',
+      error: 'invalid end date format',
       code: 400
     });
     return;

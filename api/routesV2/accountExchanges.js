@@ -10,14 +10,14 @@ AccountExchanges = function (req, res, next) {
 
   if (!options.start) {
     errorResponse({
-      error: 'invalid start time format',
+      error: 'invalid start date format',
       code: 400
     });
     return;
 
   } else if (!options.end) {
     errorResponse({
-      error: 'invalid start time format',
+      error: 'invalid start date format',
       code: 400
     });
     return;

@@ -37,7 +37,10 @@ var getCapitalization = function (req, res, next) {
 
   } else if (options.interval &&
              intervals.indexOf(options.interval) === -1) {
-    errorResponse({error: 'invalid interval', code: 400});
+    errorResponse({
+      error: 'invalid interval - use: '+intervals.join(', '),
+      code: 400
+    });
     return;
   }
 
@@ -75,7 +78,7 @@ var getCapitalization = function (req, res, next) {
       response.json({result: 'error', message: err.error})
         .status(err.code).pipe(res);
     } else {
-      response.json({result: 'error', message: 'unable to retrieve ledger'})
+      response.json({result: 'error', message: 'unable to retrieve data'})
         .status(500).pipe(res);
     }
   }

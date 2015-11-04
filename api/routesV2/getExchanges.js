@@ -79,7 +79,7 @@ var getExchanges = function(req, res) {
     } else if (options.reduce && options.interval) {
       return {error: 'cannot use reduce with interval', code: 400};
     } else if (options.reduce) {
-      options.limit = 30000;
+      options.limit = 50000;
     } else if (options.limit > 1000) {
       options.limit = 1000;
     } else if (options.interval &&
