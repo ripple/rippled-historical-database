@@ -13,7 +13,8 @@ function activeAccounts(req, res) {
     counter: {},
     period: req.query.period || '1day',
     includeExchanges : req.query.include_exchanges,
-    limit: Infinity
+    limit: Infinity,
+    format: (req.query.format || 'json').toLowerCase()
   };
 
   // any of +, |, or .

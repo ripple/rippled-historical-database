@@ -26,9 +26,17 @@ V2 Methods:
 * [Get Ledger - `GET /v2/ledgers/{:ledger_identifier}`](#get-ledger-v2)
 * [Get Transaction - `GET /v2/transactions/{:hash}`](#get-transaction-v2)
 * [Get Transactions - `GET /v2/transactions/`](#get-transactions)
+* [Get Payments - `GET /v2/payments/:currency`](#get-payments)
 * [Get Exchanges - `GET /v2/exchanges/:base/:counter`](#get-exchanges)
+* [Get Exchange Rates - `GET /v2/exchange_rates/:base/:counter`](#get-exchange-rates)
+* [Get Normalization - `GET /v2/normalize`](#normalize)
 * [Get Reports - `GET /v2/reports/`](#get-reports)
 * [Get Stats - `GET /v2/stats/`](#get-stats)
+* [Get Capitalization - `GET /v2/capitalization/:currency/:issuer`](#get-capitalization)
+* [Get Active Accounts - `GET /v2/active_accounts/:base/:counter`](#get-active-accounts)
+* [Get Exchange Volume - `GET /v2/network/exchange_volume`](#get-exchange-volume)
+* [Get Payment Volume - `GET /v2/network/payment_volume`](#get-payment-volume)
+* [Get Issued Value - `GET /v2/network/issued_value`](#get-issued-value)
 * [Get Accounts - `GET /v2/accounts`](#get-accounts)
 
 V2 Account Methods:
@@ -1290,6 +1298,37 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | marker | String | Pagination marker |
 | transactions | Array of [Transaction object](#transaction-objects) | The requested transactions |
 
+## Get Payments ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/getPayments.js "Source")
+
+Retrieve Payments over time.  Payments are `Payment` type transactions excluding those with the same account as both the source and destination.  Results can be returned as individual payments or aggregated to a specific list of intervals if a currency and issuer is provided.
+
+```
+GET /v2/payments/{:currency}
+```
+
+#### Params ####
+  * :currency(string)...base currency of the pair in the format currency[+issuer]
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
+  * interval (string)... aggregation interval (currency is required for aggregated results):
+    * day
+    * week
+    * month
+  * descending (boolean)...reverse cronological order
+  * limit (integer)...max results per page (defaults to 200)
+  * marker (string)...pagination key from previously returned response
+  * format (string)...format of returned results: 'csv','json' defaults to 'json'
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count | Integer | Number of Transactions returned. |
+| marker | String | Pagination marker |
+| payments | Array of payments objects | The requested payments |
 
 
 
@@ -1307,7 +1346,7 @@ GET /v2/exchanges/{:base}/{:counter}
   * :counter(string)...counter currency of the pair in the format currency[+issuer] (required)
   * start (string)...UTC start time of query range
   * end (string)...UTC end time of query range
-  * interval (string)... aggregation interval:
+  * interval (string)...aggregation interval:
     * 1minute
     * 5minute
     * 15minute
@@ -1336,6 +1375,33 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | marker | String | Pagination marker |
 | exchanges | Array of exchange objects | The requested exchanges |
 
+
+
+## Get Exchange Rates ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/getExchangeRate.js "Source")
+
+Retrieve an exchange rate for a given currency at a specific time.  The exchange rate is
+determined by conversion first to XRP and then to the counter currency.  The rate is
+derived from the volume weighted average over the calanendar day specified, averaged with
+the volume weighted average of the last 50 trades within the last 14 days.
+
+```
+GET /v2/exchange_rates/{:base}/{:counter}
+```
+
+#### Params ####
+  * :base(string)...base currency of the pair in the format currency[+issuer] (required)
+  * :counter(string)...counter currency of the pair in the format currency[+issuer] (required)
+  * date (string)...UTC start time of query range (defaults to now)
+  * strict (boolean)...disallow rates derived from less than 10 exchanges (defaults to true)
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| rate | number | The requested exchange rate |
 
 
 
@@ -1384,7 +1450,10 @@ GET /v2/stats/{:family}/{:metric}
   * :metric (string)...return only a specific metric from the family subset
   * start (string)...UTC start time of query range
   * end (string)...UTC end time of query range
-  * interval (string)...aggregation interval ('hour','day','week', defaults to 'day')
+  * interval (string)...aggregation interval:
+    * hour
+    * day
+    * week
   * limit (integer)...max results per page (defaults to 200)
   * marker (string)...pagination key from previously returned response
   * descending (boolean)...reverse cronological order
@@ -1402,6 +1471,169 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | stats | Array of stats objects | The requested stats |
 
 
+## Get Capitalization ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/capitalization.js "Source")
+
+Get capitalization data for a specific currency + issuer
+
+```
+GET /v2/capitaliztion/{:currency+issuer}
+```
+
+#### Params ####
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
+  * interval (string)...aggregation interval
+    * day
+    * week
+    * month
+  * limit (integer)...max results per page (defaults to 200)
+  * marker (string)...pagination key from previously returned response
+  * descending (boolean)...reverse cronological order
+  * adjusted (boolean)...adjust results by removing known issuer owned wallets
+  * format (string)...format of returned results: 'csv','json' defaults to 'json'
+
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count | Integer | Number of reports returned. |
+| currency | String | Currency requested |
+| issuer | String | Issuer requested |
+| marker | String | Pagination marker |
+| rows | Array of issuer capitalization objects | The requested capitalization data |
+
+
+
+## Get Active Accounts ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/activeAccounts.js "Source")
+
+Get active trading accounts for a specific currency pair
+
+```
+GET /v2/active_accounts/{:base}/{:counter}
+```
+
+#### Params ####
+  * :base(string)...base currency of the pair in the format currency[+issuer] (required)
+  * :counter(string)...counter currency of the pair in the format currency[+issuer] (required)
+  * period (string)...requested period
+    * 1day
+    * 3day
+    * 7day
+  * date (string)... start date for the selected period. If absent, the latest period is used.
+  * include_exchanges(boolean)...include individual exchanges for each account in the results.
+  * format (string)...format of returned results: 'csv','json' defaults to 'json'
+
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count | Integer | Number of accounts returned. |
+| exchanges_count | Integer | Total number of exchanges. |
+| accounts | Array of active account objects | Active trading accounts for the period |
+
+
+
+## Get Exchange Volume ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/getMetric.js "Source")
+
+Get aggregated exchange volume for a given time period. By default, the rolling 24 hour
+data is returned. If start or end is specified, historical intervals are returned.
+
+```
+GET /v2/network/exchange_volume
+```
+
+#### Params ####
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
+  * interval (string)...aggregation interval
+    * day
+    * week
+    * month
+  * limit (integer)...max results per page (defaults to 200)
+  * marker (string)...pagination key from previously returned response
+  * format (string)...format of returned results: 'csv','json' defaults to 'json'
+
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count | Integer | Number of results returned. |
+| rows | Array of exchange volume objects | Exchange volumes for the period selected |
+
+
+
+## Get Payment Volume ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/getMetric.js "Source")
+
+Get aggregated payment volume for a given time period. By default, the rolling 24 hour
+data is returned. If start or end is specified, historical intervals are returned.
+
+```
+GET /v2/network/payment_volume
+```
+
+#### Params ####
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
+  * interval (string)...aggregation interval
+    * day
+    * week
+    * month
+  * limit (integer)...max results per page (defaults to 200)
+  * marker (string)...pagination key from previously returned response
+  * format (string)...format of returned results: 'csv','json' defaults to 'json'
+
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count | Integer | Number of results returned. |
+| rows | Array of payment volume objects | Payment volumes for the period selected |
+
+
+
+## Get Issued Value ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/getMetric.js "Source")
+
+Get aggregated currency capitalization for a given time period. By default, the rolling 24 hour
+data is returned. If start or end is specified, historical intervals are returned.
+
+```
+GET /v2/network/issued_value
+```
+
+#### Params ####
+  * start (string)...UTC start time of query range
+  * end (string)...UTC end time of query range
+  * limit (integer)...max results per page (defaults to 200)
+  * marker (string)...pagination key from previously returned response
+  * format (string)...format of returned results: 'csv','json' defaults to 'json'
+
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count | Integer | Number of results returned. |
+| rows | Array of issued value objects | Aggregated capitalization for the period selected |
+
 
 
 ## Get Accounts ##
@@ -1416,7 +1648,10 @@ GET /v2/accounts
 #### Params ####
   * start (string)...UTC start time of query range
   * end (string)...UTC end time of query range
-  * interval (string)...aggregation interval ('hour','day','week', defaults to 'day')
+  * interval (string)...aggregation interval
+    * hour
+    * day
+    * week
   * limit (integer)...max results per page (defaults to 200)
   * marker (string)...pagination key from previously returned response
   * descending (boolean)...reverse cronological order
@@ -1434,8 +1669,6 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | count | Integer | Number of reports returned. |
 | marker | String | Pagination marker |
 | stats | Array of account creation objects | The requested accounts |
-
-
 
 
 
@@ -1459,8 +1692,6 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 |--------|-------|-------------|
 | result | `success` | Indicates that the body represents a successful response. |
 | account | account creation object | The requested account |
-
-
 
 
 

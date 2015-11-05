@@ -56,18 +56,42 @@ function generateMap(req, res) {
         route: '/v2/transactions/{:tx_hash}',
         example: url + '/transactions/3B1A4E1C9BB6A7208EB146BCDB86ECEA6068ED01466D933528CA2B4C64F753EF'
       }, {
+        action: 'Get Payments',
+        route: '/v2/payments/{:currency+issuer}',
+        example: url + '/payments/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+      }, {
         action: 'Get Exchanges',
         route: '/v2/exchanges/{:base}/{:counter}',
-        example: url + '/exchanges/XRP/USD+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'
+        example: url + '/exchanges/XRP/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+      }, {
+        action: 'Get Capitalization',
+        route: '/v2/capitalization/{:currency+issuer}',
+        example: url + '/capitalization/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+      }, {
+        action: 'Get Active Accounts',
+        route: '/v2/active_accounts/{:base}/{:counter}',
+        example: url + '/active_accounts/XRP/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+      }, {
+        action: 'Get Exchange Volume',
+        route: '/v2/network/exchange_volume',
+        example: url + '/network/exchange_volume'
+      }, {
+        action: 'Get Payment Volume',
+        route: '/v2/network/payment_volume',
+        example: url + '/network/payment_volume'
+      }, {
+        action: 'Get Issued Value',
+        route: '/v2/network/issued_value',
+        example: url + '/network/issued_value'
       }, {
         action: 'Get Exchange Rate',
         route: '/v2/exchange_rates/{:base}/{:counter}',
-        example: url + '/exchange_rates/XRP/USD+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'
+        example: url + '/exchange_rates/XRP/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
       }, {
         action: 'Normalize Amount',
         route: '/v2/normalize',
         example: url + '/normalize?amount=2000&currency=XRP&exchange_currency=USD' +
-        '&exchange_issuer=rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'
+        '&exchange_issuer=rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
       }, {
         action: 'Get Daily Summary',
         route: '/v2/reports/{:date}',
