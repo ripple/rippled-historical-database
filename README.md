@@ -1383,7 +1383,8 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 Retrieve an exchange rate for a given currency at a specific time.  The exchange rate is
 determined by conversion first to XRP and then to the counter currency.  The rate is
 derived from the volume weighted average over the calanendar day specified, averaged with
-the volume weighted average of the last 50 trades within the last 14 days.
+the volume weighted average of the last 50 trades within the last 14 days.  If a rate
+cannot be determined, 0 is returned.
 
 ```
 GET /v2/exchange_rates/{:base}/{:counter}
@@ -1392,7 +1393,7 @@ GET /v2/exchange_rates/{:base}/{:counter}
 #### Params ####
   * :base(string)...base currency of the pair in the format currency[+issuer] (required)
   * :counter(string)...counter currency of the pair in the format currency[+issuer] (required)
-  * date (string)...UTC start time of query range (defaults to now)
+  * date (string)...UTC date for which exchange rate is determined (defaults to now)
   * strict (boolean)...disallow rates derived from less than 10 exchanges (defaults to true)
 
 #### Response Format ####
@@ -1401,7 +1402,48 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | Field  | Value | Description |
 |--------|-------|-------------|
 | result | `success` | Indicates that the body represents a successful response. |
-| rate | number | The requested exchange rate |
+| rate | Number | The requested exchange rate |
+
+
+
+## Normalize ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/normalize.js "Source")
+
+Convert an amount from one currency/issuer denomination to another, using network
+exchange rates. For non-XRP currencies, rates between each currency and XRP are used
+to determine a final rate, using the same logic as the exchange rate endpoint.  If a
+rate cannot be determined, 0 is used.
+
+```
+GET /v2/normalize
+```
+
+    date: smoment(req.query.date),
+    amount: Number(req.query.amount),
+    currency: (req.query.currency || 'XRP').toUpperCase(),
+    issuer: req.query.issuer || '',
+    exchange_currency: (req.query.exchange_currency || 'XRP').toUpperCase(),
+    exchange_issuer: req.query.exchange_issuer || '',
+    strict: (/false/i).test(req.query.strict) ? false : true
+
+#### Params ####
+  * amount (string)...amount of currency to normalize (required)
+  * currency(string)...original denomination currency (defaults to XRP)
+  * issuer(string)...original denomination issuer
+  * exchange_currency(string)...final denomination currency (defaults to XRP)
+  * exchange_issuer(string)...final denomination issuer
+  * date (string)...UTC date for which exchange rate is determined (defaults to now)
+  * strict (boolean)...disallow rates derived from less than 10 exchanges (defaults to true)
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| amount | Number | Original denomination amount |
+| converted | Number | Final denomination amount |
+| rate | Number | Exchange rate of conversion |
 
 
 
