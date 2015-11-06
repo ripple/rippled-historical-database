@@ -10,7 +10,7 @@ describe('capitalization API endpoint', function() {
     var currency = 'USD';
     var issuer = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
     var url = 'http://localhost:' + port +
-        '/v2/capitalization/' + currency + '/' + issuer;
+        '/v2/capitalization/' + currency + '+' + issuer;
 
     request({
       url: url,
@@ -31,7 +31,7 @@ describe('capitalization API endpoint', function() {
     var currency = 'USD';
     var issuer = 'rvYAfWj5gh';
     var url = 'http://localhost:' + port +
-        '/v2/capitalization/' + currency + '/' + issuer +
+        '/v2/capitalization/' + currency + '+' + issuer +
         '?interval=day';
 
     request({
@@ -51,7 +51,7 @@ describe('capitalization API endpoint', function() {
     var currency = 'USD';
     var issuer = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
     var url = 'http://localhost:' + port +
-        '/v2/capitalization/' + currency + '/' + issuer +
+        '/v2/capitalization/' + currency + '+' + issuer +
         '?interval=years';
 
     request({
@@ -73,7 +73,7 @@ describe('capitalization API endpoint', function() {
     var start = 'x2015-01-14T00:00';
     var end = '2015-01-14T00:00';
     var url = 'http://localhost:' + port +
-        '/v2/capitalization/' + currency + '/' + issuer +
+        '/v2/capitalization/' + currency + '+' + issuer +
         '?start=' + start +
         '&end=' + end
 
@@ -96,7 +96,7 @@ describe('capitalization API endpoint', function() {
     var start = '2015-01-14T00:00';
     var end = 'x2015-01-14T00:00';
     var url = 'http://localhost:' + port +
-        '/v2/capitalization/' + currency + '/' + issuer +
+        '/v2/capitalization/' + currency + '+' + issuer +
         '?start=' + start +
         '&end=' + end
 
