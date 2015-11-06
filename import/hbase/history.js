@@ -55,7 +55,10 @@ var HistoricalImport = function () {
 
         if (self.count === self.total) {
 
-          if (self.section.error) {
+          if (self.force) {
+            if (cb) cb();
+
+          } else if (self.section.error) {
             log.info("Error in section - retrying:", self.section.startIndex, '-', self.section.stopIndex);
             self._findGaps(self.section.startIndex, stopIndex);
 
@@ -75,21 +78,29 @@ var HistoricalImport = function () {
   });
 
 
-  this.start = function (start, stop, callback) {
-    var self  = this;
+  this.start = function (start, stop, force, callback) {
+    var self = this;
 
     if (!start || start < GENESIS_LEDGER) {
       start = GENESIS_LEDGER;
     }
 
-    cb        = callback;
+    cb = callback;
     stopIndex = stop;
+    self.force = force;
 
     log.info("starting historical import: ", start, stop);
 
     if (stop && stop !== 'validated') {
-      self._findGaps(start, stop);
 
+      if (force) {
+        self.total = stop - start;
+        self.importer.backFill(start, stop, function(err) {
+          if (err) log.error(err);
+        });
+      } else {
+        self._findGaps(start, stop);
+      }
     //get latest validated ledger as the
     //stop point for historical importing
     } else {
@@ -101,7 +112,15 @@ var HistoricalImport = function () {
         }
 
         stopIndex = parseInt(ledger.ledger_index, 10) - 1;
-        self._findGaps(start, stopIndex);
+        if (force) {
+          self.total = stopIndex - start;
+          self.importer.backFill(start, stopIndex, function(err) {
+            if (err) log.error(err);
+          });
+
+        } else {
+          self._findGaps(start, stopIndex);
+        }
       });
     }
   };
