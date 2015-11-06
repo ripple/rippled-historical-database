@@ -11,7 +11,7 @@ var options = {
   ripple: config.get('ripple')
 };
 
-options.hbase.prefix = 'test_';
+options.hbase.prefix = 'stage_';
 options.hbase.logLevel = 4;
 
 var EPOCH_OFFSET = 946684800;
