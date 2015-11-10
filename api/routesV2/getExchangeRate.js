@@ -3,7 +3,6 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'exchange rate'});
 var smoment = require('../../lib/smoment');
-var response = require('response');
 var hbase;
 
 var getExchangeRate = function(req, res) {
@@ -62,11 +61,15 @@ var getExchangeRate = function(req, res) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-      .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result: 'error', message: 'unable to retrieve exchanges'})
-      .status(500).pipe(res);
+      res.status(500).json({
+        result: 'error',
+        message: 'unable to retrieve exchanges'
+      });
     }
   }
 
@@ -77,10 +80,10 @@ var getExchangeRate = function(req, res) {
    */
 
   function successResponse(rate) {
-    response.json({
+    res.json({
       result: 'success',
       rate: rate
-    }).pipe(res);
+    });
   }
 };
 

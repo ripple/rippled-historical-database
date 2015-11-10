@@ -317,4 +317,21 @@ describe('accounts API endpoint', function() {
       done();
     });
   });
+
+  it('should include a link header when marker is present', function(done) {
+    var url  = 'http://localhost:' + port + '/v2/accounts?limit=1';
+    var linkHeader = '<' + url +
+      '&marker=20130611200120|000001021029|00001>; rel="next"';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers.link, linkHeader);
+      done();
+    });
+  });
 });

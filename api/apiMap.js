@@ -3,7 +3,7 @@
 var packageJSON = require('../package.json');
 
 function generateMap(req, res) {
-  var url = 'https://data.ripple.com/v2';
+  var url = req.protocol + '://' + req.get('host') + '/v2';
   var repo = 'https://github.com/ripple/rippled-historical-database';
   var json = {
     'name': packageJSON.name,

@@ -3,7 +3,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'capitalization'});
 var smoment = require('../../lib/smoment');
-var response = require('response');
+var utils = require('../../lib/utils');
 var intervals = ['day', 'week', 'month'];
 var validator = require('ripple-address-codec');
 var hbase;
@@ -81,11 +81,15 @@ var getCapitalization = function (req, res, next) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-        .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result: 'error', message: 'unable to retrieve data'})
-        .status(500).pipe(res);
+      res.status(500).json({
+        result: 'error',
+        message: 'unable to retrieve data'
+      });
     }
   }
 
@@ -98,6 +102,10 @@ var getCapitalization = function (req, res, next) {
   function successResponse(resp) {
     var filename;
 
+    if (resp.marker) {
+      utils.addLinkHeader(req, res, resp.marker);
+    }
+
     if (options.format === 'csv') {
       filename = 'capitalization - ' +
         resp.currency + ' ' +
@@ -106,14 +114,14 @@ var getCapitalization = function (req, res, next) {
 
     // json
     } else {
-      response.json({
+      res.json({
         result: 'success',
         currency: resp.currency,
         issuer: resp.issuer,
         count: resp.rows.length,
         marker: resp.marker,
         rows: resp.rows
-      }).pipe(res);
+      });
     }
   }
 

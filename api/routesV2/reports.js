@@ -3,7 +3,6 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'reports'});
 var smoment = require('../../lib/smoment');
-var response = require('response');
 var hbase;
 
 /**
@@ -93,11 +92,15 @@ var Reports = function (req, res, next) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-        .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result: 'error', message: 'unable to retrieve payments'})
-        .status(500).pipe(res);
+      res.status(500).json({
+        result: 'error',
+        message: 'unable to retrieve payments'
+      });
     }
   }
 
@@ -109,8 +112,6 @@ var Reports = function (req, res, next) {
 
   function successResponse(resp) {
     var filename = 'account reports';
-    var start;
-    var end;
 
     if (options.format === 'csv') {
       if (options.accounts) {
@@ -127,11 +128,11 @@ var Reports = function (req, res, next) {
       res.csv(resp, filename + '.csv');
 
     } else {
-      response.json({
+      res.json({
         result: 'success',
         count: resp.length,
         reports: resp
-      }).pipe(res);
+      });
     }
   }
 };

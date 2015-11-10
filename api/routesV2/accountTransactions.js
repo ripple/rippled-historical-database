@@ -1,7 +1,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account tx'});
 var smoment = require('../../lib/smoment');
-var response = require('response');
+var utils = require('../../lib/utils');
 var intMatch = /^\d+$/;
 var hbase;
 
@@ -144,15 +144,15 @@ var accountTransactions = function (req, res) {
   function errorResponse (err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({
+      res.status(err.code).json({
         result: 'error',
         message: err.error
-      }).status(err.code).pipe(res);
+      });
     } else {
-      response.json({
+      res.status(500).json({
         result: 'error',
         message: 'unable to retrieve transactions'
-      }).status(500).pipe(res);
+      });
     }
   }
 
@@ -163,14 +163,18 @@ var accountTransactions = function (req, res) {
   */
   function successResponse (resp) {
     var result = {result : 'success'};
-
     var rows = resp.rows || [];
+
+    if (resp.marker) {
+      utils.addLinkHeader(req, res, resp.marker);
+    }
+
     result.count = rows.length;
     result.marker = resp.marker;
     result.transactions = rows;
     log.info('Transactions Found:', rows.length);
 
-    response.json(result).pipe(res);
+    res.json(result);
   }
 };
 

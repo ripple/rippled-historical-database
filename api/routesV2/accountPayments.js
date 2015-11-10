@@ -3,7 +3,6 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account payments'});
 var smoment = require('../../lib/smoment');
-var response = require('response');
 var utils = require('../../lib/utils');
 var types = ['sent', 'received'];
 var hbase;
@@ -86,11 +85,15 @@ var AccountPayments = function (req, res, next) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-        .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result: 'error', message: 'unable to retrieve payments'})
-        .status(500).pipe(res);
+      res.status(500).json({
+        result: 'error',
+        message: 'unable to retrieve payments'
+      });
     }
   }
 
@@ -103,6 +106,10 @@ var AccountPayments = function (req, res, next) {
   function successResponse(payments) {
     var filename = options.account + ' - payments';
     var results = [ ];
+
+    if (payments.marker) {
+      utils.addLinkHeader(req, res, payments.marker);
+    }
 
     if (options.format === 'csv') {
       if (options.type) {
@@ -118,12 +125,12 @@ var AccountPayments = function (req, res, next) {
 
       res.csv(results, filename + '.csv');
     } else {
-      response.json({
+      res.json({
         result: 'success',
         count: payments.rows.length,
         marker: payments.marker,
         payments: payments.rows
-      }).pipe(res);
+      });
     }
   }
 };

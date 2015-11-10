@@ -3,7 +3,6 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get ledger'});
 var smoment = require('../../lib/smoment');
-var response = require('response');
 var periods = ['1day', '3day', '7day'];
 var hbase;
 
@@ -177,11 +176,15 @@ function activeAccounts(req, res) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-      .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result: 'error', message: 'unable to retrieve exchanges'})
-      .status(500).pipe(res);
+      response.status(500).json({
+        result: 'error',
+        message: 'unable to retrieve exchanges'
+      });
     }
   }
 
@@ -202,12 +205,12 @@ function activeAccounts(req, res) {
 
     // json
     } else {
-      response.json({
+      res.json({
         result: 'success',
         count: resp.accounts.length,
         exchanges_count: resp.exchanges_count,
         accounts: resp.accounts
-      }).pipe(res);
+      });
     }
   }
 }

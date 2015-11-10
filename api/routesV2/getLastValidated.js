@@ -1,4 +1,3 @@
-var response = require('response');
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'last validated'});
 var hbase;
@@ -9,19 +8,19 @@ var getLastValidated = function(req, res, next) {
 
   hbase.getLastValidated(function(err, resp) {
     if (err) {
-      response.json({
+      res.status(500).json({
         result: 'error',
         message: 'unavailable'
-      }).status(500).pipe(res);
+      });
 
     } else if (resp) {
-      response.json({
+      res.json({
         result: 'success',
         ledger_index: resp.ledger_index,
         ledger_hash: resp.ledger_hash,
         parent_hash: resp.parent_hash,
         close_time: resp.close_time
-      }).pipe(res);
+      });
     }
   });
 };

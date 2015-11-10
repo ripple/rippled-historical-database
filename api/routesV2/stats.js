@@ -3,7 +3,6 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'stats'});
 var smoment = require('../../lib/smoment');
-var response = require('response');
 var utils = require('../../lib/utils');
 var families = ['type','result','metric'];
 var hbase;
@@ -73,11 +72,15 @@ var Stats = function(req, res) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-        .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result: 'error', message: 'unable to retrieve stats'})
-        .status(500).pipe(res);
+      res.status(500).json({
+        result: 'error',
+        message: 'unable to retrieve stats'
+      });
     }
   }
 
@@ -89,6 +92,10 @@ var Stats = function(req, res) {
 
   function successResponse(resp) {
     var filename = 'stats';
+
+    if (resp.marker) {
+      utils.addLinkHeader(req, res, resp.marker);
+    }
 
     if (options.format === 'csv') {
       if (options.family) {
@@ -108,12 +115,12 @@ var Stats = function(req, res) {
       res.csv(resp.rows, filename + '.csv');
 
     } else {
-      response.json({
+      res.json({
         result: 'success',
         count: resp.rows.length,
         marker: resp.marker,
         stats: resp.rows
-      }).pipe(res);
+      });
     }
   }
 

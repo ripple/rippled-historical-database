@@ -3,7 +3,6 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get ledger'});
 var moment = require('moment');
-var response = require('response');
 var hbase;
 
 var getLedger = function (req, res, next) {
@@ -88,11 +87,15 @@ var getLedger = function (req, res, next) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-        .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result: 'error', message: 'unable to retrieve ledger'})
-        .status(500).pipe(res);
+      res.status(500).json({
+        result: 'error',
+        message: 'unable to retrieve ledger'
+      });
     }
   }
 
@@ -103,10 +106,10 @@ var getLedger = function (req, res, next) {
   */
 
   function successResponse(ledger) {
-    response.json({
+    res.json({
       result: 'success',
       ledger: ledger
-    }).pipe(res);
+    });
   }
 
 };
