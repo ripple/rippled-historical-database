@@ -23,9 +23,11 @@ var AccountReports = function (req, res, next) {
       if (err) {
         errorResponse(err);
       } else {
-        if (options.descending) resp.reverse();
+        if (options.descending) {
+          resp.rows.reverse();
+        }
 
-        resp.forEach(function(row) {
+        resp.rows.forEach(function(row) {
 
           // return the count only
           if (!options.accounts) {
@@ -131,7 +133,7 @@ var AccountReports = function (req, res, next) {
   function successResponse(resp) {
     if (options.format === 'csv') {
       if (options.accounts) {
-        resp.forEach(function(r) {
+        resp.rows.forEach(function(r) {
           r.sending_counterparties = r.sending_counterparties.join(', ');
           r.receiving_counterparties = r.receiving_counterparties.join(', ');
         });
@@ -142,8 +144,10 @@ var AccountReports = function (req, res, next) {
     } else {
       res.json({
         result: 'success',
-        count: resp.length,
-        reports: resp
+        start: options.start.format(),
+        end: options.end.format(),
+        count: resp.rows.length,
+        reports: resp.rows
       });
     }
   }

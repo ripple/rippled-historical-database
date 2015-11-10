@@ -1,6 +1,5 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account tx by sequence'});
-var response = require('response');
 var intMatch = /^\d+$/;
 var hbase;
 
@@ -37,15 +36,15 @@ var accountTxSeq = function (req, res, next) {
   function errorResponse (err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({
+      res.status(err.code).json({
         result: 'error',
         message: err.error
-      }).status(err.code).pipe(res);
+      });
     } else {
-      response.json({
+      res.status(500).json({
         result: 'error',
         message: 'unable to retrieve transaction'
-      }).status(500).pipe(res);
+      });
     }
   }
 
@@ -56,10 +55,10 @@ var accountTxSeq = function (req, res, next) {
   */
   function successResponse (tx) {
     log.info('Transaction Found:', tx.hash);
-    response.json({
+    res.json({
       result: 'success',
       transaction : tx
-    }).pipe(res);
+    });
   };
 }
 
