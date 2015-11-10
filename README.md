@@ -1460,6 +1460,8 @@ GET /v2/reports/{:date}
   * :date (string)...UTC query date (defaults to today)
   * accounts (boolean)...include lists of counterparty accounts
   * payments (boolean)...include lists of individual payments
+  * limit (integer)...max results per page (defaults to 200)
+  * marker (string)...pagination key from previously returned response
   * format (string)...format of returned results: 'csv','json' defaults to 'json'
 
 
@@ -1469,10 +1471,10 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | Field  | Value | Description |
 |--------|-------|-------------|
 | result | `success` | Indicates that the body represents a successful response. |
-| count | Integer | Number of reports returned. |
+| date | String | date of reports queried |
+| count | Integer | Number of reports returned |
 | marker | String | Pagination marker |
 | reports | Array of report objects | The requested reports |
-
 
 
 
@@ -1963,10 +1965,10 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | Field  | Value | Description |
 |--------|-------|-------------|
 | result | `success` | Indicates that the body represents a successful response. |
-| count | Integer | Number of reports returned. |
+| start | String | Start of range for reports returned |
+| end | String | End of range for reports returned |
+| count | Integer | Number of reports returned |
 | reports | Array of report objects | The requested reports |
-
-
 
 
 
