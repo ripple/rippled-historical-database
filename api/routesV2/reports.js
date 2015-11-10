@@ -3,6 +3,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'reports'});
 var smoment = require('../../lib/smoment');
+var utils = require('../../lib/utils');
 var hbase;
 
 /**
@@ -24,8 +25,8 @@ var Reports = function (req, res, next) {
       if (err) {
         errorResponse(err);
       } else {
-        if (options.descending) resp.reverse();
-        resp.forEach(function(row) {
+
+        resp.rows.forEach(function(row) {
 
           // return the count only
           if (!options.accounts) {
@@ -66,7 +67,9 @@ var Reports = function (req, res, next) {
       end: smoment(req.params.date),
       accounts: (/true/i).test(req.query.accounts) ? true : false,
       payments: (/true/i).test(req.query.payments) ? true : false,
-      format: (req.query.format || 'json').toLowerCase(),
+      limit: Number(req.query.limit || 200),
+      marker: req.query.marker,
+      format: (req.query.format || 'json').toLowerCase()
     };
 
     if (!options.accounts) {
@@ -75,6 +78,13 @@ var Reports = function (req, res, next) {
 
     if (!options.start) {
       return {error: 'invalid date format', code: 400};
+    }
+
+    if (isNaN(options.limit)) {
+      options.limit = 200;
+
+    } else if (options.limit > 1000) {
+      options.limit = 1000;
     }
 
     options.start.moment.startOf('day');
@@ -113,9 +123,13 @@ var Reports = function (req, res, next) {
   function successResponse(resp) {
     var filename = 'account reports';
 
+    if (resp.marker) {
+      utils.addLinkHeader(req, res, resp.marker);
+    }
+
     if (options.format === 'csv') {
       if (options.accounts) {
-        resp.forEach(function(r) {
+        resp.rows.forEach(function(r) {
           r.sending_counterparties = r.sending_counterparties.join(', ');
           r.receiving_counterparties = r.receiving_counterparties.join(', ');
         });
@@ -125,13 +139,15 @@ var Reports = function (req, res, next) {
       // if (options.end && end.diff(start.add(1, 'day')) > 0) {
       //   filename += ' - ' + end.format('YYYY-MM-DD');
       // }
-      res.csv(resp, filename + '.csv');
+      res.csv(resp.rows, filename + '.csv');
 
     } else {
       res.json({
         result: 'success',
-        count: resp.length,
-        reports: resp
+        date: options.start.format(),
+        count: resp.rows.length,
+        marker: resp.marker,
+        reports: resp.rows
       });
     }
   }

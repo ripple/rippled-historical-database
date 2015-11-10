@@ -90,6 +90,17 @@ describe('reports API endpoint', function() {
     });
   });
 
+  it('should handle pagination correctly', function(done) {
+    this.timeout(5000);
+    var date = '2015-02-09T00:00:00';
+    var url = 'http://localhost:' + port + '/v2/reports/' + date + '?';
+
+    utils.checkPagination(url, undefined, function(ref, i, body) {
+      assert.strictEqual(body.reports.length, 1);
+      assert.deepEqual(body.reports[0], ref.reports[i]);
+    }, done);
+  });
+
   it('should return an error for an invalid date', function(done) {
     var date = '2015-01x';
     var url = 'http://localhost:' + port + '/v2/reports/' + date;
@@ -104,6 +115,24 @@ describe('reports API endpoint', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(body.message, 'invalid date format');
+      done();
+    });
+  });
+
+  it('should include a link header when marker is present', function(done) {
+    var date = '2015-01-14T00:00:00+00:00';
+    var url = 'http://localhost:' + port + '/v2/reports/' + date + '?limit=10';
+    var linkHeader = '<' + url +
+      '&marker=20150114000000|r99ULJkNzWbHv34ARrfo8exKRD119YkoHE>; rel="next"';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers.link, linkHeader);
       done();
     });
   });
