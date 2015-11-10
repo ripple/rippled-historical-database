@@ -113,4 +113,22 @@ describe('account payments API endpoint', function() {
       done();
     });
   });
+
+  it('should include a link header when marker is present', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?limit=1';
+    var linkHeader = '<' + url +
+      '&marker=rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx|20150114185210|000011119940|00001>; rel="next"';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers.link, linkHeader);
+      done();
+    });
+  });
 });

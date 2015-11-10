@@ -307,4 +307,21 @@ describe('exchanges API endpoint', function() {
       done();
     });
   });
+
+  it('should include a link header when marker is present', function(done) {
+    var url = 'http://localhost:' + port + '/v2/exchanges/USD+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/xrp?limit=1';
+    var linkHeader = '<' + url +
+      '&marker=USD|rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q|XRP||20150114182720|000011119603|00012|00004>; rel="next"';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers.link, linkHeader);
+      done();
+    });
+  });
 });

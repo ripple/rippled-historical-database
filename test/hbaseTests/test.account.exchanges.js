@@ -120,15 +120,34 @@ describe('account exchanges API endpoint', function() {
 
   it('should make sure /accounts/:account/exchanges handles empty response correctly', function(done) {
     var url = 'http://localhost:' + port + '/v2/accounts/rrrrUBy92h6worVCYERZcVCzgzgmHb17Dx/exchanges';
+
     request({
       url: url,
-      json: true,
+      json: true
     },
     function (err, res, body) {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(body.exchanges.length, 0);
        assert.strictEqual(body.count, 0);
+      done();
+    });
+  });
+
+  it('should include a link header when marker is present', function(done) {
+    var url = 'http://localhost:' + port +
+      '/v2/accounts/rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg/exchanges?limit=2';
+    var linkHeader = '<' + url +
+      '&marker=rHsZHqa5oMQNL5hFm4kfLd47aEMYjPstpg|20150114185210|000011119940|00009|00001>; rel="next"';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers.link, linkHeader);
       done();
     });
   });

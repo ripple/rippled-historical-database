@@ -1,4 +1,3 @@
-var response = require('response');
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'health check'});
 var moment = require('moment');
@@ -49,16 +48,18 @@ var checkHealth = function(req, res) {
   var d = Date.now();
 
   if (aspect !== 'api' && aspect !== 'importer') {
-    response.json({result: 'error', message: 'invalid aspect type'})
-    .status(400).pipe(res);
+    res.status(400).json({
+      result: 'error',
+      message: 'invalid aspect type'
+    });
     return;
   }
 
   if (isNaN(t1) || isNaN(t2)) {
-    response.json({
+    res.status(400).json({
       result: 'error',
       message: 'invalid threshold'
-    }).status(400).pipe(res);
+    });
     return;
   }
 
@@ -98,13 +99,13 @@ var checkHealth = function(req, res) {
     }
 
     if (verbose) {
-      response.json({
+      res.json({
         score: score,
         response_time: duration(responseTime * 1000),
         response_time_threshold: duration(t1 * 1000),
         message: message,
         error: err || undefined
-      }).pipe(res);
+      });
     } else {
       res.send(score.toString());
     }
@@ -141,7 +142,7 @@ var checkHealth = function(req, res) {
       }
 
       if (verbose) {
-        response.json({
+        res.json({
           score: score,
           response_time: duration(responseTime * 1000),
           ledger_gap: duration(ledgerGap * 1000),
@@ -150,7 +151,7 @@ var checkHealth = function(req, res) {
           validation_gap_threshold: duration(t2 * 1000),
           message: message,
           error: err || undefined
-        }).pipe(res);
+        });
       } else {
         res.send(score.toString());
       }

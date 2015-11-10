@@ -29,7 +29,8 @@ describe('network - exchange volume', function() {
       hbase.putRow(table, 'issued_value|live', mockIssuedValue),
       hbase.putRow(table, 'trade_volume|day|20150114000000', mockExchangeVolume),
       hbase.putRow(table, 'payment_volume|day|20150114000000', mockPaymentVolume),
-      hbase.putRow(table, 'issued_value|20150114000000', mockIssuedValue)
+      hbase.putRow(table, 'issued_value|20150114000000', mockIssuedValue),
+      hbase.putRow(table, 'issued_value|20150113000000', mockIssuedValue)
     ]).nodeify(function(err, resp){
       assert.ifError(err);
       done();
@@ -319,6 +320,23 @@ describe('network - issued value', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(body.message, 'interval cannot be used');
+      done();
+    });
+  });
+
+  it('should include a link header when marker is present', function(done) {
+    var url = 'http://localhost:' + port + '/v2/network/issued_value?start=2013&limit=1';
+    var linkHeader = '<' + url +
+      '&marker=issued_value|20150114000000>; rel="next"';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers.link, linkHeader);
       done();
     });
   });

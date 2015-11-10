@@ -2,7 +2,6 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'accounts'});
-var response = require('response');
 var smoment = require('../../lib/smoment');
 var hbase;
 
@@ -13,24 +12,24 @@ var hbase;
 var getAccount = function(req, res, next) {
   var options;
 
- /**
-  * errorResponse
-  * return an error response
-  * @param {Object} err
-  */
+  /**
+   * errorResponse
+   * return an error response
+   * @param {Object} err
+   */
 
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({
+      res.status(err.code).json({
         result: 'error',
         message: err.error
-      }).status(err.code).pipe(res);
+      });
     } else {
-      response.json({
+      res.status(500).json({
         result: 'error',
         message: 'unable to get accounts'
-      }).status(500).pipe(res);
+      });
     }
   }
 
@@ -55,7 +54,7 @@ var getAccount = function(req, res, next) {
       }
     };
 
-    response.json(result).pipe(res);
+    res.json(result);
   }
 
   options = {

@@ -2,7 +2,7 @@
 var smoment = require('../../lib/smoment');
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get tx'});
-var response = require('response');
+var utils = require('../../lib/utils');
 var hbase;
 
 var txTypes = [
@@ -153,11 +153,15 @@ var getTransactions = function (req, res, next) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-        .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result: 'error', message: 'unable to retrieve transaction'})
-        .status(500).pipe(res);
+      res.status(500).json({
+        result: 'error',
+        message: 'unable to retrieve transaction'
+      });
     }
   }
 
@@ -169,6 +173,11 @@ var getTransactions = function (req, res, next) {
 
   function successResponse(resp) {
     var result = {result: 'success'};
+
+    if (resp.marker) {
+      utils.addLinkHeader(req, res, resp.marker);
+    }
+
     if (resp.rows) {
       result.count = resp.rows.length;
       result.marker = resp.marker;
@@ -177,7 +186,7 @@ var getTransactions = function (req, res, next) {
       result.transaction = resp;
     }
 
-    response.json(result).pipe(res);
+    res.json(result);
   }
 
 };

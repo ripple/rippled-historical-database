@@ -4,7 +4,6 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'normalize'});
 var smoment = require('../../lib/smoment');
 var Promise = require('bluebird');
-var response = require('response');
 var hbase;
 
 var normalize = function(req, res) {
@@ -113,11 +112,15 @@ var normalize = function(req, res) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-      .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result: 'error', message: 'unable to retrieve exchanges'})
-      .status(500).pipe(res);
+      res.json({
+        result: 'error',
+        message: 'unable to retrieve exchanges'
+      });
     }
   }
 
@@ -128,12 +131,12 @@ var normalize = function(req, res) {
    */
 
   function successResponse(data) {
-    response.json({
+    res.json({
       result: 'success',
       amount: data.amount,
       converted: data.converted,
       rate: data.rate
-    }).pipe(res);
+    });
   }
 };
 

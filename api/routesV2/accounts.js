@@ -3,7 +3,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'accounts'});
 var smoment = require('../../lib/smoment');
-var response = require('response');
+var utils = require('../../lib/utils');
 var hbase;
 var intervals = ['hour', 'day', 'week'];
 
@@ -62,15 +62,15 @@ var Accounts = function (req, res, next) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({
+      res.status(err.code).json({
         result: 'error',
         message: err.error
-      }).status(err.code).pipe(res);
+      });
     } else {
-      response.json({
+      res.status(500).json({
         result: 'error',
         message: 'unable to get accounts'
-      }).status(500).pipe(res);
+      });
     }
   }
 
@@ -82,16 +82,20 @@ var Accounts = function (req, res, next) {
 
   function successResponse(resp) {
 
+    if (resp.marker) {
+      utils.addLinkHeader(req, res, resp.marker);
+    }
+
     // reduced, csv
     if (options.reduce && options.format === 'csv') {
       res.csv([{count: resp}], 'accounts-count.csv');
 
     // reduced json
     } else if (options.reduce) {
-      response.json({
+      res.json({
         result: 'success',
         count: resp
-      }).pipe(res);
+      });
 
     // csv
     } else if (options.format === 'csv') {
@@ -99,12 +103,12 @@ var Accounts = function (req, res, next) {
 
     // json
     } else {
-      response.json({
+      res.json({
         result: 'success',
         count: resp.rows.length,
         marker: resp.marker,
         accounts: resp.rows
-      }).pipe(res);
+      });
     }
   }
 

@@ -1,7 +1,7 @@
-var Logger   = require('../../lib/logger');
-var log      = new Logger({scope : 'account exchanges'});
+var Logger = require('../../lib/logger');
+var log = new Logger({scope : 'account exchanges'});
 var smoment = require('../../lib/smoment');
-var response = require('response');
+var utils = require('../../lib/utils');
 var hbase;
 
 AccountExchanges = function (req, res, next) {
@@ -85,9 +85,15 @@ AccountExchanges = function (req, res, next) {
   function errorResponse (err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result:'error', message:err.error}).status(err.code).pipe(res);
+      res.status(err.code).json({
+        result:'error',
+        message:err.error
+      });
     } else {
-      response.json({result:'error', message:'unable to retrieve exchanges'}).status(500).pipe(res);
+      res.status(500).json({
+        result:'error',
+        message:'unable to retrieve exchanges'
+      });
     }
   }
 
@@ -99,6 +105,10 @@ AccountExchanges = function (req, res, next) {
 
   function successResponse(exchanges) {
     var filename = options.account + ' - exchanges';
+
+    if (exchanges.marker) {
+      utils.addLinkHeader(req, res, exchanges.marker);
+    }
 
     if (options.format === 'csv') {
       if (options.base.currency && options.counter.currency) {
@@ -142,15 +152,14 @@ AccountExchanges = function (req, res, next) {
       res.csv(exchanges.rows, filename);
 
     } else {
-      response.json({
+      res.json({
         result: 'success',
         count: exchanges.rows.length,
         marker: exchanges.marker,
         exchanges: exchanges.rows
-      }).pipe(res);
+      });
     }
   }
-
 };
 
 module.exports = function(db) {

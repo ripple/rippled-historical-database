@@ -3,7 +3,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get account balance changes'});
 var smoment = require('../../lib/smoment');
-var response = require('response');
+var utils = require('../../lib/utils');
 var hbase;
 
 /**
@@ -84,13 +84,15 @@ var AcccountBalanceChanges = function(req, res) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-        .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({
+      res.status(500).json({
         result: 'error',
         message: 'unable to retrieve balance changes'
-      }).status(500).pipe(res);
+      });
     }
   }
 
@@ -102,22 +104,27 @@ var AcccountBalanceChanges = function(req, res) {
 
   function successResponse(changes) {
     var filename = options.account + ' - balance changes';
+
+    if (changes.marker) {
+      utils.addLinkHeader(req, res, changes.marker);
+    }
+
     if (options.format === 'csv') {
       if (options.currency) {
         filename += ' ' + options.currency;
       }
 
       res.csv(changes.rows, filename + '.csv');
+
     } else {
-      response.json({
+      res.json({
         result: 'success',
         count: changes.rows.length,
         marker: changes.marker,
         balance_changes: changes.rows
-      }).pipe(res);
+      });
     }
   }
-
 };
 
 module.exports = function(db) {

@@ -3,7 +3,6 @@
 var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'metrics'});
 var smoment = require('../../../lib/smoment');
-var response = require('response');
 var utils = require('../../../lib/utils');
 var hbase;
 var table = 'agg_metrics';
@@ -115,15 +114,15 @@ function getMetric(metric, req, res) {
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({
+      res.status(err.code).json({
         result: 'error',
         message: err.error
-      }).status(err.code).pipe(res);
+      });
     } else {
-      response.json({
+      res.status(500).json({
         result: 'error',
         message: 'error getting data'
-      }).status(500).pipe(res);
+      });
     }
   }
 
@@ -135,6 +134,10 @@ function getMetric(metric, req, res) {
 
   function successResponse(resp) {
 
+    if (resp.marker) {
+      utils.addLinkHeader(req, res, resp.marker);
+    }
+
     // csv
     if (options.format === 'csv') {
       resp.rows.forEach(function(r, i) {
@@ -144,12 +147,12 @@ function getMetric(metric, req, res) {
 
     // json
     } else {
-      response.json({
+      res.json({
         result: 'success',
         count: resp.rows.length,
         marker: resp.marker,
         rows: resp.rows
-      }).pipe(res);
+      });
     }
   }
 }

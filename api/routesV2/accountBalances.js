@@ -3,7 +3,6 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account balances'});
 var request = require('request');
-var response = require('response');
 var smoment = require('../../lib/smoment');
 var API = 'https://api.ripple.com/v1';
 var config  = require('../../config/api.config');
@@ -165,11 +164,15 @@ q
   function errorResponse(err) {
     log.error(err.error || err);
     if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-        .status(err.code).pipe(res);
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result: 'error', message: 'unable to retrieve ledger'})
-        .status(500).pipe(res);
+      res.status(500).json({
+        result: 'error',
+        message: 'unable to retrieve ledger'
+      });
     }
   }
 
@@ -184,7 +187,7 @@ q
     if (opts.format === 'csv') {
       res.csv(balances.balances, opts.account + ' - balances.csv');
     } else {
-      response.json(balances).pipe(res);
+      res.json(balances);
     }
   }
 };
