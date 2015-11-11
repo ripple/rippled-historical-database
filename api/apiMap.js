@@ -1,11 +1,9 @@
 'use strict';
 
 var packageJSON = require('../package.json');
-
-function generateMap(req, res) {
-  var url = req.protocol + '://' + req.get('host') + '/v2';
+var generateMap = function(url) {
   var repo = 'https://github.com/ripple/rippled-historical-database';
-  var json = {
+  return {
     'name': packageJSON.name,
     'version': packageJSON.version,
     'documentation': repo,
@@ -103,9 +101,28 @@ function generateMap(req, res) {
       }
     ]
   };
-
-  res.setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify(json, undefined, 2));
 }
 
-module.exports = generateMap;
+var generate = function(req, res) {
+  var url = req.protocol + '://' + req.get('host') + '/v2';
+  var map = generateMap(url);
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify(map, undefined, 2));
+}
+
+var generate404 = function(req, res) {
+  var url = req.protocol + '://' + req.get('host') + '/v2';
+  var data = {
+    result: 'error',
+    message: 'Cannot ' + req.method + ' ' + req.originalUrl,
+    'api-map': generateMap(url)
+  };
+
+  res.setHeader('Content-Type', 'application/json');
+  res.status(404).send(JSON.stringify(data, undefined, 2));
+}
+
+module.exports = {
+  generate: generate,
+  generate404: generate404
+};
