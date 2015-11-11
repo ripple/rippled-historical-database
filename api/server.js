@@ -7,7 +7,7 @@ var cors = require('cors');
 var Postgres = require('./lib/db');
 var Routes = require('./routes');
 var RoutesV2 = require('./routesV2');
-var generateMap = require('./apiMap');
+var map = require('./apiMap');
 var json2csv = require('nice-json2csv');
 var favicon = require('serve-favicon');
 
@@ -82,8 +82,12 @@ var Server = function (options) {
   }
 
   // index page
-  app.get('/', generateMap);
-  app.get('/v2', generateMap);
+  app.get('/', map.generate);
+  app.get('/v2', map.generate);
+
+  //404
+  app.get('*', map.generate404);
+  app.post('*', map.generate404);
 
   // start the server
   server = app.listen(options.port);
