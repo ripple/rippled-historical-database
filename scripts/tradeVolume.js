@@ -32,6 +32,11 @@ var marketPairs = [
     counter: {currency: 'XRP'}
   },
   {
+    // Gatehub USD market
+    base: {currency: 'USD', issuer: 'rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq'},
+    counter: {currency: 'XRP'}
+  },
+  {
     // RippleCN CNY market
     base: {currency: 'CNY', issuer: 'rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK'},
     counter: {currency: 'XRP'}
@@ -145,11 +150,6 @@ var marketPairs = [
     // TokyoJPY JPY/ Snapswap BTC
     base    : {currency: 'JPY', issuer: 'r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN'},
     counter : {currency: 'BTC', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'}
-  },
-  {
-    // TokyoJPY JPY/ Snapswap USD
-    base    : {currency: 'JPY', issuer: 'r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN'},
-    counter : {currency: 'USD', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'}
   },
   {
     // TokyoJPY JPY/ Bitstamp USD
