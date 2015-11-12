@@ -72,7 +72,7 @@ var getPayments = function (req, res, next) {
       resp.rows.forEach(function(r) {
         delete r.rowkey;
         if (options.interval) {
-          r.start = r.date;
+          r.start = smoment(r.date).format();
           r.total_amount = r.amount;
           r.average_amount = r.average;
           delete r.date;
@@ -84,7 +84,7 @@ var getPayments = function (req, res, next) {
           }
 
         } else {
-          r.executed_time = smoment(r.executed_time).moment.format();
+          r.executed_time = smoment(r.executed_time).format();
         }
       });
 

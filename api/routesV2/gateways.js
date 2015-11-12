@@ -1,6 +1,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'gateways'});
 var path = require('path');
+var smoment = require('../../lib/smoment');
 var validator = require('ripple-address-codec');
 var assetPath = path.resolve(__dirname + '/../gateways/gatewayAssets/');
 var currencies = path.resolve(__dirname + '/../gateways/currencyAssets/');
@@ -27,6 +28,9 @@ files.forEach(function(file) {
 gatewayList.forEach(function(gateway) {
   gateway.normalized = normalize(gateway.name);
   gateway.assets = assets[gateway.normalized] || [];
+  if (gateway.start_date) {
+    gateway.start_date = smoment(gateway.start_date).format();
+  }
 });
 
 // cached in memory since

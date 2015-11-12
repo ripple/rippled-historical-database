@@ -1,5 +1,6 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'last validated'});
+var smoment = require('../../lib/smoment');
 var hbase;
 
 var getLastValidated = function(req, res, next) {
@@ -19,7 +20,7 @@ var getLastValidated = function(req, res, next) {
         ledger_index: resp.ledger_index,
         ledger_hash: resp.ledger_hash,
         parent_hash: resp.parent_hash,
-        close_time: resp.close_time
+        close_time: smoment(resp.close_time).format()
       });
     }
   });
