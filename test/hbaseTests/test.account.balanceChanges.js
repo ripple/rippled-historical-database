@@ -151,9 +151,8 @@ describe('account balance changes API endpoint', function() {
       assert.strictEqual(res.statusCode, 200);
       assert.notStrictEqual(body.balance_changes.length, 0);  // Make sure we test something
       body.balance_changes.forEach(function(bch) {
-
         if (d) {
-          assert(d.diff(bch.executed_time) <= 0);
+          assert(d.diff(bch.executed_time) >= 0);
         }
 
         d = moment.utc(bch.executed_time);

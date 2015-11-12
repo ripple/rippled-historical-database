@@ -12,13 +12,13 @@ describe('smoment: ', function() {
   it('should check date/time are parsed correctly', function(done) {
 
     assert.strictEqual(smoment('abcd'), undefined);
-    assert.strictEqual(smoment(0).format(), '1970-01-01T00:00:00');
-    assert.strictEqual(smoment().format(), moment().utc().format('YYYY-MM-DDTHH:mm:ss')); // This might fail
-    assert.strictEqual(smoment(946684800).format(), '2000-01-01T00:00:00');               // Ripple Epoch
-    assert.strictEqual(smoment('1234567890').format(), '2009-02-13T23:31:30');            // 10 digit timestamps only
+    assert.strictEqual(smoment(0).format(), '1970-01-01T00:00:00Z');
+    assert.strictEqual(smoment().format(), moment().utc().format('YYYY-MM-DDTHH:mm:ss[Z]')); // This might fail
+    assert.strictEqual(smoment(946684800).format(), '2000-01-01T00:00:00Z');               // Ripple Epoch
+    assert.strictEqual(smoment('1234567890').format(), '2009-02-13T23:31:30Z');            // 10 digit timestamps only
     assert.strictEqual(smoment('946684d800'), undefined);
     assert.strictEqual(smoment('2015-03-04 18:22:33'), undefined);
-    assert.strictEqual(smoment('2015-03-04T18:22:33').format(), '2015-03-04T18:22:33');
+    assert.strictEqual(smoment('2015-03-04T18:22:33').format(), '2015-03-04T18:22:33Z');
     done();
   });
 

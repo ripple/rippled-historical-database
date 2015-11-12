@@ -8,7 +8,7 @@ var port = config.get('port') || 7111;
 describe('reports API endpoint', function() {
 
   it('should get reports', function(done) {
-    var date = '2015-01-14T00:00:00+00:00';
+    var date = '2015-01-14T00:00:00Z';
     var url = 'http://localhost:' + port + '/v2/reports/' + date;
 
     request({
@@ -39,7 +39,7 @@ describe('reports API endpoint', function() {
   });
 
   it('should get reports with counterparties', function(done) {
-    var date = '2015-01-14T00:00:00+00:00';
+    var date = '2015-01-14T00:00:00Z';
     var url = 'http://localhost:' + port + '/v2/reports/' + date;
 
     request({
@@ -65,7 +65,7 @@ describe('reports API endpoint', function() {
   });
 
   it('should get reports with individual payments', function(done) {
-    var date = '2015-01-14T00:00:00+00:00';
+    var date = '2015-01-14T00:00:00Z';
     var url = 'http://localhost:' + port + '/v2/reports/' + date;
 
     request({

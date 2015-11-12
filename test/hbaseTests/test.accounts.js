@@ -142,8 +142,8 @@ describe('accounts API endpoint', function() {
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.accounts.length, body.count);
       assert.strictEqual(body.accounts.length, 2);
-      assert.strictEqual(body.accounts[0].date, '2013-06-11T20:00:00+00:00');
-      assert.strictEqual(body.accounts[1].date, '2013-10-25T10:00:00+00:00');
+      assert.strictEqual(body.accounts[0].date, '2013-06-11T20:00:00Z');
+      assert.strictEqual(body.accounts[1].date, '2013-10-25T10:00:00Z');
       assert.strictEqual(body.accounts[0].count, 9);
       assert.strictEqual(body.accounts[1].count, 3);
       done();

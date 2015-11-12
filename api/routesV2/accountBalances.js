@@ -106,7 +106,7 @@ var accountBalances = function (req, res, next) {
       };
 
       results.ledger_index = opts.ledger_index;
-      results.close_time = opts.closeTime + 'Z';
+      results.close_time = opts.closeTime;
       results.limit = opts.limit;
       results.balances = balances;
 

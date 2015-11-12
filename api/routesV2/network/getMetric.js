@@ -97,10 +97,27 @@ function getMetric(metric, req, res) {
     options.live = true;
   }
 
-  hbase.getMetric(options, function(err, resp){
+  hbase.getMetric(options, function(err, resp) {
     if (err) {
       errorResponse(err);
     } else {
+      resp.rows.forEach(function(row){
+        if (row.time) {
+          row.date = smoment(row.time).format();
+          delete row.time;
+        }
+
+        if (row.startTime) {
+          row.start_time = smoment(row.startTime).format();
+          delete row.startTime;
+        }
+
+        if (row.endTime) {
+          row.end_time = smoment(row.endTime).format();
+          delete row.endTime;
+        }
+      });
+
       successResponse(resp);
     }
   });
