@@ -2,23 +2,23 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get ledger'});
-var moment = require('moment');
+var smoment = require('../../lib/smoment');
 var hbase;
 
 var getLedger = function (req, res, next) {
 
   var options = prepareOptions();
 
-  if (options.err) {
-    errorResponse(options.err);
+  if (options.error) {
+    errorResponse(options);
   } else {
 
     if (options.ledger_index) {
       log.info('LEDGER:', options.ledger_index);
     } else if (options.ledger_hash) {
       log.info('LEDGER:', options.ledger_hash);
-    } else if (options.date) {
-      log.info('LEDGER:', options.date.format());
+    } else if (options.closeTime) {
+      log.info('LEDGER:', options.closeTime.format());
     } else {
       log.info('LEDGER: latest');
     }
@@ -42,37 +42,49 @@ var getLedger = function (req, res, next) {
     var options = {
       ledger_index: req.query.ledger_index,
       ledger_hash: req.query.ledger_hash,
-      date: req.query.date,
       binary: (/true/i).test(req.query.binary) ? true : false,
       expand: (/true/i).test(req.query.expand) ? true : false,
       transactions: (/true/i).test(req.query.transactions) ? true : false
     };
 
     var ledger_param = req.params.ledger_param;
+    var intMatch = /^\d+$/;
+    var hexMatch = new RegExp('^(0x)?[0-9A-Fa-f]+$');
+    var date = smoment(ledger_param);
+
     if (ledger_param) {
-      var intMatch = /^\d+$/;
-      var hexMatch = new RegExp('^(0x)?[0-9A-Fa-f]+$');
-      var iso = moment.utc(req.params.ledger_param, moment.ISO_8601);
 
       // ledger index test
       if (intMatch.test(ledger_param)) {
         options.ledger_index = ledger_param;
 
       // date test
-      } else if (iso.isValid()) {
-        options.date = iso;
+      } else if (date) {
+        options.closeTime = date;
 
       // ledger hash test
       } else if (hexMatch.test(ledger_param) && ledger_param.length % 2 === 0) {
         options.ledger_hash = ledger_param.toUpperCase();
 
       } else {
-        options.err = {error: "invalid ledger identifier", code: 400};
+        return {
+          error: "invalid ledger identifier",
+          code: 400
+        };
       }
-    }
 
-    if (options.date) {
-      options.closeTime = options.date;
+    } else if (req.query.date) {
+      date = smoment(req.query.date);
+
+      if (date) {
+        options.closeTime = date;
+
+      } else {
+        return {
+          error: 'invalid date format',
+          code: 400
+        };
+      }
     }
 
     return options;
