@@ -73,8 +73,8 @@ var getPayments = function (req, res, next) {
         delete r.rowkey;
         if (options.interval) {
           r.start = smoment(r.date).format();
-          r.total_amount = r.amount;
-          r.average_amount = r.average;
+          r.total_amount = r.amount.toString();
+          r.average_amount = r.average.toString();
           delete r.date;
           delete r.amount;
           delete r.average;
