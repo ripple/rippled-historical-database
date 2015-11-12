@@ -92,7 +92,7 @@ describe('ledgers API endpoint', function() {
   });
 
   it('should return ledgers by date: /ledgers/:date', function(done) {
-    var url = 'http://localhost:' + port + '/v2/ledgers/2015-01-14 17:43:10';
+    var url = 'http://localhost:' + port + '/v2/ledgers/2015-01-14T17:43:10';
     request({
       url: url,
       json: true,
