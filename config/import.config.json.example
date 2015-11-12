@@ -1,5 +1,4 @@
 {
-  "queueLength" : 20,
   "logLevel"    : 3,
   "logFile"     : null,
   "ripple" : {
