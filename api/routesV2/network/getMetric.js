@@ -6,6 +6,7 @@ var smoment = require('../../../lib/smoment');
 var utils = require('../../../lib/utils');
 var hbase;
 var table = 'agg_metrics';
+var PRECISION = 8;
 var intervals = [
   'day',
   'week',
@@ -101,26 +102,43 @@ function getMetric(metric, req, res) {
     if (err) {
       errorResponse(err);
     } else {
-      resp.rows.forEach(function(row){
-        if (row.time) {
-          row.date = smoment(row.time).format();
-          delete row.time;
-        }
 
-        if (row.startTime) {
-          row.start_time = smoment(row.startTime).format();
-          delete row.startTime;
-        }
-
-        if (row.endTime) {
-          row.end_time = smoment(row.endTime).format();
-          delete row.endTime;
-        }
-      });
-
+      formatRows(resp.rows);
       successResponse(resp);
     }
   });
+
+  function formatRows(rows) {
+    rows.forEach(function(row) {
+
+      row.total = row.total.toString();
+      row.exchange_rate =
+        (row.exchangeRate || row.exchange_rate).toPrecision(PRECISION);
+      delete row.exchangeRate;
+
+      if (row.time) {
+        row.date = smoment(row.time).format();
+        delete row.time;
+      }
+
+      if (row.startTime) {
+        row.start_time = smoment(row.startTime).format();
+        delete row.startTime;
+      }
+
+      if (row.endTime) {
+        row.end_time = smoment(row.endTime).format();
+        delete row.endTime;
+      }
+
+      row.components.forEach(function(c) {
+        c.rate = c.rate ? c.rate.toPrecision(PRECISION) : undefined;
+        c.amount = c.amount ? c.amount.toString() : undefined;
+        c.converted_amount = (c.converted_amount || c.convertedAmount).toString();
+        delete c.convertedAmount;
+      });
+    });
+  }
 
  /**
   * errorResponse

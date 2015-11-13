@@ -77,7 +77,7 @@ function getGatewaysByCurrency() {
           featured: acct.currencies[currency].featured,
           label: acct.currencies[currency].label,
           assets: gateway.assets,
-          startDate: gateway.startDate
+          start_date: gateway.start_date
         };
 
         results[currency].push(g);
