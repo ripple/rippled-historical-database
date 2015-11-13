@@ -18,6 +18,7 @@ var intervals = [
   '1month',
   '1year'
 ];
+var PRECISION = 8;
 var hbase;
 
 var getExchanges = function(req, res) {
@@ -218,6 +219,13 @@ var getExchanges = function(req, res) {
             ex.base_issuer = options.base.issuer;
             ex.counter_currency = options.counter.currency;
             ex.counter_issuer = options.counter.issuer;
+            ex.base_volume = ex.base_volume.toString();
+            ex.counter_volume = ex.counter_volume.toString();
+            ex.open = ex.open.toPrecision(PRECISION);
+            ex.high = ex.high.toPrecision(PRECISION);
+            ex.low = ex.low.toPrecision(PRECISION);
+            ex.close = ex.close.toPrecision(PRECISION);
+            ex.vwap = ex.vwap.toPrecision(PRECISION);
           });
 
         } else {
@@ -231,6 +239,9 @@ var getExchanges = function(req, res) {
             ex.base_issuer = options.base.issuer;
             ex.counter_currency = options.counter.currency;
             ex.counter_issuer = options.counter.issuer;
+            ex.base_amount = ex.base_amount.toString();
+            ex.counter_amount = ex.counter_amount.toString();
+            ex.rate = ex.rate.toPrecision(PRECISION);
           });
         }
 
