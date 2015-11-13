@@ -145,6 +145,9 @@ function activeAccounts(req, res) {
         }
 
         d.executed_time = smoment(d.time).moment.toISOString();
+        d.base_amount = d.base_amount.toString();
+        d.counter_amount = d.counter_amount.toString();
+        d.rate = d.rate.toPrecision(8);
         delete d.rowkey;
         delete d.time;
 
@@ -159,6 +162,15 @@ function activeAccounts(req, res) {
 
     list.sort(function(a, b) {
       return b.base_volume - a.base_volume;
+    });
+
+    list.forEach(function(a){
+      a.buy.base_volume = a.buy.base_volume.toString();
+      a.buy.counter_volume = a.buy.counter_volume.toString();
+      a.sell.base_volume = a.sell.base_volume.toString();
+      a.sell.counter_volume = a.sell.counter_volume.toString();
+      a.base_volume = a.base_volume.toString();
+      a.counter_volume = a.counter_volume.toString();
     });
 
     return {

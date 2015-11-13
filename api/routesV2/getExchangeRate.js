@@ -3,6 +3,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'exchange rate'});
 var smoment = require('../../lib/smoment');
+var PRECISION = 8;
 var hbase;
 
 var getExchangeRate = function(req, res) {
@@ -82,7 +83,7 @@ var getExchangeRate = function(req, res) {
   function successResponse(rate) {
     res.json({
       result: 'success',
-      rate: rate
+      rate: rate.toPrecision(PRECISION)
     });
   }
 };

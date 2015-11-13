@@ -30,6 +30,9 @@ AccountExchanges = function (req, res, next) {
     } else {
       exchanges.rows.forEach(function(ex) {
         ex.executed_time = smoment(parseInt(ex.executed_time)).format();
+        ex.base_amount = ex.base_amount.toString();
+        ex.counter_amount = ex.counter_amount.toString();
+        ex.rate = ex.rate.toPrecision(8);
         delete ex.rowkey;
       });
 

@@ -273,7 +273,7 @@ describe('network - issued value', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.count, 1);
-      assert.strictEqual(body.rows[0].total, 1673555846.5357773);
+      assert.strictEqual(body.rows[0].total, '1673555846.5357773');
       done();
     });
   });
@@ -297,7 +297,7 @@ describe('network - issued value', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.count, 1);
-      assert.strictEqual(body.rows[0].total, 1673555846.5357773);
+      assert.strictEqual(body.rows[0].total, '1673555846.5357773');
       done();
     });
   });

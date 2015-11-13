@@ -113,7 +113,7 @@ function getMetric(metric, req, res) {
 
       row.total = row.total.toString();
       row.exchange_rate =
-        (row.exchangeRate || row.exchange_rate).toPrecision(PRECISION);
+        (row.exchangeRate || row.exchange_rate || 1).toPrecision(PRECISION);
       delete row.exchangeRate;
 
       if (row.time) {
