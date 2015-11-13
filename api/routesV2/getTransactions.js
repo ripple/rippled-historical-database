@@ -160,7 +160,7 @@ var getTransactions = function (req, res, next) {
     } else {
       res.status(500).json({
         result: 'error',
-        message: 'unable to retrieve transaction'
+        message: 'unable to retrieve transaction(s)'
       });
     }
   }
