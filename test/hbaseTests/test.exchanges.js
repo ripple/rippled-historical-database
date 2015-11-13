@@ -23,9 +23,9 @@ describe('exchanges API endpoint', function() {
       assert.strictEqual(body.exchanges.length, body.count);
       assert.strictEqual(body.exchanges.length, 5);
       body.exchanges.forEach(function(ex) {
-        assert.strictEqual(typeof ex.base_amount, 'number');
-        assert.strictEqual(typeof ex.counter_amount, 'number');
-        assert.strictEqual(typeof ex.rate, 'number');
+        assert.strictEqual(typeof ex.base_amount, 'string');
+        assert.strictEqual(typeof ex.counter_amount, 'string');
+        assert.strictEqual(typeof ex.rate, 'string');
         assert.strictEqual(typeof ex.offer_sequence, 'number');
         assert.strictEqual(typeof ex.ledger_index, 'number');
         assert.strictEqual(typeof ex.buyer, 'string');

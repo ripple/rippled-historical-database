@@ -4,6 +4,7 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'normalize'});
 var smoment = require('../../lib/smoment');
 var Promise = require('bluebird');
+var PRECISION = 8;
 var hbase;
 
 var normalize = function(req, res) {
@@ -133,9 +134,9 @@ var normalize = function(req, res) {
   function successResponse(data) {
     res.json({
       result: 'success',
-      amount: data.amount,
-      converted: data.converted,
-      rate: data.rate
+      amount: data.amount.toString(),
+      converted: data.converted.toString(),
+      rate: data.rate.toPrecision(PRECISION)
     });
   }
 };

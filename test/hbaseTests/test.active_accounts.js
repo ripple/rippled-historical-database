@@ -33,8 +33,8 @@ describe('active accounts API endpoint', function() {
         assert.strictEqual(typeof d.buy, 'object');
         assert.strictEqual(typeof d.sell, 'object');
         assert.strictEqual(typeof d.account, 'string');
-        assert.strictEqual(typeof d.base_volume, 'number');
-        assert.strictEqual(typeof d.counter_volume, 'number');
+        assert.strictEqual(typeof d.base_volume, 'string');
+        assert.strictEqual(typeof d.counter_volume, 'string');
         assert.strictEqual(typeof d.count, 'number');
         exchanges += d.count;
       });
