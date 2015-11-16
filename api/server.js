@@ -68,7 +68,7 @@ var Server = function (options) {
     app.get('/v2/accounts/:address/exchanges', routesV2.accountExchanges);
     app.get('/v2/accounts/:address/exchanges/:base', routesV2.accountExchanges);
     app.get('/v2/accounts/:address/exchanges/:base/:counter', routesV2.accountExchanges);
-    // app.get('/v2/accounts/:address/offers', routesV2.accountOffers);
+    app.get('/v2/accounts/:address/orders', routesV2.accountOrders);
     app.get('/v2/accounts/:address', routesV2.getAccount);
     app.get('/v2/accounts', routesV2.accounts);
     app.get('/v2/payments/:currency?', routesV2.getPayments);

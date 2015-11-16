@@ -1,18 +1,17 @@
 'use strict';
 
 var Logger = require('../../lib/logger');
-var log = new Logger({scope : 'account balances'});
+var log = new Logger({scope : 'account orders'});
 var request = require('request');
 var smoment = require('../../lib/smoment');
-var config  = require('../../config/api.config');
+var config = require('../../config/api.config');
 var ripple = require('ripple-lib');
 var rippleAPI = new ripple.RippleAPI(config.get('ripple'));
 var hbase;
 
 rippleAPI.connect();
 
-var accountBalances = function (req, res, next) {
-
+function accountOrders(req, res) {
   var options = {
     ledger_index: req.query.ledger_index || req.query.ledger,
     ledger_hash: req.query.ledger_hash,
@@ -77,7 +76,7 @@ var accountBalances = function (req, res, next) {
       options.currency = req.query.currency;
       options.counterparty = req.query.counterparty || req.query.issuer;
       options.limit = options.limit;
-      getBalances(options);
+      getOrders(options);
 
     } else {
       errorResponse('ledger not found');
@@ -85,21 +84,19 @@ var accountBalances = function (req, res, next) {
   });
 
   /**
-  * getBalances
+  * getOrders
   * use ledger_index from getLedger api call
-  * to get balances using rippleAPI
+  * to get orders using rippleAPI
   */
 
-  function getBalances(opts) {
+  function getOrders(opts) {
     var params = {
       ledgerVersion: opts.ledger_index,
-      currency: opts.currency,
-      counterparty: opts.counterparty,
-      limit: opts.limit ? Number(opts.limit) : undefined
+      limit: opts.limit
     };
 
-    rippleAPI.getBalances(opts.account, params)
-    .then(function(balances) {
+    rippleAPI.getOrders(opts.account, params)
+    .then(function(orders) {
       var results = {
         result: 'success'
       };
@@ -107,7 +104,7 @@ var accountBalances = function (req, res, next) {
       results.ledger_index = opts.ledger_index;
       results.close_time = opts.closeTime;
       results.limit = opts.limit;
-      results.balances = balances;
+      results.orders = orders;
 
       successResponse(results, opts);
     }).catch(function(e) {
@@ -118,6 +115,7 @@ var accountBalances = function (req, res, next) {
       }
     });
   }
+
 
  /**
   * errorResponse
@@ -135,7 +133,7 @@ var accountBalances = function (req, res, next) {
     } else {
       res.status(500).json({
         result: 'error',
-        message: 'unable to retrieve balances'
+        message: 'unable to retrieve orders'
       });
     }
   }
@@ -146,17 +144,16 @@ var accountBalances = function (req, res, next) {
   * @param {Object} balances
   */
 
-  function successResponse(balances, opts) {
-
+  function successResponse(results, opts) {
     if (opts.format === 'csv') {
-      res.csv(balances.balances, opts.account + ' - balances.csv');
+      res.csv(results.orders, opts.account + ' - orders.csv');
     } else {
-      res.json(balances);
+      res.json(results);
     }
   }
-};
+}
 
 module.exports = function(db) {
   hbase = db;
-  return accountBalances;
+  return accountOrders;
 };
