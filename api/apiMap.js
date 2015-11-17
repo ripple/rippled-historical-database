@@ -34,6 +34,14 @@ var generateMap = function(url) {
         route: '/v2/accounts/{:address}/reports/{:date}',
         example: url + '/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/reports/2013-02-01'
       }, {
+        action: 'Get Account Balances',
+        route: '/v2/accounts/{:address}/balances',
+        example: url + '/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/balances'
+      }, {
+        action: 'Get Account Orders',
+        route: '/v2/accounts/{:address}/orders',
+        example: url + '/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/orders'
+      }, {
         action: 'Get Account',
         route: '/v2/accounts/{:address}',
         example: url + '/accounts/rB31eWvkfKBAu6FDD9zgnzT4RwSfXGcqPm'
