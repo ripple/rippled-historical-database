@@ -79,6 +79,7 @@ var Server = function (options) {
     app.get('/v2/stats', routesV2.stats);
     app.get('/v2/stats/:family', routesV2.stats);
     app.get('/v2/stats/:family/:metric', routesV2.stats);
+    app.get('/v2/maintenance/:domain', routesV2.maintenance);
   }
 
   // index page

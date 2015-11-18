@@ -25,6 +25,7 @@ module.exports = function(db) {
   Routes.checkHealth = require('./checkHealth')(db);
   Routes.capitalization = require('./capitalization')(db);
   Routes.activeAccounts = require('./activeAccounts')(db);
+  Routes.maintenance = require('./maintenance')(db);
   Routes.network = require('./network')(db);
   Routes.gateways = require('./gateways');
   return Routes;
