@@ -110,10 +110,19 @@ function getMetric(metric, req, res) {
 
   function formatRows(rows) {
     rows.forEach(function(row) {
+      var rate = row.exchangeRate || row.exchange_rate;
+      if (row.exchangeRate === undefined &&
+          row.exchange_rate === undefined) {
+        rate = 1;
+      } else if (row.exchangeRate !== undefined) {
+        rate = row.exchangeRate;
+      } else {
+        rate = row.exchange_rate;
+      }
 
       row.total = row.total.toString();
-      row.exchange_rate =
-        (row.exchangeRate || row.exchange_rate || 1).toPrecision(PRECISION);
+
+      row.exchange_rate = rate.toPrecision(PRECISION);
       delete row.exchangeRate;
 
       if (row.time) {
@@ -132,8 +141,8 @@ function getMetric(metric, req, res) {
       }
 
       row.components.forEach(function(c) {
-        c.rate = c.rate ? c.rate.toPrecision(PRECISION) : undefined;
-        c.amount = c.amount ? c.amount.toString() : undefined;
+        c.rate = c.rate ? c.rate.toPrecision(PRECISION) : '0';
+        c.amount = c.amount ? c.amount.toString() : '0';
         c.converted_amount = (c.converted_amount || c.convertedAmount).toString();
         delete c.convertedAmount;
       });
