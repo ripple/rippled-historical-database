@@ -61,10 +61,6 @@ function getGatewaysByCurrency() {
   var results = { };
   gatewayList.forEach(function(gateway) {
 
-    if (gateway.status !== 'active') {
-      return;
-    }
-
     gateway.accounts.forEach(function(acct) {
       for (var currency in acct.currencies) {
         if (!results[currency]) {

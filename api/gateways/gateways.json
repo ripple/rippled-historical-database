@@ -18,8 +18,7 @@
       "rrpNnNLKrartuEqfJGpqyDwPj1AFPg9vn1",
       "rGFuMiw48HdbnrUbkRYuitXTmfrDBNTCnX"
     ],
-    "domain": "bitstamp.net",
-    "status": "active"
+    "domain": "bitstamp.net"
   }, {
     "name": "RippleChina",
     "start_date": "2013-05-21",
@@ -32,8 +31,7 @@
     "hotwallets": [
       "r45dBj4S3VvMMYXxr9vHX4Z4Ma6ifPMCkK"
     ],
-    "domain": "ripplechina.net",
-    "status": "active"
+    "domain": "ripplechina.net"
   }, {
     "name": "rippleCN",
     "start_date": "2013-05-05",
@@ -48,8 +46,7 @@
       "rNaptDNfFXo1quhKwMaNPf66iwPqA8YLky",
       "rno91tGDJeRcnM7EMXj8KG9UTyxRGMMz8s"
     ],
-    "domain": "ripplecn.com",
-    "status": "active"
+    "domain": "ripplecn.com"
   }, {
     "name": "Payroutes",
     "start_date": "2013-04-24",
@@ -69,8 +66,7 @@
       "rHr8CsFu3rZ4fNHfH8X74NZsSso1K7wxfA",
       "rMjTFFewweaqgNjUBLnGC2p9qA8UuEEGpj"
     ],
-    "domain": "payroutes.com",
-    "status": "active"
+    "domain": "payroutes.com"
   }, {
     "name": "SnapSwap",
     "start_date": "2013-06-18",
@@ -89,8 +85,7 @@
       "rsTQ7iwrCik9Ugc3zbpcbo2K3SbAdYJss1",
       "rnd8KJ4qeip6FPJvC1fyv82nW2Lm8C8KjQ"
     ],
-    "domain": "snapswap.us",
-    "status": "active"
+    "domain": "snapswap.us"
   }, {
     "name": "BTC 2 Ripple",
     "start_date": "2013-06-18",
@@ -104,8 +99,7 @@
       "rwm98fCBS8tV1YB8CGho8zUPW5J7N41th2",
       "r5ymZSvtdNgbKVc8ay1Jhmq5f9QgnvEtj"
     ],
-    "domain": "btc2ripple.com",
-    "status": "active"
+    "domain": "btc2ripple.com"
   }, {
     "name": "The Rock Trading",
     "start_date": "2013-05-19",
@@ -121,8 +115,7 @@
     "hotwallets": [
       "rUeFPRGNjtcbtezyQKKiDcS1eQyYLQ1gcr"
     ],
-    "domain": "therocktrading.com",
-    "status": "active"
+    "domain": "therocktrading.com"
   }, {
     "name": "WisePass",
     "start_date": "2013-04-28",
@@ -141,8 +134,7 @@
     "hotwallets": [
       "r9xAQUyqs53QH2PLxe7iFbNbpU2RA9QtZx"
     ],
-    "domain": "wisepass.com",
-    "status": "active"
+    "domain": "wisepass.com"
   }, {
     "name": "Dividend Rippler",
     "accounts": [{
@@ -152,8 +144,7 @@
       }
     }],
     "hotwallets": [],
-    "domain": "dividendrippler.com",
-    "status": "active"
+    "domain": "dividendrippler.com"
   }, {
     "name": "RippleUnion",
     "start_date": "2013-03-22",
@@ -164,8 +155,7 @@
       }
     }],
     "hotwallets": [],
-    "domain": "rippleunion.com",
-    "status": "active"
+    "domain": "rippleunion.com"
   },{
     "name": "Justcoin",
     "start_date": "2013-07-29",
@@ -180,8 +170,7 @@
       }
     }],
     "hotwallets": [],
-    "domain": "justcoin.com",
-    "status": "active"
+    "domain": "justcoin.com"
   }, {
     "name": "DotPayco",
     "start_date": "2013-06-02",
@@ -192,8 +181,7 @@
     "hotwallets": [
       "rEXHeNZM52TUyoXkBqNqsteHoiZvy26GHS"
     ],
-    "domain": "xrpchina.net",
-    "status": "active"
+    "domain": "xrpchina.net"
   }, {
     "name": "Ripple Singapore",
     "start_date": "2014-01-25",
@@ -207,8 +195,7 @@
       }
     }],
     "hotwallets": [],
-    "domain": "ripplesingapore.com",
-    "status": "active"
+    "domain": "ripplesingapore.com"
   }, {
     "name": "Ripple Trade Japan",
     "start_date": "2014-02-21",
@@ -219,8 +206,7 @@
     "hotwallets": [
       "r3bStftDydy4dKEUBc9YMabTTk98uZzMpF"
     ],
-    "domain": "rippletrade.jp",
-    "status": "active"
+    "domain": "rippletrade.jp"
   }, {
     "name": "Bitso",
     "start_date": "2014-05-22",
@@ -234,8 +220,7 @@
     "hotwallets": [
       "rHZaDC6tsGN2JWGeXhjKL6664RNCq5hu4B"
     ],
-    "domain": "bitso.com",
-    "status": "active"
+    "domain": "bitso.com"
   }, {
     "name": "Coinex",
     "start_date": "2014-04-01",
@@ -252,8 +237,7 @@
     "hotwallets": [
       "rGAmy1w1ENyTJ9BCAEicYyRM2Yk1iWZ7Z5"
     ],
-    "domain": "coinexgateway.com",
-    "status": "active"
+    "domain": "coinexgateway.com"
   }, {
     "name": "Ripple LatAm",
     "start_date": "2014-05-01",
@@ -274,8 +258,7 @@
     "hotwallets": [
       "raoFdQah8c8owTj4TPMr8o1WntnXybXCgB"
     ],
-    "domain": "ripplelatam.com",
-    "status": "active"
+    "domain": "ripplelatam.com"
   }, {
     "name": "Ripple Fox",
     "start_date": "2014-04-19",
@@ -292,8 +275,7 @@
       "rPcQaiyDxMwLr7Q9eFmn5VnVx2RN57MUmN",
       "r3ipidkRUZWq8JYVjnSnNMf3v7o69vgLEW"
     ],
-    "domain": "ripplefox.com",
-    "status": "active"
+    "domain": "ripplefox.com"
   }, {
     "name": "GBI",
     "start_date": "2014-07-28",
@@ -305,8 +287,7 @@
       }
     }],
     "hotwallets": [],
-    "domain": "goldbullioninternational.com",
-    "status": "active"
+    "domain": "goldbullioninternational.com"
   }, {
     "name": "Lake BTC",
     "start_date": "2014-05-19",
@@ -319,8 +300,7 @@
     "hotwallets": [
       "rP9gFJKqKGWdR4n6XjdsUPqmJfXkg4kSgZ"
     ],
-    "domain": "lakebtc.com",
-    "status": "active"
+    "domain": "lakebtc.com"
   }, {
     "name": "TokyoJPY",
     "start_date": "2014-08-18",
@@ -331,9 +311,7 @@
     "hotwallets": [
       "rHENTPe3nMDLGJd59e5a3tYH9BXz1nFhvA"
     ],
-    "domain": "tokyojpy.com",
-    "status": "active",
-    "featured" : true
+    "domain": "tokyojpy.com"
   }, {
     "name": "Rippex",
     "start_date": "2014-09-13",
@@ -342,8 +320,7 @@
       "currencies": {"BRL" : { "featured" : true }}
     }],
     "hotwallets": ["r37FUji17jCgCZvAUc8m5YqXquwHpgwa9q"],
-    "domain": "rippex.net",
-    "status": "active"
+    "domain": "rippex.net"
   }, {
     "name": "Digital Gate Japan",
     "start_date": "2014-08-12",
@@ -352,8 +329,7 @@
       "currencies": {"JPY" : { "featured" : true }}
       }],
     "hotwallets": [],
-    "domain": "ripple-market.jp",
-    "status": "active"
+    "domain": "ripple-market.jp"
   }, {
     "name": "Pax Moneta",
     "start_date": "2014-09-06",
@@ -367,8 +343,7 @@
     "hotwallets": [
       "rhLSigWL4J9JBBW1JFMBvaduDkVghG7cc2"
     ],
-    "domain": "paxmoneta.com",
-    "status": "active"
+    "domain": "paxmoneta.com"
   }, {
     "name": "Ripple Exchange Tokyo",
     "start_date": "2014-09-25",
@@ -377,8 +352,7 @@
       "currencies": {"JPY" : { "featured" : true }}
     }],
     "hotwallets": [],
-    "domain": "ripple-exchange.tokyo",
-    "status": "active"
+    "domain": "ripple-exchange.tokyo"
   }, {
     "name": "Ripula",
     "start_date": "2014-10-16",
@@ -389,8 +363,7 @@
     "hotwallets": [
       "rUR5QVHqFxRa8TSQawc1M6jKj7BvKzbHek"
     ],
-    "domain": "ripula.co.uk",
-    "status": "active"
+    "domain": "ripula.co.uk"
   }, {
     "name": "Mr. Ripple",
     "start_date":"2014-10-05",
@@ -404,8 +377,7 @@
       }
     }],
     "hotwallets": [],
-    "domain" : "mr-ripple.com",
-    "status" : "active"
+    "domain" : "mr-ripple.com"
   }, {
     "name": "Gatehub",
     "start_date":"2015-02-15",
@@ -417,8 +389,7 @@
         }
     }],
     "hotwallets": ["rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4"],
-    "domain": "gatehub.net",
-    "status" : "active"
+    "domain": "gatehub.net"
   }, {
     "name": "EXRP",
     "start_date":"2015-03-16",
@@ -429,7 +400,6 @@
         }
     }],
     "hotwallets": [],
-    "domain": "exrp.co.kr",
-    "status" : "active"
+    "domain": "exrp.co.kr"
   }
 ]
