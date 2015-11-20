@@ -30,6 +30,10 @@ var AcccountBalanceChanges = function(req, res) {
         delete ex.client;
         delete ex.account;
         ex.executed_time = smoment(ex.executed_time).format();
+        if (ex.change_type === 'fee' ||
+            ex.change_type === 'network fee') {
+          ex.change_type = 'transaction_cost';
+        }
       });
 
       successResponse(changes);
