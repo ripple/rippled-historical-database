@@ -85,6 +85,10 @@ var getPayments = function (req, res, next) {
 
         } else {
           r.executed_time = smoment(r.executed_time).format();
+          r.transaction_cost = r.fee;
+          delete r.fee;
+          delete r.rowkey;
+          delete r.client;
         }
       });
 
