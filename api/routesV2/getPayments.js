@@ -111,7 +111,7 @@ var getPayments = function (req, res, next) {
     } else {
       res.status(500).json({
         result: 'error',
-        message: 'unable to retrieve ledger'
+        message: 'unable to retrieve payments'
       });
     }
   }
