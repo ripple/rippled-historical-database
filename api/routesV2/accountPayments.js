@@ -30,7 +30,6 @@ var AccountPayments = function (req, res, next) {
           p.transaction_cost = p.fee;
           delete p.fee;
           delete p.rowkey;
-          delete p.tx_index;
           delete p.client;
         });
 
