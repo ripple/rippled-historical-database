@@ -2,6 +2,7 @@
 
 var express = require('express');
 var bodyParser = require('body-parser');
+var compression = require('compression')
 var Hbase = require('../lib/hbase/hbase-client');
 var cors = require('cors');
 var Postgres = require('./lib/db');
@@ -25,6 +26,7 @@ var Server = function (options) {
   app.use(cors());
   app.use(filterDuplicateQueryParams);
   app.use(favicon(__dirname + '/favicon.png'));
+  app.use(compression());
 
   // v1 routes (requires postgres)
   if (options.postgres) {
