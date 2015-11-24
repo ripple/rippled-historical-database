@@ -77,15 +77,15 @@ var Server = function (options) {
     app.get('/v2/stats/:family', routesV2.stats);
     app.get('/v2/stats/:family/:metric', routesV2.stats);
     app.get('/v2/maintenance/:domain', routesV2.maintenance);
+
+    // index page
+    app.get('/', map.generate);
+    app.get('/v2', map.generate);
+
+    //404
+    app.get('*', map.generate404);
+    app.post('*', map.generate404);
   }
-
-  // index page
-  app.get('/', map.generate);
-  app.get('/v2', map.generate);
-
-  //404
-  app.get('*', map.generate404);
-  app.post('*', map.generate404);
 
   // start the server
   server = app.listen(options.port);

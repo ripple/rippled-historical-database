@@ -135,7 +135,6 @@ var generateDeprecated = function(req, res) {
   var data = {
     result: 'error',
     message: 'This endpoint has been deprecated: ' + req.originalUrl,
-    'api-map': generateMap(url)
   };
 
   res.setHeader('Content-Type', 'application/json');
