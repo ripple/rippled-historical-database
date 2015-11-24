@@ -138,7 +138,7 @@ var generateDeprecated = function(req, res) {
   };
 
   res.setHeader('Content-Type', 'application/json');
-  res.status(404).send(JSON.stringify(data, undefined, 2));
+  res.status(410).send(JSON.stringify(data, undefined, 2));
 };
 
 module.exports = {
