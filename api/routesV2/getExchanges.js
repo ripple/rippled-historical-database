@@ -202,31 +202,13 @@ var getExchanges = function(req, res) {
       if (err) {
         errorResponse(err);
       } else if (options.reduce) {
+        formatInterval(resp.reduced);
         resp.rows = [resp.reduced];
         successResponse(resp);
 
       } else {
         if (options.interval) {
-          resp.rows.forEach(function(ex) {
-            delete ex.rowkey;
-            delete ex.sort_open;
-            delete ex.sort_close;
-
-            ex.open_time = smoment(ex.open_time).format();
-            ex.close_time = smoment(ex.close_time).format();
-            ex.start = smoment(ex.start).format();
-            ex.base_currency = options.base.currency;
-            ex.base_issuer = options.base.issuer;
-            ex.counter_currency = options.counter.currency;
-            ex.counter_issuer = options.counter.issuer;
-            ex.base_volume = ex.base_volume.toString();
-            ex.counter_volume = ex.counter_volume.toString();
-            ex.open = ex.open.toPrecision(PRECISION);
-            ex.high = ex.high.toPrecision(PRECISION);
-            ex.low = ex.low.toPrecision(PRECISION);
-            ex.close = ex.close.toPrecision(PRECISION);
-            ex.vwap = ex.vwap.toPrecision(PRECISION);
-          });
+          resp.rows.forEach(formatInterval);
 
         } else {
           resp.rows.forEach(function(ex) {
@@ -248,6 +230,28 @@ var getExchanges = function(req, res) {
         successResponse(resp);
       }
     });
+  }
+
+
+  function formatInterval(ex) {
+    delete ex.rowkey;
+    delete ex.sort_open;
+    delete ex.sort_close;
+
+    ex.open_time = smoment(ex.open_time).format();
+    ex.close_time = smoment(ex.close_time).format();
+    ex.start = smoment(ex.start).format();
+    ex.base_currency = options.base.currency;
+    ex.base_issuer = options.base.issuer;
+    ex.counter_currency = options.counter.currency;
+    ex.counter_issuer = options.counter.issuer;
+    ex.base_volume = ex.base_volume.toString();
+    ex.counter_volume = ex.counter_volume.toString();
+    ex.open = ex.open.toPrecision(PRECISION);
+    ex.high = ex.high.toPrecision(PRECISION);
+    ex.low = ex.low.toPrecision(PRECISION);
+    ex.close = ex.close.toPrecision(PRECISION);
+    ex.vwap = ex.vwap.toPrecision(PRECISION);
   }
 };
 
