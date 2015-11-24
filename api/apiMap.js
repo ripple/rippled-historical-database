@@ -116,7 +116,7 @@ var generate = function(req, res) {
   var map = generateMap(url);
   res.setHeader('Content-Type', 'application/json');
   res.send(JSON.stringify(map, undefined, 2));
-}
+};
 
 var generate404 = function(req, res) {
   var url = req.protocol + '://' + req.get('host') + '/v2';
@@ -128,9 +128,22 @@ var generate404 = function(req, res) {
 
   res.setHeader('Content-Type', 'application/json');
   res.status(404).send(JSON.stringify(data, undefined, 2));
-}
+};
+
+var generateDeprecated = function(req, res) {
+  var url = req.protocol + '://' + req.get('host') + '/v2';
+  var data = {
+    result: 'error',
+    message: 'This endpoint has been deprecated: ' + req.originalUrl,
+    'api-map': generateMap(url)
+  };
+
+  res.setHeader('Content-Type', 'application/json');
+  res.status(404).send(JSON.stringify(data, undefined, 2));
+};
 
 module.exports = {
   generate: generate,
-  generate404: generate404
+  generate404: generate404,
+  deprecated: generateDeprecated
 };

@@ -28,18 +28,13 @@ var Server = function (options) {
   app.use(favicon(__dirname + '/favicon.png'));
   app.use(compression());
 
-  // v1 routes (requires postgres)
-  if (options.postgres) {
-    postgres = new Postgres(options.postgres);
-    routes = Routes(postgres);
-
-    app.get('/v1/accounts/:address/transactions', routes.accountTx);
-    app.get('/v1/accounts/:address/transactions/:sequence', routes.accountTxSeq);
-    app.get('/v1/accounts/:address/balances', routes.accountBalances);
-    app.get('/v1/ledgers/:ledger_param?', routes.getLedger);
-    app.get('/v1/transactions/:tx_hash', routes.getTx);
-    app.get('/v1/last_validated', routes.getLastValidated);
-  }
+  // deprecated v1 routes
+  app.get('/v1/accounts/:address/transactions', map.deprecated);
+  app.get('/v1/accounts/:address/transactions/:sequence', map.deprecated);
+  app.get('/v1/accounts/:address/balances', map.deprecated);
+  app.get('/v1/ledgers/:ledger_param?', map.deprecated);
+  app.get('/v1/transactions/:tx_hash', map.deprecated);
+  app.get('/v1/last_validated', map.deprecated);
 
   // v2 routes (requires hbase)
   if (options.hbase) {
