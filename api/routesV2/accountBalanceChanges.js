@@ -1,9 +1,17 @@
 'use strict';
 
 var Logger = require('../../lib/logger');
-var log = new Logger({scope : 'get account balance changes'});
+var log = new Logger({scope : 'account balance changes'});
 var smoment = require('../../lib/smoment');
 var utils = require('../../lib/utils');
+var types = [
+  'transaction_cost',
+  'exchange',
+  'intermediary',
+  'payment_source',
+  'payment_destination'
+];
+
 var hbase;
 
 /**
@@ -18,7 +26,7 @@ var AcccountBalanceChanges = function(req, res) {
     return;
   }
 
-  log.info("ACCOUNT BALANCE CHANGE:", options.account);
+  log.info(options.account);
 
   hbase.getAccountBalanceChanges(options, function(err, changes) {
     if (err) {
@@ -44,8 +52,9 @@ var AcccountBalanceChanges = function(req, res) {
 
     var options = {
       account: req.params.address,
+      counterparty: req.query.counterparty || req.query.issuer,
       currency: req.query.currency,
-      issuer: req.query.issuer,
+      type: req.query.change_type || req.query.type,
       limit: req.query.limit,
       start: smoment(req.query.start || '2013-01-01'),
       end: smoment(req.query.end),
@@ -60,11 +69,21 @@ var AcccountBalanceChanges = function(req, res) {
       return {error: 'invalid end date format', code: 400};
     }
 
-    if (options.issuer &&
+    if (options.counterparty &&
        options.currency &&
        options.currency.toUpperCase() === 'XRP') {
       return {
-        error: 'invalid request: an issuer cannot be specified for XRP',
+        error: 'counterparty cannot be specified for XRP',
+        code: 400
+      };
+    }
+
+    if (options.type && options.type === 'transaction_cost') {
+      options.type = 'fee';
+
+    } else if (options.type && types.indexOf(options.type) === -1) {
+        return {
+        error: 'invalid change_type - use: ' + types.join(', '),
         code: 400
       };
     }
