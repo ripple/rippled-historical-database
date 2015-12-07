@@ -11,14 +11,18 @@ var RoutesV2 = require('./routesV2');
 var map = require('./apiMap');
 var json2csv = require('nice-json2csv');
 var favicon = require('serve-favicon');
+var ripple = require('ripple-lib');
 
 var Server = function (options) {
+  var rippleAPI = new ripple.RippleAPI(options.ripple);
   var app = express();
   var hbase;
   var routesV2;
   var postgres;
   var routes;
   var server;
+
+  rippleAPI.connect();
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({extended:true}));
@@ -39,7 +43,7 @@ var Server = function (options) {
   // v2 routes (requires hbase)
   if (options.hbase) {
     hbase = new Hbase(options.hbase);
-    routesV2 = RoutesV2(hbase);
+    routesV2 = RoutesV2(hbase, rippleAPI);
 
     app.get('/v2/health/:aspect?', routesV2.checkHealth);
     app.get('/v2/gateways/:gateway?', routesV2.gateways.Gateways);

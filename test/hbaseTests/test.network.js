@@ -31,7 +31,7 @@ describe('network - exchange volume', function() {
       hbase.putRow(table, 'payment_volume|day|20150114000000', mockPaymentVolume),
       hbase.putRow(table, 'issued_value|20150114000000', mockIssuedValue),
       hbase.putRow(table, 'issued_value|20150113000000', mockIssuedValue)
-    ]).nodeify(function(err, resp){
+    ]).nodeify(function(err, resp) {
       assert.ifError(err);
       done();
     });

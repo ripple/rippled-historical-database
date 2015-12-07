@@ -4,12 +4,8 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account orders'});
 var request = require('request');
 var smoment = require('../../lib/smoment');
-var config = require('../../config/api.config');
-var ripple = require('ripple-lib');
-var rippleAPI = new ripple.RippleAPI(config.get('ripple'));
+var rippleAPI;
 var hbase;
-
-rippleAPI.connect();
 
 function accountOrders(req, res) {
   var options = {
@@ -153,7 +149,8 @@ function accountOrders(req, res) {
   }
 }
 
-module.exports = function(db) {
+module.exports = function(db, r) {
   hbase = db;
+  rippleAPI = r;
   return accountOrders;
 };

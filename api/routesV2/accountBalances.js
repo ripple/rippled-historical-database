@@ -4,12 +4,8 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account balances'});
 var request = require('request');
 var smoment = require('../../lib/smoment');
-var config  = require('../../config/api.config');
-var ripple = require('ripple-lib');
-var rippleAPI = new ripple.RippleAPI(config.get('ripple'));
+var rippleAPI;
 var hbase;
-
-rippleAPI.connect();
 
 var accountBalances = function (req, res, next) {
 
@@ -156,7 +152,8 @@ var accountBalances = function (req, res, next) {
   }
 };
 
-module.exports = function(db) {
+module.exports = function(db, r) {
   hbase = db;
+  rippleAPI = r;
   return accountBalances;
 };

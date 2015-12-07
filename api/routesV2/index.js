@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function(db) {
+module.exports = function(db, rippleAPI) {
   var Routes = { };
 
   Routes.getLedger = require('./getLedger')(db);
@@ -9,8 +9,8 @@ module.exports = function(db) {
   Routes.accountTransactions = require('./accountTransactions')(db);
   Routes.accountExchanges = require('./accountExchanges')(db);
   Routes.accountPayments = require('./accountPayments')(db);
-  Routes.accountBalances = require('./accountBalances')(db);
-  Routes.accountOrders = require('./accountOrders')(db);
+  Routes.accountBalances = require('./accountBalances')(db, rippleAPI);
+  Routes.accountOrders = require('./accountOrders')(db, rippleAPI);
   Routes.getChanges = require('./accountBalanceChanges')(db);
   Routes.getPayments = require('./getPayments')(db);
   Routes.getExchanges = require('./getExchanges')(db);

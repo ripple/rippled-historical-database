@@ -1,5 +1,5 @@
-var config = require('../../config/import.config');
 var Server = require('../../api/server');
+var config = require('../../config/import.config');
 var assert = require('assert');
 var request = require('request');
 var hbaseConfig = config.get('hbase');
