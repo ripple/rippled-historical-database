@@ -41,11 +41,12 @@ tx.metaData = tx.meta;
 tx.executed_time = tx.date + EPOCH_OFFSET;
 parsed = Parser.parseTransaction(tx);
 tables = hbase.prepareParsedData(parsed);
-//console.log(parsed.offers);
-console.log(parsed.exchanges);
-console.log(tables.exchanges);
+//console.log(parsed.balanceChanges);
+console.log(tables.balance_changes);
 process.exit();
 return;
+
+
 
 //start import stream
 live.backFill(10000000, 10001000);
@@ -53,11 +54,8 @@ live.on('ledger', function(ledger) {
   console.log(ledger.ledger_index);
 
   var parsed = Parser.parseLedger(ledger);
-  parsed.payments.forEach(function(p) {
-    if (p.currency !== 'XRP') {
-      console.log(p);
-    }
-  })
+  var tables = hbase.prepareParsedData(parsed);
+  console.log(tables.balance_changes);
   return;
 
   //ledger.transactions.forEach(function(tx) {
