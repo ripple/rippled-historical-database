@@ -9,18 +9,22 @@ var ledger;
 
 console.log('');
 
-process.argv.forEach(function (value) {
-  if ((/account:/i).test(value)) {
-    account = value.split(':')[1];
+process.argv.forEach(function (d) {
+  var value = d.split(':');
+  var key = value.shift();
+  value = value.join(':');
 
-  } else if ((/hotwallets:/i).test(value)) {
-    hotwallets = (value.split(':')[1] || '').split(',');
+  if (key === 'account') {
+    account = value;
 
-  } else if ((/date:/i).test(value)) {
-    date = '/' + value.split(':')[1];
+  } else if (key === 'hotwallets') {
+    hotwallets = value.split(',');
 
-  } else if ((/ledger:/i).test(value)) {
-    ledger = value.split(':')[1];
+  } else if (key = 'date') {
+    date = '/' + value;
+
+  } else if (key === 'ledger') {
+    ledger = value;
   }
 });
 
