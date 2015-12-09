@@ -183,7 +183,8 @@ var Assets = function(req, res) {
 
   res.sendFile(assetPath + '/' + name + '.' + filename, null, function(err) {
     if (err) {
-      res.status(err.status)
+      log.error(err);
+      res.status(err.status || 500)
       .send({
         result: 'error',
         message: 'asset not found.'
@@ -214,7 +215,9 @@ var Currencies = function (req, res, next) {
       });
 
     } else if (err) {
-      res.status(err.status).send({
+      log.error(err);
+      res.status(err.status || 500)
+      .send({
         result: 'error',
         message: 'server error.'
       });
