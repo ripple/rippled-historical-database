@@ -27,6 +27,7 @@ var Server = function (options) {
   app.use(filterDuplicateQueryParams);
   app.use(favicon(__dirname + '/favicon.png'));
   app.use(compression());
+  app.use(cacheControl);
 
   // deprecated v1 routes
   app.get('/v1/accounts/:address/transactions', map.deprecated);
@@ -108,6 +109,15 @@ var Server = function (options) {
     }
   };
 };
+
+
+/**
+ * cacheControl
+ */
+function cacheControl(req, res, next) {
+  res.setHeader('Cache-Control', 'max-age=2');
+  next();
+}
 
 /**
  * filterDuplicateQueryParams
