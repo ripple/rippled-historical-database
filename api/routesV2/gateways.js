@@ -138,6 +138,9 @@ var Gateways = function(req, res) {
   var address = req.params.gateway;
   var gateway;
 
+  // cache for 1 hour
+  res.setHeader('Cache-Control', 'max-age=3600');
+
   // single gateway
   if (address) {
     gateway = getGateway(address);
@@ -180,7 +183,7 @@ var Assets = function(req, res) {
   }
 
   name = normalize(gateway.name);
-
+  res.setHeader('Cache-Control', 'max-age=3600');
   res.sendFile(assetPath + '/' + name + '.' + filename, null, function(err) {
     if (err) {
       log.error(err);
@@ -201,6 +204,7 @@ var Currencies = function (req, res, next) {
   var filename = (req.params.currencyAsset || 'default.svg').toLowerCase();
 
   log.info('currency:', filename);
+  res.setHeader('Cache-Control', 'max-age=3600');
   res.sendFile(currencies + '/' + filename, null, function(err) {
 
     //send default svg if its not found
