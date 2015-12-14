@@ -115,7 +115,7 @@ var Server = function (options) {
  * cacheControl
  */
 function cacheControl(req, res, next) {
-  res.setHeader('Cache-Control', 'max-age=2');
+  res.setHeader('Cache-Control', 'max-age=1');
   next();
 }
 
