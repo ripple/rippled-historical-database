@@ -79,6 +79,51 @@ describe('account payments API endpoint', function() {
     });
   });
 
+  it('should filter by destination tag', function(done) {
+    var account = 'rBeToNo4AwHaNbRX2n4BNCYKtpTyFLQwkj';
+    var tag = 223051;
+    var url = 'http://localhost:' + port +
+      '/v2/accounts/' + account + '/payments' +
+      '?destination_tag=' + tag;
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.payments.length, 8);
+      body.payments.forEach( function(pay) {
+        assert.strictEqual(pay.destination, account);
+        assert.strictEqual(pay.destination_tag, tag)
+      });
+      done();
+    });
+  });
+
+  it('should filter by source tag', function(done) {
+    var account = 'rUeXUxaMTH1pELvD2EkiHTRcM9FsH3v4d7';
+    var tag = 1848687941;
+    var url = 'http://localhost:' + port +
+      '/v2/accounts/' + account + '/payments' +
+      '?source_tag=' + tag;
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.payments.length, 1);
+      body.payments.forEach( function(pay) {
+        assert.strictEqual(pay.source, account);
+        assert.strictEqual(pay.source_tag, tag)
+      });
+      done();
+    });
+  });
+
+
   it('should make sure /accounts/:account/payments handles pagination correctly', function(done) {
     this.timeout(5000);
     var url = 'http://localhost:' + port + '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?';

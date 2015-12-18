@@ -48,6 +48,8 @@ var AccountPayments = function (req, res, next) {
       start: smoment(req.query.start || '2013-01-01'),
       end: smoment(req.query.end),
       type: req.query.type ? req.query.type.toLowerCase() : undefined,
+      destination_tag: req.query.destination_tag,
+      source_tag: req.query.source_tag,
       currency: req.query.currency ? req.query.currency.toUpperCase() : undefined,
       marker: req.query.marker,
       descending: (/true/i).test(req.query.descending) ? true : false,

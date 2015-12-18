@@ -17,7 +17,7 @@ describe('ledgers API endpoint', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(typeof body.ledger, 'object');
-      assert.strictEqual(body.ledger.ledger_index, 11616413);
+      assert.strictEqual(body.ledger.ledger_index, 11618225);
       assert.strictEqual(body.ledger.transactions, undefined);
       done();
     });

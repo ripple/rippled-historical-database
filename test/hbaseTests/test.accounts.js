@@ -21,7 +21,7 @@ describe('accounts API endpoint', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.accounts.length, body.count);
-      assert.strictEqual(body.accounts.length, 12);
+      assert.strictEqual(body.accounts.length, 13);
       body.accounts.forEach(function(a) {
         assert.strictEqual(typeof a.ledger_index, 'number');
         assert.strictEqual(typeof a.initial_balance, 'string');
@@ -81,7 +81,7 @@ describe('accounts API endpoint', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.accounts.length, body.count);
-      assert.strictEqual(body.accounts.length, 12);
+      assert.strictEqual(body.accounts.length, 13);
       body.accounts.forEach(function(a) {
         assert(last >= a.ledger_index);
         last = a.ledger_index;
@@ -141,7 +141,7 @@ describe('accounts API endpoint', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.accounts.length, body.count);
-      assert.strictEqual(body.accounts.length, 2);
+      assert.strictEqual(body.accounts.length, 3);
       assert.strictEqual(body.accounts[0].date, '2013-06-11T20:00:00Z');
       assert.strictEqual(body.accounts[1].date, '2013-10-25T10:00:00Z');
       assert.strictEqual(body.accounts[0].count, 9);
