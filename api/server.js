@@ -41,6 +41,10 @@ var Server = function (options) {
   app.get('/v1/transactions/:tx_hash', map.deprecated);
   app.get('/v1/last_validated', map.deprecated);
 
+  app.get('/loaderio-cb728c2a720b42b3a8ea5bc7ef4fabb6.txt', function(req, res) {
+    res.send('loaderio-cb728c2a720b42b3a8ea5bc7ef4fabb6');
+  });
+
   // v2 routes (requires hbase)
   if (options.hbase) {
     hbase = new Hbase(options.hbase);
