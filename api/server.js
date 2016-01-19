@@ -55,8 +55,8 @@ var Server = function (options) {
     app.get('/v2/network/exchange_volume', routesV2.network.exchangeVolume);
     app.get('/v2/network/payment_volume', routesV2.network.paymentVolume);
     app.get('/v2/network/issued_value', routesV2.network.issuedValue);
-    //app.get('/v2/network/top_markets', routesV2.network.topMarkets);
-    //app.get('/v2/network/top_currencies', routesV2.network.topCurrencies);
+    app.get('/v2/network/top_markets/:date?', routesV2.network.topMarkets);
+    app.get('/v2/network/top_currencies/:date?', routesV2.network.topCurrencies);
     app.get('/v2/last_validated', routesV2.getLastValidated);
     app.get('/v2/transactions/', routesV2.getTransactions);
     app.get('/v2/transactions/:tx_hash', routesV2.getTransactions);
