@@ -1,6 +1,7 @@
 'use strict';
 
 var async = require('async');
+var Promise = require('bluebird');
 var utils = require('../lib/utils');
 var smoment = require('../lib/smoment');
 var config = require('../config/import.config');
@@ -18,7 +19,8 @@ var options = {
   interval: config.get('interval'),
   start: config.get('start'),
   end: config.get('end'),
-  save: config.get('save')
+  save: config.get('save'),
+  top: config.get('top')
 };
 
 if (!options.save) {
@@ -157,188 +159,232 @@ function aggregatePayments(params) {
 
 function handleAggregation(params, done) {
 
-  // prepare results
-  var result = {
-    startTime: params.start.moment.format(),
-    exchange: { currency: 'XRP' },
-    exchangeRate: 1,
-    total: 0,
-    count: 0
-  };
+  getCurrencies()
+  .then(getVolumes)
+  .then(getRates)
+  .then(normalize)
+  .then(save)
+  .then(done);
 
-  // get payment volume for each currency
-  async.map(currencies, function(c, asyncCallbackPair) {
+  function getCurrencies() {
+    return new Promise(function(resolve, reject) {
+      var date;
+      var max;
 
-    var currency = {
-      currency: c.currency,
-      issuer: c.issuer
-    };
+      if (options.top) {
 
-    hbase.getPayments({
-      currency: c.currency,
-      issuer: c.issuer,
-      start: smoment(params.start),
-      end: smoment(params.end || params.start),
-      interval: params.interval,
-      reduce: params.interval ? false : true,
-      descending: false
-    },
-    function(err, data) {
+        if (!params.live) {
+          max = smoment();
+          max.moment.subtract(2, 'days').startOf('day');
 
-      if (err) {
-        asyncCallbackPair(err);
-        return;
-      }
+          // get the date at the end
+          // of the provided interval
+          date = smoment(params.time);
+          date.moment.startOf(params.interval);
 
-      if (params.interval && data) {
-        currency.amount = data.rows && data.rows[0] ? data.rows[0].amount : 0;
-        currency.count = data.rows && data.rows[0] ? data.rows[0].count : 0;
-      } else if (data) {
-        currency.amount = data.amount;
-        currency.count = data.count;
+          // use max if the date
+          // provided is later than that
+          if (date.moment.diff(max.moment) > 0) {
+            date = max;
+          }
+        }
+
+        hbase.getTopCurrencies({date: date}, function(err, currencyList) {
+
+          if (err) {
+            reject(err);
+
+          // no markets found
+          } else if (!currencyList.length) {
+            reject('no markets found');
+
+          } else {
+            currencyList.push({
+              currency: 'XRP'
+            });
+
+            resolve(currencyList);
+          }
+        });
+
       } else {
-        currency.amount = 0;
-        currency.count = 0;
+        resolve(currencies);
       }
-
-      asyncCallbackPair(null, currency);
     });
-  }, normalize);
+  }
+
+  /**
+   * getVolumes
+   * get payment volume for each currency
+   */
+
+  function getVolumes(currencyList) {
+    return new Promise(function(resolve, reject) {
+      async.map(currencyList, function(c, asyncCallbackPair) {
+
+        var currency = {
+          currency: c.currency,
+          issuer: c.issuer
+        };
+
+        hbase.getPayments({
+          currency: c.currency,
+          issuer: c.issuer,
+          start: smoment(params.start),
+          end: smoment(params.end || params.start),
+          interval: params.interval,
+          reduce: params.interval ? false : true,
+          descending: false
+        },
+        function(err, data) {
+
+          if (err) {
+            asyncCallbackPair(err);
+            return;
+          }
+
+          if (params.interval && data) {
+            currency.amount = data.rows && data.rows[0] ? data.rows[0].amount : 0;
+            currency.count = data.rows && data.rows[0] ? data.rows[0].count : 0;
+          } else if (data) {
+            currency.amount = data.amount;
+            currency.count = data.count;
+          } else {
+            currency.amount = 0;
+            currency.count = 0;
+          }
+
+          asyncCallbackPair(null, currency);
+        });
+      }, function (err, resp) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(resp);
+        }
+      });
+    });
+  }
+
+
+  /**
+   * getRates
+   */
+
+  function getRates(data) {
+
+    return new Promise(function(resolve, reject) {
+
+      // get exchanges for each pair
+      async.map(data, function(d, asyncCallbackPair) {
+
+        if (d.currency === 'XRP') {
+          d.rate = 1;
+          asyncCallbackPair(null, d);
+          return;
+        }
+
+        var start = smoment(params.start);
+        var end = smoment(params.start);
+        start.moment.subtract(14, 'days');
+
+        var options = {
+          base: { currency: 'XRP' },
+          counter: { currency: d.currency, issuer: d.issuer },
+          start: start,
+          end: end,
+          descending: true
+        };
+
+        // use last 50 trades for live
+        if (params.live) {
+          options.limit = 50;
+          options.reduce = true;
+
+        // use daily rate
+        // from the previous day
+        } else {
+          end.moment.subtract(1, 'day');
+          options.interval = '1day';
+          options.limit = 1;
+        }
+
+        hbase.getExchanges(options, function(err, resp) {
+          if (err) {
+            asyncCallbackPair(err);
+            return;
+          }
+
+          if (resp && resp.reduced) {
+            d.rate = resp.reduced.vwap;
+          } else if (resp && resp.rows.length) {
+            d.rate = resp.rows[0].vwap;
+          } else {
+            d.rate = 0;
+          }
+
+          asyncCallbackPair(null, d);
+        });
+
+      }, function (err, resp) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(resp);
+        }
+      });
+    });
+  }
 
   /**
    * normalize
    */
 
-  function normalize(err, resp) {
+  function normalize(data) {
+    var total = 0;
 
-    if (err) {
-      done(err);
-      return;
-    }
-
-    var currencies = resp;
-
-    getExchangeRates(params, function(err, rates) {
-      if (err) {
-        done(err);
-        return;
-      }
-
-      // apply rates to each currency
-      rates.forEach(function(pair, index) {
-        currencies[index].rate = pair.rate || 0;
-        currencies[index].convertedAmount = pair.rate ?
-          currencies[index].amount / pair.rate : 0;
-      });
-
-      // add up the totals
-      currencies.forEach(function(currency, index) {
-
-        if (currency.currency == "XRP") {
-          currency.rate            = 1; //for XRP
-          currency.convertedAmount = currency.amount;
-        }
-
-        result.total += currency.convertedAmount;
-        result.count += currency.count;
-      });
-
-      result.components = currencies;
-      handleResult(result);
+    data.forEach(function(d) {
+      d.convertedAmount = d.rate ? d.amount / d.rate : 0;
+      total += d.convertedAmount;
     });
+
+    return {
+      startTime: smoment(params.start).format(),
+      total: total,
+      exchange: { currency:'XRP' },
+      exchangeRate: 1,
+      components: data
+    }
   }
 
   /**
-   * handleResult
+   * save
    */
 
-  function handleResult(result) {
+  function save(result) {
+    return new Promise(function(resolve, reject) {
+      if (options.save) {
 
-    // save data into hbase
-    if (options.save) {
+        var table = 'agg_metrics';
+        var rowkey = 'payment_volume|' + (params.live ?
+          'live' : options.interval + '|' + smoment(result.startTime).hbaseFormatStartRow());
 
-      var rowkey = 'payment_volume|' + (params.live ?
-        'live' : options.interval + '|' + smoment(result.startTime).hbaseFormatStartRow());
+        hbase.putRow(table, rowkey, result)
+        .nodeify(function(err, resp) {
 
-      console.log('saving row:', rowkey);
-      hbase.putRow('agg_metrics', rowkey, result)
-      .nodeify(function(err, resp) {
+          if (err) {
+            reject(err);
+          } else {
+            delete result.components;
+            console.log('saved:', table, rowkey);
+            console.log(result);
+            resolve(rowkey);
+          }
+        });
 
-        delete result.components;
-        if (!err) {
-          console.log(result);
-        }
-
-        done(err, result);
-      });
-
-    } else {
-      done(null, result);
-    }
-  }
-}
-
-/*
- * get exchange rates for the listed currencies
- */
-
-function getExchangeRates(params, callback) {
-
-  var options;
-
-  if (params.live) {
-    options = {
-      start: smoment('2013-01-01'),
-      end: smoment(),
-      limit: 50,
-      descending: true,
-      reduce: true
-    }
-
-  //use daily rate
-  } else {
-    options = {
-      descending: false
-    };
-
-    if (params.interval === 'week') {
-      options.interval = '7day';
-    } else if (params.interval) {
-      options.interval = '1' + params.interval;
-    } else {
-      options.reduce = true;
-    }
-  }
-
-  // get exchanges for each pair
-  async.map(conversionPairs, function(assetPair, asyncCallbackPair) {
-
-    options.base = assetPair.base;
-    options.counter = assetPair.counter;
-    options.start = smoment(params.start);
-    options.end = smoment(params.end || params.start);
-
-
-    hbase.getExchanges(options, function(err, resp) {
-
-      if (err) {
-        asyncCallbackPair(err);
-        return;
-      }
-
-      if (resp && resp.reduced) {
-        assetPair.rate = resp.reduced.vwap;
-      } else if (resp && resp.rows.length) {
-        assetPair.rate = resp.rows[0].vwap;
       } else {
-        assetPair.rate = 0;
+        resolve(result);
       }
-
-      asyncCallbackPair(null, assetPair);
     });
-
-  }, function(error, results) {
-    if (error) return callback(error);
-    return callback(null, results);
-  });
+  }
 }
