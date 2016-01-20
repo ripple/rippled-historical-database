@@ -15,7 +15,8 @@ var intervals = [
 var options = {
   start: config.get('start'),
   end: config.get('end'),
-  save: config.get('save')
+  save: config.get('save'),
+  top: config.get('top')
 };
 
 //all currencies we are going to check
@@ -147,17 +148,63 @@ function aggregateIssuedValue(params) {
 }
 
 function handleAggregation(params, done) {
-  getCapitalization()
+
+  getCurrencies()
+  .then(getCapitalization)
   .then(getRates)
   .then(normalize)
   .then(save)
   .nodeify(done);
 
-  function getCapitalization() {
+  function getCurrencies() {
+    return new Promise(function(resolve, reject) {
+      var date;
+      var max;
+
+      if (options.top) {
+
+        if (!params.live) {
+          max = smoment();
+          max.moment.subtract(2, 'days').startOf('day');
+
+          // get the date at the end
+          // of the provided interval
+          date = smoment(params.time);
+          date.moment.startOf(params.interval);
+
+          // use max if the date
+          // provided is later than that
+          if (date.moment.diff(max.moment) > 0) {
+            date = max;
+          }
+        }
+
+        hbase.getTopCurrencies({date: date}, function(err, currencyList) {
+
+          if (err) {
+            reject(err);
+
+          // no markets found
+          } else if (!currencyList.length) {
+            reject('no markets found');
+
+          } else {
+            resolve(currencyList);
+          }
+        });
+
+      } else {
+        resolve(currencies);
+      }
+    });
+  }
+
+  function getCapitalization(currencyList) {
+
     return new Promise(function(resolve, reject) {
 
       // get capitalization data for each currency
-      async.map(currencies, function(c, asyncCallbackPair) {
+      async.map(currencyList, function(c, asyncCallbackPair) {
 
         var options = {
           currency: c.currency,
