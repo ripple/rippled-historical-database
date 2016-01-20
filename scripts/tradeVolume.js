@@ -281,21 +281,24 @@ function handleAggregation (params, done) {
 
       if (options.top) {
 
-        max = smoment();
-        max.moment.subtract(2, 'days').startOf('day');
+        if (!params.live) {
+          max = smoment();
+          max.moment.subtract(2, 'days').startOf('day');
 
-        // get the date at the end
-        // of the provided interval
-        date = smoment(params.start);
-        date.moment.add(1, params.interval);
+          // get the date at the end
+          // of the provided interval
+          date = smoment(params.start);
+          date.moment.startOf(params.interval);
 
-        // use  T-2 if the date
-        // provided is later than that
-        if (date.moment.diff(max.moment) > 0) {
-          date = max;
+          // use max if the date
+          // provided is later than that
+          if (date.moment.diff(max.moment) > 0) {
+            date = max;
+          }
         }
 
         hbase.getTopMarkets({date: date}, function(err, markets) {
+
           if (err) {
             reject(err);
 
@@ -303,9 +306,19 @@ function handleAggregation (params, done) {
           } else if (!markets.length) {
             reject('no markets found');
 
-          // take top 50
+          // format results
           } else {
-            resolve(markets.slice(0, 50));
+            markets.forEach(function(market) {
+              market.base = {
+                currency: market.base_currency,
+                issuer: market.base_issuer
+              };
+              market.counter = {
+                currency: market.counter_currency,
+                issuer: market.counter_issuer
+              };
+            });
+            resolve(markets);
           }
         });
 
