@@ -324,6 +324,76 @@ describe('network - issued value', function() {
     });
   });
 
+  it('should get top markets', function(done) {
+    var date = '2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/top_markets/' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      done();
+    });
+  });
+
+  it('should error on invalid date', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/top_markets/' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid date format');
+      done();
+    });
+  });
+
+  it('should get top currencies', function(done) {
+    var date = '2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/top_currencies/' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      done();
+    });
+  });
+
+  it('should error on invalid date', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/top_currencies/' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid date format');
+      done();
+    });
+  });
+
   it('should include a link header when marker is present', function(done) {
     var url = 'http://localhost:' + port + '/v2/network/issued_value?start=2013&limit=1';
     var linkHeader = '<' + url +
