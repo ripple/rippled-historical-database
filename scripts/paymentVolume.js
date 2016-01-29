@@ -164,7 +164,7 @@ function handleAggregation(params, done) {
   .then(getRates)
   .then(normalize)
   .then(save)
-  .then(done);
+  .nodeify(done);
 
   function getCurrencies() {
     return new Promise(function(resolve, reject) {
