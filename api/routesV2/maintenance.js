@@ -2,7 +2,7 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'maintenance'});
-var domains = ['ripplecharts'];
+var domains = ['ripplecharts', 'monitoring_tools'];
 var hbase;
 
 /**
