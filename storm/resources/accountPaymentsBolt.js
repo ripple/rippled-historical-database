@@ -12,9 +12,8 @@ var log = new Logger({
   level: config.get('logLevel')
 });
 
-process.on('uncaughtException', function(e) {
-  log.error(e);
-});
+// handle uncaught exceptions
+require('./exception')(log);
 
 function AccountPaymentsBolt() {
   var options = config.get('hbase2');
