@@ -1,3 +1,5 @@
+'use strict';
+
 var request = require('request-promise');
 var Promise = require('bluebird');
 var path = require('path');
@@ -33,7 +35,7 @@ var getTopologyStatus = function() {
 
     return topology ? topology.status : 'NOT FOUND';
   });
-}
+};
 
 // get ledger status
 var getLedgerStatus = function() {
@@ -49,7 +51,7 @@ var getLedgerStatus = function() {
       resolve(gap);
     });
   });
-}
+};
 
 
 function checkStatus() {
@@ -58,7 +60,8 @@ function checkStatus() {
     getLedgerStatus()
   ])
   .then(function(resp) {
-    if (1 || resp[0] !== 'ACTIVE' || resp[1] > 60 * 5) {
+    if (resp[0] !== 'ACTIVE' ||
+        resp[1] > 60 * 5) {
       notify(resp);
       restartTopology();
     }
@@ -75,16 +78,15 @@ setInterval(checkStatus, interval);
  */
 
 function restartTopology() {
-  return;
   var script = path.resolve(__dirname + '../storm/production/importer.sh');
   var prc = spawn(script, ['restart']);
 
   prc.stdout.setEncoding('utf8');
-  prc.stdout.on('data', function (data) {
+  prc.stdout.on('data', function(data) {
     console.log(data);
   });
 
-  prc.on('close', function (code) {
+  prc.on('close', function(code) {
     console.log('process exit code ' + code);
   });
 }
@@ -93,22 +95,23 @@ function restartTopology() {
  * notify
  */
 
-function notify(info) {
+function notify(data) {
   var message;
 
-  console.log('restarting topology:', info);
+  console.log('restarting topology:', data);
 
-  if (info[0] !== 'ACTIVE') {
-    message = 'the importer script is not active: ' + info[0];
+  if (data[0] !== 'ACTIVE') {
+    message = 'the importer script is not active: ' + data[0];
   } else {
-    message = 'the last ledger was imported more than 5 minutes ago: ' + info[1];
+    message = 'the last ledger was imported ' +
+      'more than 5 minutes ago: ' + data[1];
   }
 
   var params = {
     from: 'Storm Import<storm-import@ripple.com>',
     to: to,
     subject: 'restarting topology',
-    html: "The import topology is being restarted: <br /><br />\n" +
+    html: 'The import topology is being restarted: <br /><br />\n' +
       '<blockquote><pre>' + message + '</pre></blockquote><br />\n'
   };
 
