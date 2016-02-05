@@ -9,7 +9,7 @@ var spawn = require('child_process').spawn;
 var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport();
 var to = config.get('recipients');
-var interval = 10 * 60 * 1000;
+var interval = 5 * 60 * 1000;
 var options = config.get('hbase');
 var hbase;
 
@@ -78,7 +78,7 @@ setInterval(checkStatus, interval);
  */
 
 function restartTopology() {
-  var script = path.resolve(__dirname + '../storm/production/importer.sh');
+  var script = path.resolve(__dirname + '/../storm/production/importer.sh');
   var prc = spawn(script, ['restart']);
 
   prc.stdout.setEncoding('utf8');
