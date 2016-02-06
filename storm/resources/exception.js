@@ -2,6 +2,7 @@ var config = require('./config');
 var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport();
 var to = config.get('recipients');
+var exec = require('child_process').exec;
 var log;
 
 /**
@@ -13,13 +14,34 @@ function notify(message, callback) {
     from: 'Storm Import<storm-import@ripple.com>',
     to: to,
     subject: 'uncaughtException',
-    html: "The import topology received an uncaugt exception error: <br /><br />\n" +
+    html: 'The import topology received ' +
+      'an uncaugt exception error: <br /><br />\n' +
       '<blockquote><pre>' + message + '</pre></blockquote><br />\n'
   };
 
   transporter.sendMail(params, callback);
 }
 
+/**
+ *
+ */
+
+function killTopology() {
+  exec('storm kill "ripple-ledger-importer"',
+       function callback(e, stdout, stderr) {
+    if (e) {
+      log.error(e);
+    }
+
+    if (stderr) {
+      log.error(stderr);
+    }
+
+    if (stdout) {
+      log.info(stdout);
+    }
+  });
+};
 
 module.exports = function(logger) {
   log = logger;
@@ -28,14 +50,17 @@ module.exports = function(logger) {
   process.on('uncaughtException', function(e) {
     log.error(e);
     log.error(e.stack);
+
+    //send notification
     notify(e.stack, function(err, info) {
       if (err) {
         log.error(err);
       } else {
         log.info('Notification sent: ', info.accepted);
       }
-
-      process.exit(1);
     });
+
+    //kill the topology
+    killTopology();
   });
 }
