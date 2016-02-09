@@ -106,6 +106,10 @@ var generateMap = function(url) {
         action: 'Get Transaction Statistics',
         route: '/v2/stats/{:family}/{:metric}',
         example: url + '/stats'
+      }, {
+        action: 'Check Health',
+        route: '/v2/health/{:component}',
+        example: url + '/health/importer?verbose=true'
       }
     ]
   };

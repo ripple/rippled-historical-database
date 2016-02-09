@@ -57,6 +57,7 @@ Account Methods:
 * [Get Account Exchanges - `GET /v2/accounts/{:address}/exchanges`](#get-account-exchanges)
 * [Get Account Balance Changes - `GET /v2/accounts/{:address}/balance_changes`](#get-account-balance-changes)
 * [Get Account Reports - `GET /v2/accounts/{:address}/reports`](#get-account-reports)
+* [Health Check - `GET /v2/health/{:component}`](#health-check)
 
 
 ## Get Ledger ##
@@ -222,7 +223,7 @@ Response (trimmed for size):
                         }
                     }
                 },
-                
+
                 ...
             ],
             "TransactionResult": "tesSUCCESS"
@@ -460,7 +461,7 @@ If the request specifies a `currency` and an `interval`, the result includes obj
 
 #### Example ####
 
-Request: 
+Request:
 
 ```
 GET /v2/payments/BTC+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q?limit=2
@@ -716,7 +717,7 @@ The rate is derived from the volume weighted average over the calendar day speci
 
 #### Example ####
 
-Request: 
+Request:
 
 ```
 GET /v2/exchange_rates/USD+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/XRP?date=2015-11-13T00:00:00Z
@@ -778,7 +779,7 @@ All exchange rates are calculating by converting both currencies to XRP.
 
 #### Example ####
 
-Request: 
+Request:
 
 ```
 GET /v2/normalize?amount=100&currency=XRP&exchange_currency=USD&exchange_issuer=rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q
@@ -878,9 +879,9 @@ Response (trimmed for size):
                     "amount": "40",
                     "type": "received"
                 },
-                
+
                 ...(additional results trimmed)...
-                
+
                 {
                     "tx_hash": "76041BD6546389B5EC2CDBAA543200CF7B8D300F34F908BA5CA8523B0CA158C8",
                     "amount": "1400",
@@ -892,18 +893,18 @@ Response (trimmed for size):
             "receiving_counterparties": [
                 "rDMFJrKg2jyoNG6WDWJknXDEKZ6ywNFGwD",
                 "r4XXHxraHLuCiLmLMw96FTPXXywZSnWSyR",
-                
+
                 ...(additional results trimmed)...
-                
-                
+
+
                 "rp1C4Ld6uGjurFpempUJ8q5hPSWhak5EQf"
             ],
             "sending_counterparties": [
                 "rwxcJVWZSEgN2DmLZYYjyagHjMx5jQ7BAa",
-                
+
                 ...(additional results trimmed)...
-                
-                
+
+
                 "rBK1rLjbWsSU9EuST1cAz9RsiYdJPVGXXA"
             ],
             "total_value": "210940",
@@ -921,10 +922,10 @@ Response (trimmed for size):
                     "amount": "900",
                     "type": "sent"
                 },
-                
+
                 ...(additional results trimmed)...
-                
-                
+
+
                 {
                     "tx_hash": "EC25427964419394BB5D06343BC74235C33655C1F70523C688F9A201957D65BA",
                     "amount": "100",
@@ -935,19 +936,19 @@ Response (trimmed for size):
             "payments_sent": 62,
             "receiving_counterparties": [
                 "rB4cyZxrBrTmJcWZSBc8YoW2t3bafiKRp",
-                
+
                 ...(additional results trimmed)...
-                
-                
+
+
                 "rKybkw3Pu74VfJfrWr7QJbVPJNarnKP2EJ"
             ],
             "sending_counterparties": [
                 "rNRCXw8PQRjvTwMDDLZVvuLHSKqqXUXQHv",
                 "r7CLMVEuNvK2yXTPLPnkWMqzkkXuopWeL",
-                
+
                 ...(additional results trimmed)...
-                
-                
+
+
                 "ranyeoYRhvwiFABzDvxSVyqQKp1bMkFsaX"
             ],
             "total_value": "117600",
@@ -1029,7 +1030,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 
 #### Example ####
 
-Request: 
+Request:
 
 ```
 GET /v2/stats/?start=2015-08-30&end=2015-08-31&interval=day&family=metric&metrics=accounts_created,exchanges_count,ledger_count,payments_count
@@ -1124,7 +1125,7 @@ Each **issuer capitalization object** has the following fields:
 
 #### Example ####
 
-Request: 
+Request:
 
 ```
 GET /v2/capitalization/USD+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q?start=2015-01-01T00:00:00Z&end=2015-10-31&interval=month
@@ -1295,9 +1296,9 @@ Response:
             "counter_volume": 52.4909286454546,
             "count": 1
         },
-        
+
         ... (additional results trimmed)...
-        
+
         {
             "buy": {
                 "base_volume": 1.996007,
@@ -1432,9 +1433,9 @@ Response:
                     },
                     "convertedAmount": 74003.51871932109
                 },
-                
+
                 ... (additional results trimmed) ...
-                
+
                 {
                     "count": 3,
                     "rate": 0.022999083584408355,
@@ -1575,9 +1576,9 @@ Response:
                     "rate": 0.000013312520335244644,
                     "convertedAmount": 20960026.169024874
                 },
-                
+
                 ... (additional results trimmed) ...
-                
+
                 {
                     "currency": "MXN",
                     "issuer": "rG6FZ31hDHN1K5Dkbma3PSB5uVCuVVRzfn",
@@ -1656,13 +1657,13 @@ Each Issued Value Object represents the total value issued at one point in time,
 |--------|-------|-------------|
 | components | Array of Objects | The data on individual issuers that was used to assemble this total. |
 | exchange | Object | Indicates the display currency used, as with fields `currency` and (except for XRP) `issuer`. All amounts are normalized by first converting to XRP, and then to the display currency specified in the request. |
-| exchangeRate | Number | The exchange rate to the displayed currency from XRP. 
+| exchangeRate | Number | The exchange rate to the displayed currency from XRP.
 | time | String - [Timestamp][] | The time at which this data was measured. |
 | total | Number | Total value of all issued assets at this time, in units of the display currency. |
 
 #### Example ####
 
-Request: 
+Request:
 
 ```
 GET /v2/network/issued_value?start=2015-10-01T00:00:00&end=2015-10-01T00:00:00&exchange_currency=USD&exchange_issuer=rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q
@@ -1691,9 +1692,9 @@ Response:
           "rate": "0.000028888001",
           "converted_amount": "1639021.4313562333"
         },
-        
+
         ... (additional results trimmed for size) ...
-        
+
         {
           "currency": "MXN",
           "issuer": "rG6FZ31hDHN1K5Dkbma3PSB5uVCuVVRzfn",
@@ -1943,19 +1944,19 @@ Content-Type: image/svg+xml
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 18.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="200px" height="200px" viewBox="0 0 200 200" enable-background="new 0 0 200 200" xml:space="preserve">
+   width="200px" height="200px" viewBox="0 0 200 200" enable-background="new 0 0 200 200" xml:space="preserve">
 <g>
-	<path fill="#FC6E74" d="M105.1,181.5c-12.2,0-24-2.1-35.1-6.2c-11.1-4.1-21.6-10.5-31.1-19.1l-1.3-1.2l18.8-22.3l1.4,1.2
-		c7.4,6.4,14.9,11.3,22.4,14.7c7.4,3.4,16,5.1,25.5,5.1c8,0,14.4-1.7,19-5c4.5-3.2,6.7-7.3,6.7-12.7c0-3-0.4-5.2-1.3-7.1
-		c-0.8-1.8-2.4-3.6-4.8-5.4c-2.4-1.8-5.9-3.5-10.2-5.1c-4.5-1.6-10.3-3.2-17.5-4.8c-8.3-1.9-15.8-4.1-22.4-6.6
-		c-6.6-2.5-12.3-5.6-16.8-9.2C54,94.3,50.4,89.8,48,84.5c-2.4-5.2-3.6-11.6-3.6-18.9c0-7.4,1.4-13.8,4.1-19.5
-		c2.7-5.8,6.6-10.7,11.4-14.8c4.8-4.1,10.6-7.3,17.3-9.5c6.7-2.3,14-3.4,21.9-3.4c11.6,0,22.2,1.7,31.4,5.1
-		c9.3,3.4,18.1,8.4,26.2,14.8l1.4,1.1l-16.8,23.6l-1.5-1.1c-6.9-5-13.9-9-20.7-11.6c-6.7-2.6-13.6-4-20.4-4
-		c-7.5,0-13.4,1.6-17.5,4.9c-4,3.2-6,7-6,11.6c0,3.1,0.5,5.5,1.4,7.5c0.9,2,2.6,3.8,5,5.4c2.6,1.8,6.3,3.4,10.9,5
-		c4.8,1.6,10.9,3.3,18.2,5c8.3,2.1,15.7,4.4,22,7c6.5,2.6,12,5.8,16.3,9.5c4.3,3.8,7.7,8.3,9.9,13.3c2.2,5,3.4,10.9,3.4,17.5
-		c0,7.9-1.4,14.7-4.2,20.7c-2.8,6-6.8,11.1-11.9,15.3c-5,4.1-11.1,7.3-18.1,9.4C121.2,180.5,113.4,181.5,105.1,181.5z"/>
-	<rect x="86.7" y="0" fill="#FC6E74" width="26.5" height="40.1"/>
-	<rect x="86.5" y="159.2" fill="#FC6E74" width="27" height="40.8"/>
+  <path fill="#FC6E74" d="M105.1,181.5c-12.2,0-24-2.1-35.1-6.2c-11.1-4.1-21.6-10.5-31.1-19.1l-1.3-1.2l18.8-22.3l1.4,1.2
+    c7.4,6.4,14.9,11.3,22.4,14.7c7.4,3.4,16,5.1,25.5,5.1c8,0,14.4-1.7,19-5c4.5-3.2,6.7-7.3,6.7-12.7c0-3-0.4-5.2-1.3-7.1
+    c-0.8-1.8-2.4-3.6-4.8-5.4c-2.4-1.8-5.9-3.5-10.2-5.1c-4.5-1.6-10.3-3.2-17.5-4.8c-8.3-1.9-15.8-4.1-22.4-6.6
+    c-6.6-2.5-12.3-5.6-16.8-9.2C54,94.3,50.4,89.8,48,84.5c-2.4-5.2-3.6-11.6-3.6-18.9c0-7.4,1.4-13.8,4.1-19.5
+    c2.7-5.8,6.6-10.7,11.4-14.8c4.8-4.1,10.6-7.3,17.3-9.5c6.7-2.3,14-3.4,21.9-3.4c11.6,0,22.2,1.7,31.4,5.1
+    c9.3,3.4,18.1,8.4,26.2,14.8l1.4,1.1l-16.8,23.6l-1.5-1.1c-6.9-5-13.9-9-20.7-11.6c-6.7-2.6-13.6-4-20.4-4
+    c-7.5,0-13.4,1.6-17.5,4.9c-4,3.2-6,7-6,11.6c0,3.1,0.5,5.5,1.4,7.5c0.9,2,2.6,3.8,5,5.4c2.6,1.8,6.3,3.4,10.9,5
+    c4.8,1.6,10.9,3.3,18.2,5c8.3,2.1,15.7,4.4,22,7c6.5,2.6,12,5.8,16.3,9.5c4.3,3.8,7.7,8.3,9.9,13.3c2.2,5,3.4,10.9,3.4,17.5
+    c0,7.9-1.4,14.7-4.2,20.7c-2.8,6-6.8,11.1-11.9,15.3c-5,4.1-11.1,7.3-18.1,9.4C121.2,180.5,113.4,181.5,105.1,181.5z"/>
+  <rect x="86.7" y="0" fill="#FC6E74" width="26.5" height="40.1"/>
+  <rect x="86.5" y="159.2" fill="#FC6E74" width="27" height="40.8"/>
 </g>
 </svg>
 ```
@@ -2274,7 +2275,7 @@ Each order object has the following fields:
 
 #### Example ####
 
-Request: 
+Request:
 
 ```
 GET /v2/accounts/rK5j9n8baXfL4gzUoZsfxBvvsv97P5swaV/orders?limit=2&date=2015-11-11T00:00:00Z
@@ -2960,6 +2961,88 @@ Response:
 ```
 
 
+
+
+## Health Check ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/checkHealth.js "Source")
+
+Check the health of the API or importer. By default, the endpoint will return a single integer indicating the status of the selected component. 0 response is considered healthy.
+
+<!--<div class='multicode'>-->
+
+*REST - API Health*
+
+```
+GET /v2/health/api
+```
+
+*REST - Importer Health*
+
+```
+GET /v2/health/importer
+```
+
+<!--</div>-->
+
+Optionally, you can also include the following query parameters:
+
+| Field      | Value   | Description |
+|------------|---------|-------------|
+| threshold  | Integer  | Custom threshold for response_time or validator_gap, in seconds |
+| threshold2 | Integer  | Custom threshold for ledger_gap (ignored in API health check) |
+
+#### Response Format - Default ####
+
+* API health:
+  * 0 hbase response time < 5 seconds
+  * 1 hbase response time greater than 5 seconds
+  * 2 hbase response error or invalid response time
+
+* Importer health:
+  * 0 last ledger imported < 60 seconds ago && last validated ledger < 300 seconds ago
+  * 1 last ledger imported < 60 seconds ago
+  * 2 last ledger imported over 60 seconds ago
+  * 3 hbase response error or invalid response time
+
+#### Response Format - API Verbose ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| score | 0-2 | Indicates the overall score. 0 is perfect health |
+| response_time | String | database response time |
+| response_time_threshold | String | Maximum response time to be considered healthy. |
+
+#### Response Format - Importer Verbose ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| score | 0-3 | Indicates the overall score. 0 is perfect health |
+| response_time | String | database response time |
+| ledger_gap | String | Difference between the close time of the last saved ledger and current time. |
+| ledger_gap_threshold | String | Maximum ledger gap to be considered healthy. |
+| valildation_gap | String | Difference between the close time of the last imported ledger that passed hash-chain validation and current time. |
+| validation_gap_threshold | String | Maximum validation gap to be considered healthy. |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/health/api?verbose=true
+```
+
+Response:
+
+```
+{
+  score: 0,
+  response_time: "0.389s",
+  response_time_threshold: "5s"
+}
+```
+
 # API Conventions #
 
 ## Basic Types ##
@@ -3185,7 +3268,7 @@ Reports objects show the activity of a given account over a specific interval of
 ## Payment Summary Objects ##
 [Payment Summary Objects]: #payment-summary-objects
 
-A Payment Summary Object contains a reduced amount of information about a single payment from the perspective of either the sender or receiver of that payment. 
+A Payment Summary Object contains a reduced amount of information about a single payment from the perspective of either the sender or receiver of that payment.
 
 | Field | Value | Description |
 |-------|-------|-------------|
@@ -3278,7 +3361,7 @@ Volume objects represent the total volumes of money moved, in either payments or
 | count | Number | The total number of exchanges in this period. |
 | endTime | String - [Timestamp][] | The end time of this interval. |
 | exchange | Object | Indicates the display currency used, as with fields `currency` and (except for XRP) `issuer`. All amounts are normalized by first converting to XRP, and then to the display currency specified in the request. |
-| exchangeRate | Number | The exchange rate to the displayed currency from XRP. 
+| exchangeRate | Number | The exchange rate to the displayed currency from XRP.
 | startTime | String - [Timestamp][] | The start of this time period. |
 | total | Number | Total volume of all recorded exchanges in the time period. |
 
@@ -3305,7 +3388,7 @@ Version 2 of the Historical Database requires HBase instead of [PostgreSQL](http
 
 ### Installation Process ###
 
-Starting in 
+Starting in
 
   1. Install HBase. For production use, configure it in distributed mode.
   2. Clone the rippled Historical Database Git Repository:
