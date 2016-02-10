@@ -23,11 +23,11 @@ var getTopCurrencies = function(req, res) {
     options.date.moment.startOf('day');
   }
 
-  hbase.getTopCurrencies(options, function(err, markets) {
+  hbase.getTopCurrencies(options, function(err, currencies) {
     if (err) {
       errorResponse(err);
     } else {
-      successResponse(markets, options);
+      successResponse(currencies, options);
     }
   });
 
@@ -60,20 +60,21 @@ var getTopCurrencies = function(req, res) {
   * @param {Object} options
   */
 
-  function successResponse(markets, options) {
+  function successResponse(currencies, options) {
     var date = options.date ?
         options.date.format() : smoment().format();
+    var filename;
 
     if (options.format === 'csv') {
       filename = 'top currencies - ' + date + '.csv';
-      res.csv(markets, filename);
+      res.csv(currencies, filename);
 
     } else {
       res.json({
         result: 'success',
         date: date,
-        count: markets.length,
-        markets: markets
+        count: currencies.length,
+        currencies: currencies
       });
     }
   }
