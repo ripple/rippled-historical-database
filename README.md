@@ -41,6 +41,8 @@ General Methods:
 * [Get Exchange Volume - `GET /v2/network/exchange_volume`](#get-exchange-volume)
 * [Get Payment Volume - `GET /v2/network/payment_volume`](#get-payment-volume)
 * [Get Issued Value - `GET /v2/network/issued_value`](#get-issued-value)
+* [Get Top Currencies - `GET /v2/network/top_currencies`](#get-top-currencies)
+* [Get Top Markets - `GET /v2/network/top_markets`](#get-top-markets)
 * [Get All Gateways - `GET /v2/gateways`](#get-all-gateways)
 * [Get Gateway - `GET /v2/gateways/{:gateway}`](#get-gateway)
 * [Get Currency Image - `GET /v2/currencies/{:currencyimage}`](#get-currency-image)
@@ -1716,6 +1718,198 @@ Response:
 ```
 
 
+
+
+## Get Top Currencies ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/topCurrencies.js "Source")
+
+Get a list of the top currencies on the ripple network based on useage comparisons and thresholds over a rolling 30 day window.  By default, the top currencies for the latest date are shown.  The currencies are ordered from highest ranked to lowest.  Historical data can be queried by including a date in the format YYYY-MM-DD
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/top_currencies
+```
+
+```
+GET /v2/network/top_currencies/2016-01-01
+```
+
+<!--</div>-->
+
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| date   | String - [Timestamp][] | The time at which this data was measured. |
+| count  | Integer | Number of results returned. |
+| currencies | Array of Top Currency Objects | A currency + issuer, and the metrics measured for inclusion and ranking |
+
+Top Currency Object fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| currency | String | Currency code |
+| issuer | String | Address of the issuing account |
+| avg_exchange_count | String | Daily average number of exchanges |
+| avg_exchange_volume | String | Daily average volume of exchanges (XRP normalized) |
+| avg_payment_count | String | Daily average number of payments |
+| avg_payment_volume | String | Daily average volume of payments (XRP normalized) |
+| issued_value | String | Total currency issuance from this account, normalized to XRP |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/top_currencies/2015-12-31
+```
+
+Response:
+
+```
+{
+  result: "success",
+  date: "2015-12-31T00:00:00Z",
+  count: 41,
+  currencies: [
+    {
+      avg_exchange_count: "4652.1612903225805",
+      avg_exchange_volume: "5.872515158748898E7",
+      avg_payment_count: "406.5625",
+      avg_payment_volume: "592537.1043782063",
+      issued_value: "3.3304427137620807E8",
+      currency: "USD",
+      issuer: "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+    },
+    {
+      avg_exchange_count: "6083.193548387097",
+      avg_exchange_volume: "3.558897661266646E7",
+      avg_payment_count: "520.71875",
+      avg_payment_volume: "3507232.307236187",
+      issued_value: "1.1695602455168623E8",
+      currency: "CNY",
+      issuer: "rKiCet8SdvWxPXnAgYarFUXMh1zCPz432Y"
+    },
+    {
+      avg_exchange_count: "3715.0967741935483",
+      avg_exchange_volume: "3.7346262589967564E7",
+      avg_payment_count: "163.1875",
+      avg_payment_volume: "775.0342076125125",
+      issued_value: "1.906530130641547E8",
+      currency: "BTC",
+      issuer: "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+    },
+    ...
+  ]
+}
+```
+
+
+
+## Get Top Markets ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/topMarkets.js "Source")
+
+Get a list of the top exchange markets on the ripple network based on useage comparisons and thresholds over a rolling 30 day window.  By default, the top markets for the latest date are shown.  The markets are ordered from highest ranked to lowest.  Historical data can be queried by including a date in the format YYYY-MM-DD
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/top_markets
+```
+
+```
+GET /v2/network/top_markets/2016-01-01
+```
+
+<!--</div>-->
+
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| date   | String - [Timestamp][] | The time at which this data was measured. |
+| count  | Integer | Number of results returned. |
+| markets | Array of Top Market Objects | A currency pair and the metrics measured for inclusion and ranking |
+
+Top Currency Object fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| base_currency | String | Base currency code |
+| base_issuer | String | Address of the issuing account for the base currency |
+| counter_currency | String | Counter currency code |
+| counter_issuer | String | Address of the issuing account for the counter currency |
+| avg_base_volume | String | Daily average volume in terms of the base currency |
+| avg_counter_volume | String | Daily average volume in terms of the counter currency |
+| avg_exchange_count | String | Daily average number of exchanges |
+| avg_volume | String | Daily average volume (XRP normalized) |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/top_markets/2015-12-31
+```
+
+Response:
+
+```
+{
+  result: "success",
+  date: "2015-12-31T00:00:00Z",
+  count: 56,
+  markets: [
+    {
+      avg_base_volume: "116180.98607935428",
+      avg_counter_volume: "1.6657039295476614E7",
+      avg_exchange_count: "1521.4603174603174",
+      avg_volume: "1.6657039295476614E7",
+      base_currency: "USD",
+      base_issuer: "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+      counter_currency: "XRP"
+    },
+    {
+      avg_base_volume: "410510.0286920887",
+      avg_counter_volume: "9117398.719214212",
+      avg_exchange_count: "1902.1587301587301",
+      avg_volume: "9117398.719214212",
+      base_currency: "CNY",
+      base_issuer: "rKiCet8SdvWxPXnAgYarFUXMh1zCPz432Y",
+      counter_currency: "XRP"
+    },
+    {
+      avg_base_volume: "178.06809101586364",
+      avg_counter_volume: "1.1343000055456754E7",
+      avg_exchange_count: "1224.2857142857142",
+      avg_volume: "1.1343000055456754E7",
+      base_currency: "BTC",
+      base_issuer: "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+      counter_currency: "XRP"
+    },
+    ...
+  ]
+}
+```
 
 
 ## Get All Gateways ##

@@ -90,6 +90,14 @@ var generateMap = function(url) {
         route: '/v2/network/issued_value',
         example: url + '/network/issued_value'
       }, {
+        action: 'Get Top Currencies',
+        route: '/v2/network/top_currencies/{:date}',
+        example: url + '/network/top_currencies'
+      }, {
+        action: 'Get Top Markets',
+        route: '/v2/network/top_markets{:date}',
+        example: url + '/network/top_markets'
+      }, {
         action: 'Get Exchange Rate',
         route: '/v2/exchange_rates/{:base}/{:counter}',
         example: url + '/exchange_rates/XRP/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
