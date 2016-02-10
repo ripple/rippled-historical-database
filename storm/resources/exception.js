@@ -23,7 +23,7 @@ function notify(message, callback) {
 }
 
 /**
- *
+ * killTopology
  */
 
 function killTopology() {

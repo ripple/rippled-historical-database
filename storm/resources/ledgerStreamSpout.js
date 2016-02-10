@@ -2,6 +2,10 @@ var config = require('./config');
 var Storm = require('./storm');
 var LedgerStream = require('./lib/ledgerStream');
 var Spout = Storm.Spout;
+var nodemailer = require('nodemailer');
+var transporter = nodemailer.createTransport();
+var to = config.get('recipients');
+var exec = require('child_process').exec;
 
 var ledgerSpout;
 var stream;
@@ -25,6 +29,50 @@ require('./exception')(log);
 
 stream = new LedgerStream(options);
 
+stream.live.api.on('error', handleAPIError);
+stream.validator.importer.api.on('error', handleAPIError);
+
+function handleAPIError(errorCode, errorMessage, data) {
+  notify(errCode + ': ' + errorMessage + ' data: ' + data, killTopology);
+}
+
+/**
+ * notify
+ */
+
+function notify(message, callback) {
+  var params = {
+    from: 'Storm Import<storm-import@ripple.com>',
+    to: to,
+    subject: 'rippleAPI error',
+    html: 'The import topology received ' +
+      'a rippleAPI error: <br /><br />\n' +
+      '<blockquote><pre>' + message + '</pre></blockquote><br />\n'
+  };
+
+  transporter.sendMail(params, callback);
+}
+
+/**
+ * killTopology
+ */
+
+function killTopology() {
+  exec('storm kill "ripple-ledger-importer"',
+       function callback(e, stdout, stderr) {
+    if (e) {
+      log.error(e);
+    }
+
+    if (stderr) {
+      log.error(stderr);
+    }
+
+    if (stdout) {
+      log.info(stdout);
+    }
+  });
+};
 
 /**
  * LedgerStreamSpout
