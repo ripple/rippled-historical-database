@@ -33,7 +33,7 @@ stream.live.api.on('error', handleAPIError);
 stream.validator.importer.api.on('error', handleAPIError);
 
 function handleAPIError(errorCode, errorMessage, data) {
-  notify(errCode + ': ' + errorMessage + ' data: ' + data, killTopology);
+  notify(errorCode + ': ' + errorMessage + ' data: ' + data, killTopology);
 }
 
 /**
