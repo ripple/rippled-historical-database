@@ -33,14 +33,15 @@ stream.live.api.on('error', handleAPIError);
 stream.validator.importer.api.on('error', handleAPIError);
 
 function handleAPIError(errorCode, errorMessage, data) {
-  notify(errorCode + ': ' + errorMessage + ' data: ' + data, killTopology);
+  var kill = errorCode === 'badMessage' ? false : true;
+  notify(errorCode + ': ' + errorMessage + ' data: ' + data, kill);
 }
 
 /**
  * notify
  */
 
-function notify(message, callback) {
+function notify(message, kill) {
   var params = {
     from: 'Storm Import<storm-import@ripple.com>',
     to: to,
@@ -50,7 +51,15 @@ function notify(message, callback) {
       '<blockquote><pre>' + message + '</pre></blockquote><br />\n'
   };
 
-  transporter.sendMail(params, callback);
+  if (kill) {
+    params.html += 'Killing topology<br />\n';
+  }
+
+  transporter.sendMail(params, function() {
+    if (kill) {
+      killTopology();
+    }
+  });
 }
 
 /**
