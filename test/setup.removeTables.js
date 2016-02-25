@@ -10,7 +10,7 @@ var rest = new Rest(restConfig);
 describe('remove hbase tables', function(done) {
   it('should remove tables via rest API', function(done) {
     this.timeout(90000);
-    rest.removeTables(function(err, resp) {
+    rest.removeTables('ledgers', function(err, resp) {
       assert.ifError(err);
       done();
     });
