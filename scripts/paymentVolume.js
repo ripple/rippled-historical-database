@@ -9,6 +9,10 @@ var Hbase = require('../lib/hbase/hbase-client');
 var hbaseOptions = config.get('hbase');
 var hbase;
 
+var hbaseOptions2 = JSON.parse(JSON.stringify(hbaseOptions));
+hbaseOptions2.prefix = 'stage_';
+var hbase2 = new Hbase(hbaseOptions2);
+
 var intervals = [
   'day',
   'week',
@@ -354,7 +358,7 @@ function handleAggregation(params, done) {
         var rowkey = 'payment_volume|' + (params.live ?
           'live' : options.interval + '|' + smoment(result.startTime).hbaseFormatStartRow());
 
-        hbase.putRow(table, rowkey, result)
+        hbase2.putRow(table, rowkey, result)
         .nodeify(function(err, resp) {
 
           if (err) {
