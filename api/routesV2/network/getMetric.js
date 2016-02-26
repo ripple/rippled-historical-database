@@ -4,13 +4,7 @@ var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'metrics'});
 var smoment = require('../../../lib/smoment');
 var utils = require('../../../lib/utils');
-
-var Hbase = require('../../../lib/hbase/hbase-client');
-var config  = require('../../../config/api.config');
-var hbaseOptions = config.get('hbase');
-
-hbaseOptions.prefix = 'stage_';
-var hbase = new Hbase(hbaseOptions);
+var hbase;
 
 var table = 'agg_metrics';
 var PRECISION = 8;
@@ -215,6 +209,6 @@ function getMetric(metric, req, res) {
 }
 
 module.exports = function(db) {
-  //hbase = db;
+  hbase = db;
   return getMetric;
 };
