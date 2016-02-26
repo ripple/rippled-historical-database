@@ -433,7 +433,6 @@ function handleAggregation (params, done) {
         swap = market.base;
         market.base = market.counter;
         market.counter = swap;
-        market.rate = 1 / market.rate;
         market.amount = market.rate * market.amount;
         market.converted_amount = market.amount / data.rates[counter];
         market.rate /= data.rates[counter];
@@ -455,7 +454,6 @@ function handleAggregation (params, done) {
       total += market.converted_amount;
       count += market.count;
     });
-
 
     return {
       startTime: params.start.moment.format(),
