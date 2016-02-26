@@ -141,7 +141,7 @@ function getMetric(metric, req, res) {
       }
 
       row.components.forEach(function(c) {
-        c.rate = c.rate ? c.rate.toPrecision(PRECISION) : '0';
+        c.rate = c.rate ? Number(c.rate).toPrecision(PRECISION) : '0';
         c.amount = c.amount ? c.amount.toString() : '0';
         c.converted_amount = (c.converted_amount || c.convertedAmount).toString();
         delete c.convertedAmount;
