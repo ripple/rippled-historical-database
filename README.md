@@ -1389,7 +1389,7 @@ Each object in the `components` array of the Volume Objects represent the volume
 | amount | Number | The amount of volume in the market, in units of the base currency. |
 | base   | Object | The `currency` and `issuer` that identify the base currency of this market. There is no `issuer` for XRP. |
 | counter | Object | The `currency` and `issuer` that identify the counter currency of this market. There is no `issuer` for XRP. |
-| convertedAmount | Number | The total amount of volume in the market, converted to the display currency. |
+| converted_amount | Number | The total amount of volume in the market, converted to the display currency. |
 
 #### Example ####
 
@@ -1420,7 +1420,7 @@ Response:
                     "counter": {
                         "currency": "XRP"
                     },
-                    "convertedAmount": 117720.99268355068
+                    "converted_amount": 117720.99268355068
                 },
                 {
                     "count": 1977,
@@ -1433,7 +1433,7 @@ Response:
                     "counter": {
                         "currency": "XRP"
                     },
-                    "convertedAmount": 74003.51871932109
+                    "converted_amount": 74003.51871932109
                 },
 
                 ... (additional results trimmed) ...
@@ -1450,7 +1450,7 @@ Response:
                         "currency": "USD",
                         "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
                     },
-                    "convertedAmount": 12.72863756671683
+                    "converted_amount": 12.72863756671683
                 },
                 {
                     "count": 3,
@@ -1464,7 +1464,7 @@ Response:
                         "currency": "BTC",
                         "issuer": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q"
                     },
-                    "convertedAmount": 4.4137945368632545
+                    "converted_amount": 4.4137945368632545
                 }
             ],
             "count": 11105,
@@ -1535,7 +1535,7 @@ Each object in the `components` array of the Volume Objects represent the volume
 | amount | Number | Total payment volume for this currency during the interval, in units of the currency itself. |
 | count  | Number | The total number of payments in this currency |
 | rate   | Number | The exchange rate between this currency and the display currency. |
-| convertedAmount | Number | Total payment volume for this currency, converted to the display currency. |
+| converted_amount | Number | Total payment volume for this currency, converted to the display currency. |
 
 #### Example ####
 
@@ -1560,7 +1560,7 @@ Response:
                     "amount": 87279.59029136538,
                     "count": 331,
                     "rate": 0.004412045860957953,
-                    "convertedAmount": 19782113.1153009
+                    "converted_amount": 19782113.1153009
                 },
                 {
                     "currency": "USD",
@@ -1568,7 +1568,7 @@ Response:
                     "amount": 0,
                     "count": 0,
                     "rate": 0.00451165816091143,
-                    "convertedAmount": 0
+                    "converted_amount": 0
                 },
                 {
                     "currency": "BTC",
@@ -1576,7 +1576,7 @@ Response:
                     "amount": 279.03077460240354,
                     "count": 107,
                     "rate": 0.000013312520335244644,
-                    "convertedAmount": 20960026.169024874
+                    "converted_amount": 20960026.169024874
                 },
 
                 ... (additional results trimmed) ...
@@ -1587,14 +1587,14 @@ Response:
                     "amount": 49263.13280138676,
                     "count": 19,
                     "rate": 0.07640584677247926,
-                    "convertedAmount": 644756.0609868265
+                    "converted_amount": 644756.0609868265
                 },
                 {
                     "currency": "XRP",
                     "amount": 296246369.30089426,
                     "count": 8691,
                     "rate": 1,
-                    "convertedAmount": 296246369.30089426
+                    "converted_amount": 296246369.30089426
                 }
             ],
             "count": 9388,

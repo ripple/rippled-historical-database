@@ -300,8 +300,8 @@ function handleAggregation(params, done) {
   function normalize(data) {
     var total = 0;
     data.forEach(function(d) {
-      d.convertedAmount = d.rate ? d.amount / d.rate : 0;
-      total += d.convertedAmount;
+      d.converted_amount = d.rate ? d.amount / d.rate : 0;
+      total += d.converted_amount;
     });
 
     return {

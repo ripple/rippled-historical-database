@@ -11,6 +11,8 @@ var mockExchangeVolume = require('../mock/exchange-volume.json');
 var mockPaymentVolume = require('../mock/payment-volume.json');
 var mockIssuedValue = require('../mock/issued-value.json');
 
+console.log(mockExchangeVolume);
+
 var hbaseConfig = config.get('hbase');
 hbaseConfig.prefix = prefix;
 hbaseConfig.logLevel = 2;

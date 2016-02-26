@@ -342,15 +342,18 @@ function handleAggregation(params, done) {
 
   function normalize(data) {
     var total = 0;
+    var count = 0;
 
     data.forEach(function(d) {
-      d.convertedAmount = d.rate ? d.amount / d.rate : 0;
-      total += d.convertedAmount;
+      d.converted_amount = d.rate ? d.amount / d.rate : 0;
+      total += d.converted_amount;
+      count += d.count;
     });
 
     return {
       startTime: smoment(params.start).format(),
       total: total,
+      count: count,
       exchange: { currency:'XRP' },
       exchangeRate: 1,
       components: data

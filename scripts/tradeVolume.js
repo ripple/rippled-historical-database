@@ -376,7 +376,7 @@ function handleAggregation (params, done) {
           data.counter = market.counter;
 
           if (data.counter.currency === 'XRP') {
-            data.convertedAmount = resp.counter_volume;
+            data.converted_amount = resp.counter_volume;
             data.rate = resp.vwap ? 1 / resp.vwap : 0;
           }
 
@@ -422,11 +422,11 @@ function handleAggregation (params, done) {
       var swap
 
       // no trades or already determined
-      if (!market.count || market.convertedAmount) {
+      if (!market.count || market.converted_amount) {
         return;
 
       } else if (data.rates[base]) {
-        market.convertedAmount = market.amount / data.rates[base];
+        market.converted_amount = market.amount / data.rates[base];
         market.rate /= data.rates[base];
 
       } else if (data.rates[counter]) {
@@ -435,7 +435,7 @@ function handleAggregation (params, done) {
         market.counter = swap;
         market.rate = 1 / market.rate;
         market.amount = market.rate * market.amount;
-        market.convertedAmount = market.amount / data.rates[counter];
+        market.converted_amount = market.amount / data.rates[counter];
         market.rate /= data.rates[counter];
 
       } else {
@@ -444,15 +444,15 @@ function handleAggregation (params, done) {
     });
 
     data.markets = data.markets.filter(function(market) {
-      return market.count && market.convertedAmount;
+      return market.count && market.converted_amount;
     });
 
     data.markets.sort(function(a, b) {
-      return b.convertedAmount - a.convertedAmount;
+      return b.converted_amount - a.converted_amount;
     });
 
     data.markets.forEach(function(market) {
-      total += market.convertedAmount;
+      total += market.converted_amount;
       count += market.count;
     });
 
