@@ -302,10 +302,6 @@ function handleAggregation (params, done) {
           if (err) {
             reject(err);
 
-          // no markets found
-          } else if (!markets.length) {
-            reject('no markets found');
-
           // format results
           } else {
             markets.forEach(function(market) {

@@ -179,7 +179,7 @@ function handleAggregation(params, done) {
 
           // get the date at the end
           // of the provided interval
-          date = smoment(params.time);
+          date = smoment(params.start);
           date.moment.startOf(params.interval);
 
           // use max if the date
@@ -193,10 +193,6 @@ function handleAggregation(params, done) {
 
           if (err) {
             reject(err);
-
-          // no markets found
-          } else if (!currencyList.length) {
-            reject('no markets found');
 
           } else {
             currencyList.push({
