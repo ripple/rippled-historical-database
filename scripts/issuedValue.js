@@ -252,39 +252,17 @@ function handleAggregation(params, done) {
         var options = {
           base: { currency: 'XRP' },
           counter: { currency: d.currency, issuer: d.issuer },
-          start: start,
-          end: end,
-          descending: true
+          date: smoment(params.time)
         };
 
-        // use last 50 trades for live
-        if (params.live) {
-          options.limit = 50;
-          options.reduce = true;
+        hbase.getExchangeRate(options)
+        .then(function(resp) {
 
-        // use daily rate
-        // from the previous day
-        } else {
-          end.moment.subtract(1, 'day');
-          options.interval = '1day';
-          options.limit = 1;
-        }
-
-        hbase.getExchanges(options, function(err, resp) {
-          if (err) {
-            asyncCallbackPair(err);
-            return;
-          }
-
-          if (resp && resp.reduced) {
-            d.rate = resp.reduced.vwap;
-          } else if (resp && resp.rows.length) {
-            d.rate = resp.rows[0].vwap;
-          } else {
-            d.rate = 0;
-          }
+          d.rate = resp || 0;
 
           asyncCallbackPair(null, d);
+        }).catch(function(err) {
+          asyncCallbackPair(err);
         });
 
       }, function (err, resp) {
