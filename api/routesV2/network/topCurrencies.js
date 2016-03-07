@@ -9,6 +9,7 @@ var hbase;
 var getTopCurrencies = function(req, res) {
   var options = {
     date: req.params.date ? smoment(req.params.date) : undefined,
+    limit: req.query.limit || 1000,
     format: (req.query.format || 'json').toLowerCase()
   };
 
@@ -21,6 +22,10 @@ var getTopCurrencies = function(req, res) {
 
   } else if (options.date) {
     options.date.moment.startOf('day');
+  }
+
+  if (isNaN(options.limit)) {
+    options.limit = 1000;
   }
 
   hbase.getTopCurrencies(options, function(err, currencies) {

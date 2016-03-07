@@ -10,8 +10,8 @@ var HBase = require('../../lib/hbase/hbase-client');
 var mockExchangeVolume = require('../mock/exchange-volume.json');
 var mockPaymentVolume = require('../mock/payment-volume.json');
 var mockIssuedValue = require('../mock/issued-value.json');
-
-console.log(mockExchangeVolume);
+var mockTopCurrencies = require('../mock/top-currencies.json');
+var mockTopMarkets = require('../mock/top-markets.json');
 
 var hbaseConfig = config.get('hbase');
 hbaseConfig.prefix = prefix;
@@ -24,8 +24,7 @@ hbase = new HBase(hbaseConfig);
 describe('network - exchange volume', function() {
   before(function(done) {
     var table = 'agg_metrics';
-
-    Promise.all([
+    var rows = [
       hbase.putRow(table, 'trade_volume|live', mockExchangeVolume),
       hbase.putRow(table, 'payment_volume|live', mockPaymentVolume),
       hbase.putRow(table, 'issued_value|live', mockIssuedValue),
@@ -33,7 +32,19 @@ describe('network - exchange volume', function() {
       hbase.putRow(table, 'payment_volume|day|20150114000000', mockPaymentVolume),
       hbase.putRow(table, 'issued_value|20150114000000', mockIssuedValue),
       hbase.putRow(table, 'issued_value|20150113000000', mockIssuedValue)
-    ]).nodeify(function(err, resp) {
+    ];
+
+    mockTopCurrencies.forEach(function(r, i) {
+      var key = '20150114|00000' + (i + 1);
+      rows.push(hbase.putRow('top_currencies', key, r));
+    });
+
+    mockTopMarkets.forEach(function(r, i) {
+      var key = '20150114|00000' + (i + 1);
+      rows.push(hbase.putRow('top_markets', key, r));
+    });
+
+    Promise.all(rows).nodeify(function(err, resp) {
       assert.ifError(err);
       done();
     });
@@ -326,76 +337,6 @@ describe('network - issued value', function() {
     });
   });
 
-  it('should get top markets', function(done) {
-    var date = '2015-01-14';
-    var url = 'http://localhost:' + port +
-        '/v2/network/top_markets/' + date;
-
-    request({
-      url: url,
-      json: true,
-    },
-    function (err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 200);
-      done();
-    });
-  });
-
-  it('should error on invalid date', function(done) {
-    var date = 'zzz2015-01-14';
-    var url = 'http://localhost:' + port +
-        '/v2/network/top_markets/' + date;
-
-    request({
-      url: url,
-      json: true,
-    },
-    function (err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(typeof body, 'object');
-      assert.strictEqual(body.result, 'error');
-      assert.strictEqual(body.message, 'invalid date format');
-      done();
-    });
-  });
-
-  it('should get top currencies', function(done) {
-    var date = '2015-01-14';
-    var url = 'http://localhost:' + port +
-        '/v2/network/top_currencies/' + date;
-
-    request({
-      url: url,
-      json: true,
-    },
-    function (err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 200);
-      done();
-    });
-  });
-
-  it('should error on invalid date', function(done) {
-    var date = 'zzz2015-01-14';
-    var url = 'http://localhost:' + port +
-        '/v2/network/top_currencies/' + date;
-
-    request({
-      url: url,
-      json: true,
-    },
-    function (err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(typeof body, 'object');
-      assert.strictEqual(body.result, 'error');
-      assert.strictEqual(body.message, 'invalid date format');
-      done();
-    });
-  });
-
   it('should include a link header when marker is present', function(done) {
     var url = 'http://localhost:' + port + '/v2/network/issued_value?start=2013&limit=1';
     var linkHeader = '<' + url +
@@ -409,6 +350,118 @@ describe('network - issued value', function() {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(res.headers.link, linkHeader);
+      done();
+    });
+  });
+});
+
+describe('network - top markets', function() {
+  it('should get top markets', function(done) {
+    var date = '2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/top_markets/' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(body.markets.length, 56);
+      assert.strictEqual(res.statusCode, 200);
+      done();
+    });
+  });
+
+  it('should limit top markets results', function(done) {
+    var date = '2015-01-14';
+    var limit = 3;
+    var url = 'http://localhost:' + port +
+      '/v2/network/top_markets/' + date + '?limit=' + limit;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(body.markets.length, 3);
+      assert.strictEqual(res.statusCode, 200);
+      done();
+    });
+  });
+
+  it('should error on invalid date', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/top_markets/' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid date format');
+      done();
+    });
+  });
+});
+
+describe('network - top currencies', function() {
+  it('should get top currencies', function(done) {
+    var date = '2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/top_currencies/' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(body.currencies.length, 41);
+      assert.strictEqual(res.statusCode, 200);
+      done();
+    });
+  });
+
+  it('should limit top currencies results', function(done) {
+    var date = '2015-01-14';
+    var limit = 3;
+    var url = 'http://localhost:' + port +
+      '/v2/network/top_currencies/' + date + '?limit=' + limit;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(body.currencies.length, 3);
+      assert.strictEqual(res.statusCode, 200);
+      done();
+    });
+  });
+
+  it('should error on invalid date', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/top_currencies/' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid date format');
       done();
     });
   });
