@@ -267,7 +267,8 @@
       "currencies": {
         "CNY" : { "featured" : true },
         "FMM" : { "featured" : false },
-        "STR" : { "featured" : true }
+        "STR" : { "featured" : false },
+        "XLM" : { "featured" : false }
       }
     }],
     "hotwallets": [
