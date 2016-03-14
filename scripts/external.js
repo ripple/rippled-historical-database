@@ -95,7 +95,8 @@ function getJubi() {
   }).then(function(resp) {
 
     var results = [];
-    var data = resp.substr(6, resp.length-7);
+    var data = resp.trim().substr(6, resp.length-8);
+
     data = data.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ');
     data = JSON.parse(data);
 
@@ -222,6 +223,6 @@ Promise.all([
   process.exit(0);
 })
 .catch(function(e) {
-  console.log(e);
+  console.log('error', e, e.stack);
   process.exit(1);
 });
