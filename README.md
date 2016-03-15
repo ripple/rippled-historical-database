@@ -11,14 +11,19 @@ Ripple provides a live instance of the Data API with as complete a transaction r
 
 
 ## More Information ##
-The Ripple Data API v2 replaces the [Historical Database v1](https://ripple.com/build/historical-database/) and the [Charts API](https://ripple.com/build/charts-api/).
+The Ripple Data API v2 replaces the Historical Database v1 and the [Charts API](https://github.com/ripple/ripple-data-api/). 
 
 * [API Methods](#api-method-reference)
 * [API Conventions](#api-conventions)
 * [Setup (local instance)](#running-the-historical-database)
+* [Source Code on Github](https://github.com/ripple/rippled-historical-database)
 * [Release Notes](https://github.com/ripple/rippled-historical-database/releases)
 
 [v2.0.4]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.0.4
+[v2.0.5]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.0.5
+[v2.0.6]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.0.6
+[v2.0.7]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.0.7
+[v2.0.8]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.0.8
 
 
 # API Method Reference #
@@ -61,6 +66,11 @@ Account Methods:
 * [Get Account Reports - `GET /v2/accounts/{:address}/reports`](#get-account-reports)
 * [Health Check - `GET /v2/health/{:component}`](#health-check)
 
+Health Checks:
+
+* [API Health Check - `GET /v2/health/api`](#health-check-api)
+* [Importer Health Check - `GET /v2/health/importer`](#health-check-ledger-importer)
+
 
 ## Get Ledger ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/getLedger.js "Source")
@@ -78,6 +88,8 @@ GET /v2/ledgers/{:identifier}
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-ledger)
 
 The following URL parameters are required by this API endpoint:
 
@@ -148,6 +160,8 @@ GET /v2/transactions/{:hash}
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-transaction)
 
 The following URL parameters are required by this API endpoint:
 
@@ -254,6 +268,8 @@ GET /v2/transactions/
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-transactions)
 
 Optionally, you can include the following query parameters:
 
@@ -417,11 +433,13 @@ GET /v2/payments/{:currency}
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-payments)
+
 This method accepts the following URL parameters:
 
 | Field     | Value  | Description |
 |-----------|--------|-------------|
-| :currency | String | (Optional) Currency code, followed by `+` and an issuer. (Or just `XRP`.) If omitted, return payments for all currencies. |
+| :currency | String | (Optional) Currency code, followed by `+` and a counterparty address. (Or just `XRP`.) If omitted, return payments for all currencies. |
 
 Optionally, you can also include the following query parameters:
 
@@ -560,6 +578,8 @@ GET /v2/exchanges/{:base}/{:counter}
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-exchanges)
+
 This method requires the following URL parameters:
 
 | Field | Value | Description |
@@ -689,6 +709,8 @@ GET /v2/exchange_rates/{:base}/{:counter}
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-exchange-rates)
+
 This method requires the following URL parameters:
 
 | Field    | Value  | Description |
@@ -754,6 +776,8 @@ GET /v2/normalize
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#normalize)
+
 This method uses the following query parameters:
 
 | Field             | Value   | Description |
@@ -817,6 +841,8 @@ GET /v2/reports/{:date}
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-daily-reports)
 
 This method uses the following URL parameters:
 
@@ -980,6 +1006,7 @@ GET /v2/stats
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-stats)
 
 Optionally, you can also include the following query parameters:
 
@@ -1082,6 +1109,8 @@ GET /v2/capitaliztion/{:currency}
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-capitalization)
 
 This method requires the following URL parameters:
 
@@ -1206,6 +1235,8 @@ GET /v2/active_accounts/{:base}/{:counter}
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-active-accounts)
 
 This method requires the following URL parameters:
 
@@ -1358,6 +1389,8 @@ GET /v2/network/exchange_volume
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-exchange-volume)
+
 Optionally, you can include the following query parameters:
 
 | Field    | Value   | Description |
@@ -1504,6 +1537,8 @@ GET /v2/network/payment_volume
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-payment-volume)
+
 Optionally, you can include the following query parameters:
 
 | Field    | Value   | Description |
@@ -1630,6 +1665,8 @@ GET /v2/network/issued_value
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-issued-value)
 
 Optionally, you can include the following query parameters:
 
@@ -1929,6 +1966,8 @@ GET /v2/gateways/
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-all-gateways)
+
 This method takes no query parameters.
 
 
@@ -2023,6 +2062,8 @@ GET /v2/gateways/{:gateway}
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-gateway)
+
 This method requires the following URL parameters:
 
 | Field | Value | Description |
@@ -2039,8 +2080,8 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 |-------------|--------|-------------|
 | name        | String | Human-readable name of the gateway
 | start\_date | String - [Timestamp][] | The approximate date of the first time exchanges for this gateway's currencies appeared in the ledger. |
-| accounts    | Array | A list of [issuing accounts](https://ripple.com/build/gateway-guide/#hot-and-cold-wallets) (cold wallets) used by this gateway. (Gateways may use different issuing accounts for different currencies.) |
-| hotwallets  | Array of [Address][]es | The addresses of the Ripple accounts this gateway uses as [hot wallets](https://ripple.com/build/gateway-guide/#hot-and-cold-wallets). |
+| accounts    | Array | A list of [issuing addresses](https://ripple.com/build/gateway-guide/#hot-and-cold-wallets) (cold wallets) used by this gateway. (Gateways may use different issuing accounts for different currencies.) |
+| hotwallets  | Array of [Address][]es | The addresses of the Ripple accounts this gateway uses as [operational addresses](https://ripple.com/build/gateway-guide/#hot-and-cold-wallets) (hot wallets). |
 | domain      | String | The domain name where this gateway does business. Typically the gateway hosts a [`ripple.txt`](https://wiki.ripple.com/Ripple.txt) there. |
 | normalized  | String | A normalized version of the `name` field suitable for including in URLs. |
 | assets      | Array of Strings | Graphics filenames available for this gateway, if any. (Mostly, these are logos used by Ripple Charts.) |
@@ -2049,7 +2090,7 @@ Each object in the `accounts` field array has the following fields:
 
 | Field      | Value  | Description |
 |------------|--------|-------------|
-| address    | String | The [Address][] of an [issuing account](https://ripple.com/build/gateway-guide/#hot-and-cold-wallets) (cold wallet) used by this gateway. |
+| address    | String | The [Address][] of an [issuing address](https://ripple.com/build/gateway-guide/#hot-and-cold-wallets) (cold wallet) used by this gateway. |
 | currencies | Object | Each field in this object is a [Currency Code][] corresponding to a currency issued from this address. Each value is an object with a `featured` boolean indicating whether that currency is featured. Ripple, Inc. decides which currencies and gateways to feature based on responsible business practices, volume, and other measures. |
 
 #### Example ####
@@ -2174,6 +2215,8 @@ GET /v2/accounts
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-accounts)
+
 Optionally, you can include the following query parameters:
 
 | Field      | Value   | Description |
@@ -2269,6 +2312,8 @@ GET /v2/accounts/{:address}
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-account)
+
 
 This method requires the following URL parameters:
 
@@ -2326,6 +2371,8 @@ GET /v2/accounts/{:address}/balances
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-account-balances)
+
 This method requires the following URL parameters:
 
 | Field    | Value  | Description |
@@ -2340,7 +2387,7 @@ Optionally, you can also include the following query parameters:
 | ledger_hash  | String  | Ledger hash for historical balances |
 | date         | String  | UTC date for historical balances. |
 | currency     | String  | Restrict results to specified currency |
-| issuer       | String  | Restrict results to specified counterparty/issuer |
+| counterparty | String  | Restrict results to specified counterparty/issuer |
 | limit        | Integer | Max results per page (defaults to 200). Cannot be greater than 400, but you can use the value `all` to return all results. (Caution: When using limit=all to retrieve very many results, the request may time out. Large gateways can have several tens of thousands of results.) |
 | format       | String  | Format of returned results: `csv`,`json` defaults to `json` |
 
@@ -2361,49 +2408,34 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 Request:
 
 ```
-GET /v2/accounts/rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn/balances?date=2015-08-01T00:00:00Z
+GET /v2/accounts/rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn/balances?currency=USD&date=2015-01-01T00:00:00Z&limit=3
 ```
 
 Response:
 
 ```
 {
-    "result": "success",
-    "ledger_index": 14979795,
-    "close_time": "2015-08-01T00:00:00",
-    "validated": true,
-    "balances": [
-        {
-            "value": "148.446663",
-            "currency": "XRP",
-            "counterparty": ""
-        },
-        {
-            "value": "-11.0301",
-            "currency": "USD",
-            "counterparty": "ra5nK24KXen9AHvsdFTKHSANinZseWnPcX"
-        },
-        {
-            "value": "0.0001",
-            "currency": "USD",
-            "counterparty": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q"
-        },
-        {
-            "value": "0",
-            "currency": "USD",
-            "counterparty": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
-        },
-        {
-            "value": "10",
-            "currency": "USD",
-            "counterparty": "rsA2LpzuawewSBQXkiju3YQTMzW13pAAdW"
-        },
-        {
-            "value": "0",
-            "currency": "USD",
-            "counterparty": "rUpy3eEg8rqjqfUoLeBnZkscbKbFsKXC3v"
-        }
-    ]
+  "result": "success",
+  "ledger_index": 10852618,
+  "close_time": "2015-01-01T00:00:00Z",
+  "limit": 3,
+  "balances": [
+    {
+      "currency": "USD",
+      "counterparty": "ra5nK24KXen9AHvsdFTKHSANinZseWnPcX",
+      "value": "-11.0301"
+    },
+    {
+      "currency": "USD",
+      "counterparty": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
+      "value": "0.0001"
+    },
+    {
+      "currency": "USD",
+      "counterparty": "rweYz56rfmQ98cAdRaeTxQS9wVMGnrdsFp",
+      "value": "0"
+    }
+  ]
 }
 ```
 
@@ -2424,6 +2456,8 @@ GET /v2/account/{:address}/orders
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-account-orders)
 
 This method requires the following URL parameters:
 
@@ -2547,6 +2581,8 @@ GET /v2/accounts/{:address}/transactions
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-account-transaction-history)
 
 This method requires the following URL parameters:
 
@@ -2676,6 +2712,8 @@ GET /v2/accounts/{:address}/transactions/{:sequence}
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-transaction-by-account-and-sequence)
+
 This method requires the following URL parameters:
 
 | Field     | Value   | Description |
@@ -2742,6 +2780,8 @@ GET /v2/accounts/{:address}/payments
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-account-payments)
+
 This method requires the following URL parameters:
 
 | Field    | Value  | Description |
@@ -2756,8 +2796,10 @@ Optionally, you can also include the following query parameters:
 | start      | String - [Timestamp][]  | Start time of query range |
 | end        | String - [Timestamp][]  | End time of query range |
 | type       | String  | Type of payment - `sent` or `received` |
-| currency   | String  | Restrict results to specified currency |
-| issuer     | String  | Restrict results to specified issuer |
+| currency   | String - [Currency Code][] | Filter results to specified currency |
+| issuer     | String - [Address][] | Filter results to specified issuer |
+| source\_tag | Integer | Filter results to specified source tag |
+| destination\_tag | Integer | Filter results to specified destination tag |
 | descending | Boolean | Reverse chronological order |
 | limit      | Integer | Max results per page (defaults to 200). Cannot be more than 1,000. |
 | marker     | String  | [Pagination](#pagination) key from previously returned response |
@@ -2801,7 +2843,6 @@ Response:
           "value": "1"
         }
       ],
-      "transaction_cost": "1.0E-5",
       "source_balance_changes": [
         {
           "counterparty": "ra5nK24KXen9AHvsdFTKHSANinZseWnPcX",
@@ -2809,14 +2850,16 @@ Response:
           "value": "-1"
         }
       ],
+      "tx_index": 1,
       "currency": "USD",
       "destination": "ra5nK24KXen9AHvsdFTKHSANinZseWnPcX",
-      "executed_time": "2014-06-02T22:47:50",
+      "executed_time": "2014-06-02T22:47:50Z",
       "issuer": "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn",
       "ledger_index": 6979192,
       "source": "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn",
       "source_currency": "USD",
-      "tx_hash": "7BF105CFE4EFE78ADB63FE4E03A851440551FE189FD4B51CAAD9279C9F534F0E"
+      "tx_hash": "7BF105CFE4EFE78ADB63FE4E03A851440551FE189FD4B51CAAD9279C9F534F0E",
+      "transaction_cost": "1.0E-5"
     }
   ]
 }
@@ -2849,6 +2892,8 @@ GET /v2/accounts/{:address}/exchanges/{:base}/{:counter}
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-account-exchanges-all)
 
 This method requires the following URL parameters:
 
@@ -2959,6 +3004,8 @@ GET /v2/accounts/{:address}/balance_changes/
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-account-balance-changes)
+
 This method requires the following URL parameters:
 
 | Field    | Value  | Description |
@@ -2971,7 +3018,7 @@ Optionally, you can also include the following query parameters:
 | Field      | Value   | Description |
 |------------|---------|-------------|
 | currency   | String  | Restrict results to specified currency. |
-| issuer     | String  | Restrict results to specified counterparty/issuer. |
+| counterparty | String  | Restrict results to specified counterparty/issuer. |
 | start      | String - [Timestamp][]  | Start time of query range. |
 | end        | String - [Timestamp][]  | End time of query range. |
 | descending | Boolean | If true, return results in reverse chronological order. Defaults to false. |
@@ -3004,40 +3051,38 @@ Response:
 {
   "result": "success",
   "count": 3,
-  "marker": "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn|20150616212230|000014091020|00003|$",
+  "marker": "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn|20160122235211|000018425487|00010|00001",
   "balance_changes": [
     {
-      "change": "-0.012",
-      "final_balance": "148.446663",
-      "tx_index": 1,
+      "amount_change": "-0.012",
+      "final_balance": "75.169663",
+      "tx_index": 7,
       "change_type": "transaction_cost",
       "currency": "XRP",
-      "executed_time": "2015-06-16T21:32:40",
-      "ledger_index": 14091160,
-      "tx_hash": "0D5FB50FA65C9FE1538FD7E398FFFE9D1908DFA4576D8D7A020040686F93C77D",
-      "node_index": null
+      "executed_time": "2016-01-29T22:57:20Z",
+      "ledger_index": 18555460,
+      "tx_hash": "2B44EBE00728D04658E597A85EC4F71D20503B31ABBF556764AD8F7A80BA72F6"
     },
     {
-      "change": "-0.012",
-      "final_balance": "148.458663",
-      "tx_index": 20,
-      "change_type": "transaction_cost",
-      "currency": "XRP",
-      "executed_time": "2015-06-16T21:22:40",
-      "ledger_index": 14091022,
-      "tx_hash": "26C1C876D709380DF7136F307B84E7F16CD74381F82E9B2D352A92069C880D66",
-      "node_index": null
-    },
-    {
-      "change": "-30.0",
-      "final_balance": "148.470663",
-      "node_index": 0,
-      "tx_index": 3,
+      "amount_change": "-25.0",
+      "final_balance": "75.181663",
+      "node_index": 1,
+      "tx_index": 4,
       "change_type": "payment_source",
       "currency": "XRP",
-      "executed_time": "2015-06-16T21:22:30",
-      "ledger_index": 14091020,
-      "tx_hash": "73699F26E2A4A8703EB48684FF38CD6362B7ABF217576AB460CBAA64D383D9EC"
+      "executed_time": "2016-01-26T08:32:20Z",
+      "ledger_index": 18489336,
+      "tx_hash": "E5C6DD25B2DCF534056D98A2EFE3B7CFAE4EBC624854DE3FA436F733A56D8BD9"
+    },
+    {
+      "amount_change": "-0.01",
+      "final_balance": "100.181663",
+      "tx_index": 4,
+      "change_type": "transaction_cost",
+      "currency": "XRP",
+      "executed_time": "2016-01-26T08:32:20Z",
+      "ledger_index": 18489336,
+      "tx_hash": "E5C6DD25B2DCF534056D98A2EFE3B7CFAE4EBC624854DE3FA436F733A56D8BD9"
     }
   ]
 }
@@ -3066,6 +3111,8 @@ GET /v2/accounts/{:address}/reports/{:date}
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-account-reports-by-day)
 
 This method requires the following URL parameters:
 
@@ -3156,24 +3203,17 @@ Response:
 
 
 
-
-## Health Check ##
+## Health Check - API ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/checkHealth.js "Source")
 
-Check the health of the API or importer. By default, the endpoint will return a single integer indicating the status of the selected component. 0 response is considered healthy.
+Check the health of the API service.
 
 <!--<div class='multicode'>-->
 
-*REST - API Health*
+*REST*
 
 ```
 GET /v2/health/api
-```
-
-*REST - Importer Health*
-
-```
-GET /v2/health/importer
 ```
 
 <!--</div>-->
@@ -3182,42 +3222,28 @@ Optionally, you can also include the following query parameters:
 
 | Field      | Value   | Description |
 |------------|---------|-------------|
-| threshold  | Integer  | Custom threshold for response_time or validator_gap, in seconds |
-| threshold2 | Integer  | Custom threshold for ledger_gap (ignored in API health check) |
+| threshold  | Integer  | Consider the API unhealthy if the database does not respond within this amount of time, in seconds. Defaults to 5 seconds. |
+| verbose    | Boolean | If true, return a JSON response with data points. By default, return an integer value only. |
 
-#### Response Format - Default ####
+#### Response Format ####
 
-* API health:
-  * 0 hbase response time < 5 seconds
-  * 1 hbase response time greater than 5 seconds
-  * 2 hbase response error or invalid response time
+A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**. 
 
-* Importer health:
-  * 0 last ledger imported < 60 seconds ago && last validated ledger < 300 seconds ago
-  * 1 last ledger imported < 60 seconds ago
-  * 2 last ledger imported over 60 seconds ago
-  * 3 hbase response error or invalid response time
+The health value `0` always indicates a healthy status. Other health values are defined as follows:
 
-#### Response Format - API Verbose ####
-A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+| Value | Meaning |
+|-------|---------|
+| `0`   | API service is up, and response time to HBase is less than `threshold` value from request. |
+| `1`   | API service is up, but response time to HBase is greater than `threshold` value from request. |
+| `2`   | API service was unable to contact HBase, or received an error in connecting. |
+
+If the request specifies `verbose=true` in the query parameters, the response body is a JSON object, with the following fields:
 
 | Field  | Value | Description |
 |--------|-------|-------------|
-| score | 0-2 | Indicates the overall score. 0 is perfect health |
-| response_time | String | database response time |
-| response_time_threshold | String | Maximum response time to be considered healthy. |
-
-#### Response Format - Importer Verbose ####
-A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
-
-| Field  | Value | Description |
-|--------|-------|-------------|
-| score | 0-3 | Indicates the overall score. 0 is perfect health |
-| response_time | String | database response time |
-| ledger_gap | String | Difference between the close time of the last saved ledger and current time. |
-| ledger_gap_threshold | String | Maximum ledger gap to be considered healthy. |
-| valildation_gap | String | Difference between the close time of the last imported ledger that passed hash-chain validation and current time. |
-| validation_gap_threshold | String | Maximum validation gap to be considered healthy. |
+| score | 0-2 | Health value, as defined above. |
+| response\_time | String - Human-readable time | The actual response time of the database. |
+| response\_time\_threshold | String - Human-readable time | The maximum response time to be considered healthy. |
 
 #### Example ####
 
@@ -3236,6 +3262,78 @@ Response:
   response_time_threshold: "5s"
 }
 ```
+
+
+## Health Check - Ledger Importer ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/checkHealth.js "Source")
+
+Check the health of the Ledger Importer Service.
+
+<!--<div class='multicode'>-->
+
+*REST - Importer Health*
+
+```
+GET /v2/health/importer
+```
+
+<!--</div>-->
+
+Optionally, you can also include the following query parameters:
+
+| Field      | Value   | Description |
+|------------|---------|-------------|
+| threshold  | Integer | Consider the Importer unhealthy if more than this amount of time, in seconds, has elapsed since the latest validated ledger was imported. Defaults to 300 seconds. |
+| threshold2 | Integer | Consider the Importer unhealthy if more than this amount of time, in seconds, has elapsed since the latest ledger of any kind was imported. Defaults to 60 seconds. |
+| verbose    | Boolean | If true, return a JSON response with data points. By default, return an integer value only. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**. 
+
+The health value `0` always indicates a healthy status. Other health values are defined as follows:
+
+| Value | Meaning |
+|-------|---------|
+| `0`   | The most recent imported ledger was less than `threshold2` (Default: 60) seconds ago, and most recent validated ledger was less than `threshold` seconds ago. |
+| `1`   | The most recent imported ledger was less than `threshold2` (Default: 60) seconds ago, but the most recent validated ledger is older than `threshold` seconds. |
+| `2`   | The most recent imported ledger was more than `threshold2` seconds ago. |
+| `3`   | An error occurred when connecting to HBase, or the API was unable to determine when a ledger was most recently imported. |
+
+If the request specifies `verbose=true` in the query parameters, the response body is a JSON object, with the following fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| score  | 0-3 | Health value, as defined above. |
+| response\_time | String | The actual response time of the database. |
+| ledger\_gap | String - Human-readable time | Difference between the close time of the last saved ledger and the current time. |
+| ledger\_gap\_threshold | String - Human-readable time | Maximum ledger gap to be considered healthy. |
+| valildation\_gap | String - Human-readable time | Difference between the close time of the last imported validated ledger and the current time. |
+| validation\_gap\_threshold | String - Human-readable time | Maximum validation gap to be considered healthy. |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/health/importer?verbose=true
+```
+
+Response:
+
+```
+{
+	"score": 0,
+	"response_time": "0.081s",
+	"ledger_gap": "1.891s",
+	"ledger_gap_threshold": "5.00m",
+	"validation_gap": "29.894s",
+	"validation_gap_threshold": "15.00m"
+}
+```
+
+
+
 
 # API Conventions #
 
@@ -3279,13 +3377,29 @@ Ripple Accounts are identified by a base-58 Ripple Address, which is derived fro
 * Between 25 and 35 characters in length
 * Starts with the character `r`
 * Case-sensitive
-* Base-58 encoded using only the following characters: `rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz` That's alphanumeric characters, excluding zero (`0`), capital O (`O`), capital I (`I`), and lowercase L (`l`).
+* [Base-58](https://wiki.ripple.com/Encodings) encoded using only the following characters: `rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz` That's alphanumeric characters, excluding zero (`0`), capital O (`O`), capital I (`I`), and lowercase L (`l`).
 * Contains error-checking that makes it unlikely that a randomly-generated string is a valid address.
+
+#### Special Addresses ####
+[ACCOUNT_ONE]: #special-addresses
+[ACCOUNT_ZERO]: #special-addresses
+
+Some addresses have special meaning, or historical uses, in the Ripple Consensus Ledger. In many cases, these are "black hole" addresses, meaning the address is not derived from a known secret key. Since it is almost impossible to guess a secret key from just an address, any XRP possessed by those addresses is lost forever.
+
+| Address                     | Name | Meaning | Black Hole? |
+|-----------------------------|------|---------|-------------|
+| rrrrrrrrrrrrrrrrrrrrrhoLvTp | ACCOUNT\_ZERO | An address that is the base-58 encoding of the value `0`. In peer-to-peer communications, `rippled` uses this address as the issuer for XRP. | Yes |
+| rrrrrrrrrrrrrrrrrrrrBZbvji  | ACCOUNT\_ONE | An address that is the base-58 encoding of the value `1`. In the ledger, [RippleState entries](https://ripple.com/build/ledger-format/#ripplestate) use this address as a placeholder for the issuer of a trust line balance. | Yes |
+| rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh | The genesis account | When `rippled` starts a new genesis ledger from scratch (for example, in stand-alone mode), this account holds all the XRP. This address is generated from the seed value "masterpassphrase" which is [hard-coded](https://github.com/ripple/rippled/blob/94ed5b3a53077d815ad0dd65d490c8d37a147361/src/ripple/app/ledger/Ledger.cpp#L184). | No |
+| rrrrrrrrrrrrrrrrrNAMEtxvNvQ | Ripple Name reservation black-hole | In the past, Ripple asked users to send XRP to this account to reserve Ripple Names.| Yes |
+| rrrrrrrrrrrrrrrrrrrn5RM1rHd | NaN Address | Previous versions of [ripple-lib](https://github.com/ripple/ripple-lib) generated this address when base-58 encoding the value [NaN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN). | Yes |
+
+
 
 ### Hashes ###
 [Hash]: #hashes
 
-Many objects in Ripple, particularly transactions and ledgers, are uniquely identified by a 256-bit hash value. This value is typically calculated as a "SHA-512Half", which calculates a SHA-512 hash from some contents, then takes the first 64 characters of the hexadecimal representation. Since the hash of an object is derived from the contents in a way that is extremely unlikely to produce collisions, two objects with the same hash can be considered identical.
+Many objects in Ripple, particularly transactions and ledgers, are uniquely identified by a 256-bit hash value. This value is typically calculated as a "SHA-512Half", which calculates a [SHA-512](http://dx.doi.org/10.6028/NIST.FIPS.180-4) hash from some contents, then takes the first 64 characters of the hexadecimal representation. Since the hash of an object is derived from the contents in a way that is extremely unlikely to produce collisions, two objects with the same hash can be considered identical.
 
 A Ripple hash value has the following characteristics:
 
@@ -3293,7 +3407,8 @@ A Ripple hash value has the following characteristics:
 * [Hexadecimal](https://en.wikipedia.org/wiki/Hexadecimal) character set: 0-9 and A-F.
 * Typically written in upper case.
 
-**Note:** SHA-512Half has similar security to the officially-defined _SHA-512/256_ hash function. However, Ripple's usage predates SHA-512/256 and is also easier to implement on top of an existing SHA-512 function (since support for SHA-512/256 is not common in cryptographic libraries as of this writing).
+**Note:** SHA-512Half has similar security to the officially-defined _SHA-512/256_ hash function. However, Ripple's usage predates SHA-512/256 and is also easier to implement on top of an existing SHA-512 function. (As of this writing, SHA-512 support in cryptographic libraries is much more common than for SHA-512/256.)
+
 
 
 ### Timestamps ###
@@ -3318,7 +3433,11 @@ All dates and times are written in ISO 8601 Timestamp Format, using UTC. This fo
 
 A ledger index is a 32-bit unsigned integer used to identify a ledger. The ledger index is also known as the ledger's sequence number. The very first ledger was ledger index 1, and each subsequent ledger has a ledger index 1 higher than that of the ledger immediately before it.
 
-Two ledgers with the same ledger index are guaranteed to have identical contents _if they are validated by consensus_. Ledgers that are not validated by consensus may have different contents even with the same ledger index. (The [Hash][] values of two ledgers can tell you whether those ledgers have the exact same contents.)
+The ledger index indicates the order of the ledgers; the [Hash][] value identifies the exact contents of the ledger. Two ledgers with the same hash are always identical. For validated ledgers, hash values and sequence numbers are equally valid and correlate 1:1. However, this is not true for in-progress ledgers:
+
+* Two different `rippled` servers may have different contents for a current ledger with the same ledger index, due to latency in propagating transactions throughout the network.
+* There may be multiple closed ledger versions competing to be validated by consensus. These ledger versions have the same sequence number but different contents (and different hashes). Only one of these closed ledgers can become validated.
+* A current ledger's contents change over time, which would cause its hash to change, even though its ledger index number stays the same. Therefore, the hash of a ledger is not calculated until the ledger is closed.
 
 ### Account Sequence ###
 [Sequence Number]: #account-sequence
@@ -3332,10 +3451,11 @@ Every [Offer node in the Ripple Consensus Ledger](https://ripple.com/build/ledge
 ### Currency Code ###
 [Currency Code]: #currency-code
 
-Currencies in Ripple can be represented in two ways:
+There are two kinds of currency code in the Ripple Consensus Ledger:
 
-* As three-letter [ISO 4217 Currency Codes](http://www.xe.com/iso4217.php). These currency codes must be written in uppercase ("USD" is valid, "usd" is not). Ripple permits currency codes that are not officially approved, including currency codes with digits in them.
-* As 160-bit hexadecimal values, such as `0158415500000000C1F76FF6ECB0BAC600000000`, according to Ripple's internal [Currency Format](https://wiki.ripple.com/Currency_format). This representation is uncommon.
+* Three-character currency code. We recommend using all-uppercase [ISO 4217 Currency Codes](http://www.xe.com/iso4217.php). However, any combination of the following characters is permitted: all uppercase and lowercase letters, digits, as well as the symbols `?`, `!`, `@`, `#`, `$`, `%`, `^`, `&`, `*`, `<`, `>`, `(`, `)`, `{`, `}`, `[`, `]`, and <code>&#124;</code>. The currency code `XRP` (all-uppercase) is reserved for XRP and cannot be used by issued currencies.
+* 160-bit hexadecimal values, such as `0158415500000000C1F76FF6ECB0BAC600000000`, according to Ripple's internal [Currency Format](https://wiki.ripple.com/Currency_format). This representation is uncommon.
+
 
 ## Pagination ##
 
@@ -3358,7 +3478,7 @@ Transactions have two formats - a compact "binary" format where the defining fie
 | hash  | String - [Hash][] | An identifying hash value unique to this transaction, as a hex string. |
 | date  | String - [Timestamp][] | The time when this transaction was included in a validated ledger. |
 | ledger_index | Number - [Ledger Index][] | The sequence number of the ledger that included this ledger. |
-| tx    | Object | The fields of this transaction object, as defined by the [Transaction Format](https://ripple.com/build/transactions) |
+| tx    | Object | The fields of this transaction object, as defined by the [Transaction Format](https://ripple.com/build/transactions/) |
 | meta  | Object | Metadata about the results of this transaction. |
 
 ### Binary Format ###
@@ -3487,6 +3607,8 @@ Payment objects have the following fields:
 | destination\_balance\_changes | Array | Array of [balance change objects][], indicating all changes made to the `destination` account's balances. |
 | source\_balance\_changes | Array | Array of [balance change objects][], indicating all changes to the `source` account's balances (except the XRP transaction cost). |
 | transaction\_cost | [String - Number][] | The amount of XRP spent by the `source` account on the transaction cost. (Prior to [v2.0.4][], this parameter was called `fee`.) |
+| destination\_tag | Integer | (May be omitted) A [destination tag](https://ripple.com/build/gateway-guide/#source-and-destination-tags) specified in this payment. |
+| source\_tag | Integer | (May be omitted) A [source tag](https://ripple.com/build/gateway-guide/#source-and-destination-tags) specified in this payment. |
 | currency | String - [Currency Code][] | The currency that the `destination` account received. |
 | destination | String - [Address][] | The account that received the payment. |
 | executed\_time | String - [Timestamp][] | The time the ledger that included this payment closed. |
@@ -3522,14 +3644,14 @@ Balance Change Descriptors have the following fields:
 
 | Field | Value | Description |
 |-------|-------|-------------|
-| change | [String - Number][] | The difference in the amount of currency held before and after this change. |
+| amount\_change | [String - Number][] | The difference in the amount of currency held before and after this change. _(Prior to [v2.0.6][], this field was called `change`.)_ |
 | final\_balance | [String - Number][] | The balance after the change occurred. |
 | node\_index | Number (or `null`)| This balance change is represented by the entry at this index of the ModifiedNodes array within the metadata section of the transaction that executed this balance change. **Note:** When the transaction cost is combined with other changes to XRP balance, the transaction cost has a `node_index` of **null** instead. |
 | tx\_index | Number | The transaction that executed this balance change is at this index in the array of transactions for the ledger that included it. |
 | change\_type | String | One of several [](#change-types) describing what caused this balance change to occur. |
 | currency | String - [Currency Code][] | The change affected this currency. |
 | executed\_time | String - [Timestamp][] | The time the change occurred. (This is based on the close time of the ledger that included the transaction that executed the change. |
-| issuer | String - [Address][] | (Omitted for XRP) The `currency` was issued by this account. |
+| counterparty | String - [Address][] | (Omitted for XRP) The `currency` is held in a trust line to or from this account. _(Prior to [v2.0.6][], this field was called `issuer`.)_ |
 | ledger\_index | Number - [Ledger Index][] | The sequence number of the ledger that included the transaction that executed this balance change. |
 | tx\_hash | String - [Hash][] | The identifying hash of the transaction that executed this balance change. |
 
@@ -3651,5 +3773,3 @@ Example usage:
 // get ledgers #1,000,000 to #2,000,000 (inclusive) and store in HBase
 node import/hbase/backfill --startIndex 2000000 --stopIndex 1000000
 ```
-
-
