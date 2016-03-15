@@ -11,7 +11,7 @@ Ripple provides a live instance of the Data API with as complete a transaction r
 
 
 ## More Information ##
-The Ripple Data API v2 replaces the Historical Database v1 and the [Charts API](https://github.com/ripple/ripple-data-api/). 
+The Ripple Data API v2 replaces the Historical Database v1 and the [Charts API](https://github.com/ripple/ripple-data-api/).
 
 * [API Methods](#api-method-reference)
 * [API Conventions](#api-conventions)
@@ -64,7 +64,8 @@ Account Methods:
 * [Get Account Exchanges - `GET /v2/accounts/{:address}/exchanges`](#get-account-exchanges)
 * [Get Account Balance Changes - `GET /v2/accounts/{:address}/balance_changes`](#get-account-balance-changes)
 * [Get Account Reports - `GET /v2/accounts/{:address}/reports`](#get-account-reports)
-* [Health Check - `GET /v2/health/{:component}`](#health-check)
+* [Get Account Transaction Stats - `GET /v2/accounts/{:address}/stats/transactions`](#get-account-transaction-stats)
+* [Get Account Value Stats - `GET /v2/accounts/{:address}/stats/value`](#get-account-value-stats)
 
 Health Checks:
 
@@ -3203,6 +3204,160 @@ Response:
 
 
 
+
+## Get Account Transaction Stats ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/accountStats.js "Source")
+
+Retrieve daily summaries of transaction activity for an account.
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/accounts/{:address}/stats/transactions
+```
+
+<!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-account-transaction-stats)
+
+This method requires the following URL parameters:
+
+| Field    | Value  | Description |
+|----------|--------|-------------|
+| :address | String | Ripple address to query |
+
+
+Optionally, you can also include the following query parameters:
+
+| Field      | Value   | Description |
+|------------|---------|-------------|
+| start      | String  | UTC start time of query range. Defaults to start of current date. |
+| end        | String  | UTC end time of query range. Defaults to current date. |
+| limit      | Integer | Max results per page (defaults to 200). Cannot be more than 1000. |
+| descending | Boolean | If true, sort results with most recent first. By default, sort results with oldest first. |
+| marker     | String  | [Pagination](#pagination) key from previously returned response. |
+| format     | String  | Format of returned results: `csv`,`json` defaults to `json` |
+
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count | Integer | Number of reports returned. |
+| rows | Array of [Transaction Stats Objects][] | Daily summaries of account transaction activity for the given account. |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/accounts/rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/stats/transactions?start=2015-01-01
+```
+
+Response:
+
+```
+{
+  result: "success",
+  count: 200,
+  marker: "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q|20150720000000",
+  rows: [
+    {
+      date: "2015-01-01T00:00:00Z",
+      transaction_count: 167,
+      result: {
+        tecUNFUNDED_PAYMENT: 1,
+        tesSUCCESS: 166
+      },
+      type: {
+        Payment: 167
+      }
+    },
+    ...
+  ]
+}
+```
+
+
+
+## Get Account Value Stats ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/accountStats.js "Source")
+
+Retrieve daily summaries of transaction activity for an account.
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/accounts/{:address}/stats/value
+```
+
+<!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-account-value-stats)
+
+This method requires the following URL parameters:
+
+| Field    | Value  | Description |
+|----------|--------|-------------|
+| :address | String | Ripple address to query |
+
+
+Optionally, you can also include the following query parameters:
+
+| Field      | Value   | Description |
+|------------|---------|-------------|
+| start      | String  | UTC start time of query range. Defaults to start of current date. |
+| end        | String  | UTC end time of query range. Defaults to current date. |
+| limit      | Integer | Max results per page (defaults to 200). Cannot be more than 1000. |
+| marker     | String  | [Pagination](#pagination) key from previously returned response. |
+| descending | Boolean | If true, sort results with most recent first. By default, sort results with oldest first. |
+| format     | String  | Format of returned results: `csv`,`json` defaults to `json` |
+
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count | Integer | Number of reports returned. |
+| rows | Array of [Value Stats Objects][] | Daily summaries of account value for the given account. |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/accounts/rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/stats/value?start=2015-01-01
+```
+
+Response:
+
+```
+{
+  result: "success",
+  count: 200,
+  marker: "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q|20150720000000",
+  rows: [
+    {
+      date: "2015-01-01T00:00:00Z",
+      account_value: "2070.2759309995818",
+      balance_change_count: 6989
+    },
+    ...
+  ]
+}
+```
+
+
+
+
 ## Health Check - API ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/checkHealth.js "Source")
 
@@ -3227,7 +3382,7 @@ Optionally, you can also include the following query parameters:
 
 #### Response Format ####
 
-A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**. 
+A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**.
 
 The health value `0` always indicates a healthy status. Other health values are defined as follows:
 
@@ -3289,7 +3444,7 @@ Optionally, you can also include the following query parameters:
 
 #### Response Format ####
 
-A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**. 
+A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**.
 
 The health value `0` always indicates a healthy status. Other health values are defined as follows:
 
@@ -3323,12 +3478,12 @@ Response:
 
 ```
 {
-	"score": 0,
-	"response_time": "0.081s",
-	"ledger_gap": "1.891s",
-	"ledger_gap_threshold": "5.00m",
-	"validation_gap": "29.894s",
-	"validation_gap_threshold": "15.00m"
+  "score": 0,
+  "response_time": "0.081s",
+  "ledger_gap": "1.891s",
+  "ledger_gap_threshold": "5.00m",
+  "validation_gap": "29.894s",
+  "validation_gap_threshold": "15.00m"
 }
 ```
 

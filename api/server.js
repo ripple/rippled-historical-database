@@ -61,6 +61,8 @@ var Server = function (options) {
     app.get('/v2/transactions/', routesV2.getTransactions);
     app.get('/v2/transactions/:tx_hash', routesV2.getTransactions);
     app.get('/v2/ledgers/:ledger_param?', routesV2.getLedger);
+    app.get('/v2/accounts', routesV2.accounts);
+    app.get('/v2/accounts/:address', routesV2.getAccount);
     app.get('/v2/accounts/:address/transactions/:sequence', routesV2.accountTxSeq);
     app.get('/v2/accounts/:address/transactions', routesV2.accountTransactions);
     app.get('/v2/accounts/:address/balances', routesV2.accountBalances);
@@ -71,7 +73,7 @@ var Server = function (options) {
     app.get('/v2/accounts/:address/exchanges/:base', routesV2.accountExchanges);
     app.get('/v2/accounts/:address/exchanges/:base/:counter', routesV2.accountExchanges);
     app.get('/v2/accounts/:address/orders', routesV2.accountOrders);
-    app.get('/v2/accounts/:address', routesV2.getAccount);
+    app.get('/v2/accounts/:address/stats/:family', routesV2.accountStats);
     app.get('/v2/accounts', routesV2.accounts);
     app.get('/v2/payments/:currency?', routesV2.getPayments);
     app.get('/v2/exchanges/:base/:counter', routesV2.getExchanges);

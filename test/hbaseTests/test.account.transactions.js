@@ -221,7 +221,6 @@ describe('account transactions API endpoint', function() {
         '/transactions?start=' + start +
         '&end=' + end;
 
-    console.log(url);
     utils.checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.transactions.length, 1);
       assert.equal(body.transactions[0].hash, ref.transactions[i].hash);

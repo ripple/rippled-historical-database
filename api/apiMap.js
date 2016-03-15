@@ -42,6 +42,14 @@ var generateMap = function(url) {
         route: '/v2/accounts/{:address}/orders',
         example: url + '/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/orders'
       }, {
+        action: 'Get Account Transaction Stats',
+        route: '/v2/accounts/{:address}/stats/transactions',
+        example: url + '/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/stats/transactions'
+      }, {
+        action: 'Get Account Value Stats',
+        route: '/v2/accounts/{:address}/stats/value',
+        example: url + '/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/stats/value'
+      }, {
         action: 'Get Account',
         route: '/v2/accounts/{:address}',
         example: url + '/accounts/rB31eWvkfKBAu6FDD9zgnzT4RwSfXGcqPm'

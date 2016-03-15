@@ -19,7 +19,7 @@ node_modules/.bin/mocha --ui tdd -R spec test/gateways.test.js
 if [ "$1" = "hbase" ]; then
   node_modules/.bin/mocha --ui tdd -R spec test/hbaseTests/createTables.js --prefix $TAG --port $PORT
   node_modules/.bin/mocha --ui tdd -R spec test/hbaseTests/importLedgers.js --prefix $TAG --port $PORT
-  node_modules/.bin/mocha --ui tdd -R spec test/hbaseTests/setup.js test/hbaseTests/test.js --prefix $TAG --port $PORT
+  node_modules/.bin/mocha --ui tdd -R spec test/hbaseTests/setup.js test/hbaseTests/test.*.js --prefix $TAG --port $PORT
   node_modules/.bin/mocha --ui tdd -R spec test/hbaseTests/removeTables.js --prefix $TAG --port $PORT
 fi
 echo "removing database '$PSQL_DATABASE'"
