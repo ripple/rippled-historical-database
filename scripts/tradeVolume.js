@@ -476,7 +476,11 @@ function handleAggregation (params, done) {
         rowkey += params.live ? 'live' : params.interval + '|' + params.start.hbaseFormatStartRow();
 
         console.log('saving:', table, rowkey);
-        return hbase.putRow(table, rowkey, result)
+        return hbase.putRow({
+          table: table,
+          rowkey: rowkey,
+          columns: result
+        })
         .nodeify(function(err, resp) {
           if (err) {
             reject(err);

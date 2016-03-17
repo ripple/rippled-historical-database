@@ -55,7 +55,11 @@ function updateFee(d) {
       binary: true
     }, function(err, tx) {
       var tx_json = binary.decode(tx.tx);
-      hbase.putRow('transactions', d.tx_hash, {Fee:tx_json.Fee})
+      hbase.putRow({
+        table: 'transactions',
+        rowkey: d.tx_hash,
+        columns: {Fee:tx_json.Fee}
+      })
       .then(function(resp) {
         count++;
         resolve(resp);

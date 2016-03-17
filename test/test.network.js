@@ -26,23 +26,59 @@ describe('network - exchange volume', function() {
   before(function(done) {
     var table = 'agg_metrics';
     var rows = [
-      hbase.putRow(table, 'trade_volume|live', mockExchangeVolume),
-      hbase.putRow(table, 'payment_volume|live', mockPaymentVolume),
-      hbase.putRow(table, 'issued_value|live', mockIssuedValue),
-      hbase.putRow(table, 'trade_volume|day|20150114000000', mockExchangeVolume),
-      hbase.putRow(table, 'payment_volume|day|20150114000000', mockPaymentVolume),
-      hbase.putRow(table, 'issued_value|20150114000000', mockIssuedValue),
-      hbase.putRow(table, 'issued_value|20150113000000', mockIssuedValue)
+      hbase.putRow({
+        table: table,
+        rowkey: 'trade_volume|live',
+        columns: mockExchangeVolume
+      }),
+      hbase.putRow({
+        table: table,
+        rowkey: 'payment_volume|live',
+        columns: mockPaymentVolume
+      }),
+      hbase.putRow({
+        table: table,
+        rowkey: 'issued_value|live',
+        columns: mockIssuedValue
+      }),
+      hbase.putRow({
+        table: table,
+        rowkey: 'trade_volume|day|20150114000000',
+        columns: mockExchangeVolume
+      }),
+      hbase.putRow({
+        table: table,
+        rowkey: 'payment_volume|day|20150114000000',
+        columns: mockPaymentVolume
+      }),
+      hbase.putRow({
+        table: table,
+        rowkey: 'issued_value|20150114000000',
+        columns: mockIssuedValue
+      }),
+      hbase.putRow({
+        table: table,
+        rowkey: 'issued_value|20150113000000',
+        columns: mockIssuedValue
+      })
     ];
 
     mockTopCurrencies.forEach(function(r, i) {
       var key = '20150114|00000' + (i + 1);
-      rows.push(hbase.putRow('top_currencies', key, r));
+      rows.push(hbase.putRow({
+        table: 'top_currencies',
+        rowkey: key,
+        columns: r
+      }));
     });
 
     mockTopMarkets.forEach(function(r, i) {
       var key = '20150114|00000' + (i + 1);
-      rows.push(hbase.putRow('top_markets', key, r));
+      rows.push(hbase.putRow({
+        table: 'top_markets',
+        rowkey: key,
+        columns: r
+      }));
     });
 
     Promise.all(rows).nodeify(function(err, resp) {

@@ -3,7 +3,6 @@
 var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'top currencies'});
 var smoment = require('../../../lib/smoment');
-var utils = require('../../../lib/utils');
 var hbase;
 
 var getTopCurrencies = function(req, res) {
