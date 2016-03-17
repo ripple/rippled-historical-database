@@ -354,7 +354,11 @@ function handleAggregation(params, done) {
         var rowkey = 'payment_volume|' + (params.live ?
           'live' : options.interval + '|' + smoment(result.startTime).hbaseFormatStartRow());
 
-        hbase.putRow(table, rowkey, result)
+        hbase.putRow({
+          table: table,
+          rowkey: rowkey,
+          columns: result
+        })
         .nodeify(function(err, resp) {
 
           if (err) {

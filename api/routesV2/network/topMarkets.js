@@ -3,7 +3,6 @@
 var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'top markets'});
 var smoment = require('../../../lib/smoment');
-var utils = require('../../../lib/utils');
 var hbase;
 
 var getTopMarkets = function(req, res) {
