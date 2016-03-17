@@ -25,7 +25,11 @@ ledger.accountState.forEach(function(state, i) {
     };
 
     rowkey = time + '|' + utils.padNumber(ledger.ledger_index, 12) + '|genesis|' + utils.padNumber(count, 3);
-    hbase.putRow('accounts_created', rowkey, row)
+    hbase.putRow({
+      table: 'accounts_created',
+      rowkey: rowkey,
+      columns: row
+    })
     .nodeify(function(err, resp) {
       console.log(rowkey, err, resp);
     });

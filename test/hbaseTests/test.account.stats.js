@@ -41,13 +41,21 @@ describe('account stats API endpoint', function() {
       }
 
       key = account + '|' + moment(r.date).format('YYYYMMDDHHmmss');
-      rows.push(hbase.putRow('agg_account_stats', key, data));
+      rows.push(hbase.putRow({
+        table: 'agg_account_stats',
+        rowkey: key,
+        columns: data
+      }));
     });
 
     valueStats.forEach(function(r) {
       r.account = account;
       var key = account + '|' + moment(r.date).format('YYYYMMDDHHmmss');
-      rows.push(hbase.putRow('agg_account_balance_changes', key, r));
+      rows.push(hbase.putRow({
+        table: 'agg_account_balance_changes',
+        rowkey: key,
+        columns: r
+      }));
     });
 
     Promise.all(rows).nodeify(function(err, resp) {

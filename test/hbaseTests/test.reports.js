@@ -91,7 +91,7 @@ describe('reports API endpoint', function() {
   });
 
   it('should handle pagination correctly', function(done) {
-    this.timeout(7000);
+    this.timeout(10000);
     var date = '2015-02-09T00:00:00';
     var url = 'http://localhost:' + port + '/v2/reports/' + date + '?';
 

@@ -207,7 +207,10 @@ function save(data) {
   });
 
   console.log('saving ' + Object.keys(rows).length + ' rows');
-  return hbase.putRows('agg_exchanges_external', rows);
+  return hbase.putRows({
+    table: 'agg_exchanges_external',
+    rows: rows
+  });
 }
 
 Promise.all([
