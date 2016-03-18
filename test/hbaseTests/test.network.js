@@ -12,6 +12,9 @@ var mockPaymentVolume = require('../mock/payment-volume.json');
 var mockIssuedValue = require('../mock/issued-value.json');
 var mockTopCurrencies = require('../mock/top-currencies.json');
 var mockTopMarkets = require('../mock/top-markets.json');
+var mockTopologyNodes = require('../mock/topology-nodes.json');
+var mockTopologyLinks = require('../mock/topology-links.json');
+var mockTopologyInfo = require('../mock/topology-info.json');
 
 var hbaseConfig = config.get('hbase');
 hbaseConfig.prefix = prefix;
@@ -76,6 +79,33 @@ describe('network - exchange volume', function() {
       rows.push(hbase.putRow({
         table: 'top_markets',
         rowkey: key,
+        columns: r
+      }));
+    });
+
+    mockTopologyNodes.forEach(function(r) {
+      rows.push(hbase.putRow({
+        prefix: prefix,
+        table: 'rawl_node_stats',
+        rowkey: r.rowkey,
+        columns: r
+      }));
+    });
+
+    mockTopologyLinks.forEach(function(r) {
+      rows.push(hbase.putRow({
+        prefix: prefix,
+        table: 'onnections',
+        rowkey: r.rowkey,
+        columns: r
+      }));
+    });
+
+    mockTopologyInfo.forEach(function(r) {
+      rows.push(hbase.putRow({
+        prefix: prefix,
+        table: 'rawls',
+        rowkey: r.rowkey,
         columns: r
       }));
     });
@@ -403,8 +433,8 @@ describe('network - top markets', function() {
     },
     function (err, res, body) {
       assert.ifError(err);
-      assert.strictEqual(body.markets.length, 56);
       assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.markets.length, 56);
       done();
     });
   });
@@ -421,8 +451,8 @@ describe('network - top markets', function() {
     },
     function (err, res, body) {
       assert.ifError(err);
-      assert.strictEqual(body.markets.length, 3);
       assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.markets.length, 3);
       done();
     });
   });
@@ -459,8 +489,8 @@ describe('network - top currencies', function() {
     },
     function (err, res, body) {
       assert.ifError(err);
-      assert.strictEqual(body.currencies.length, 41);
       assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.currencies.length, 41);
       done();
     });
   });
@@ -477,8 +507,8 @@ describe('network - top currencies', function() {
     },
     function (err, res, body) {
       assert.ifError(err);
-      assert.strictEqual(body.currencies.length, 3);
       assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.currencies.length, 3);
       done();
     });
   });
@@ -498,6 +528,205 @@ describe('network - top currencies', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(body.message, 'invalid date format');
+      done();
+    });
+  });
+});
+
+
+describe('network - topology', function() {
+  it('should get topology nodes and links', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z');
+      assert.strictEqual(body.node_count, 9);
+      assert.strictEqual(body.link_count, 5);
+      done();
+    });
+  });
+
+  it('should get topology nodes', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/nodes';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z');
+      assert.strictEqual(body.count, 9);
+      done();
+    });
+  });
+
+  it('should get topology links', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/links';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z');
+      assert.strictEqual(body.count, 5);
+      done();
+    });
+  });
+
+  it('should get topology by date', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology?date=2016-03-16';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      console.log(body.date);
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.date, '2016-03-15T23:59:54Z');
+      assert.strictEqual(body.node_count, 7);
+      assert.strictEqual(body.link_count, 11);
+      done();
+    });
+  });
+
+  it('should get topology nodes by date', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/nodes?date=2016-03-16';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      console.log(body.date);
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.date, '2016-03-15T23:59:54Z');
+      assert.strictEqual(body.count, 7);
+      done();
+    });
+  });
+
+  it('should get topology links by date', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/links?date=2016-03-16';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      console.log(body.date);
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.date, '2016-03-15T23:59:54Z');
+      assert.strictEqual(body.count, 11);
+      done();
+    });
+  });
+
+  it('should error on invalid date', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology?date=' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid date format');
+      done();
+    });
+  });
+
+  it('should error on invalid date', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/nodes?date=' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid date format');
+      done();
+    });
+  });
+
+  it('should error on invalid date', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/links?date=' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid date format');
+      done();
+    });
+  });
+
+  it('should get get topology nodes in CSV format', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/nodes?format=csv';
+
+    request({
+      url: url
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers['content-disposition'],
+        'attachment; filename=topology nodes - 2016-03-18T22:31:33Z.csv');
+      done();
+    });
+  });
+
+  it('should get get topology links in CSV format', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/links?format=csv';
+
+    request({
+      url: url
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers['content-disposition'],
+        'attachment; filename=topology links - 2016-03-18T22:31:33Z.csv');
       done();
     });
   });
