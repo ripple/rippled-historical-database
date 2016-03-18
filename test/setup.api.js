@@ -8,6 +8,7 @@ var port = config.get('port') || 7111;
 var server;
 
 hbaseConfig.prefix = prefix;
+hbaseConfig.topologyPrefix = prefix;
 hbaseConfig.logLevel = 2;
 hbaseConfig.max_sockets = 200;
 hbaseConfig.timeout = 60000;

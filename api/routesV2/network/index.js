@@ -5,6 +5,9 @@ module.exports = function(db) {
     paymentVolume: getMetric.bind(undefined, 'payment_volume'),
     issuedValue: getMetric.bind(undefined, 'issued_value'),
     topMarkets: require('./topMarkets')(db),
-    topCurrencies: require('./topCurrencies')(db)
+    topCurrencies: require('./topCurrencies')(db),
+    getNodes: require('./getNodes')(db),
+    getLinks: require('./getLinks')(db),
+    getTopology: require('./getTopology')(db)
   }
 };
