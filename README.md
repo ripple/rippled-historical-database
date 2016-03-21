@@ -48,6 +48,9 @@ General Methods:
 * [Get Issued Value - `GET /v2/network/issued_value`](#get-issued-value)
 * [Get Top Currencies - `GET /v2/network/top_currencies`](#get-top-currencies)
 * [Get Top Markets - `GET /v2/network/top_markets`](#get-top-markets)
+* [Get Top Markets - `GET /v2/network/topology`](#get-topology)
+* [Get Top Markets - `GET /v2/network/topology/nodes`](#get-topology-nodes)
+* [Get Top Markets - `GET /v2/network/topology/links`](#get-topology-links)
 * [Get All Gateways - `GET /v2/gateways`](#get-all-gateways)
 * [Get Gateway - `GET /v2/gateways/{:gateway}`](#get-gateway)
 * [Get Currency Image - `GET /v2/currencies/{:currencyimage}`](#get-currency-image)
@@ -1948,6 +1951,254 @@ Response:
   ]
 }
 ```
+
+
+
+## Get Topology ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getTopology.js "Source")
+
+Get known Rippled nodes and connections between them.
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/topology
+```
+
+<!--</div>-->
+
+Optionally, you can include the following query parameters:
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| date | String - [Timestamp][]  | Date and time for historical query (defaults to latest) |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| date   | String - [Timestamp][] | The time at which this data was measured. |
+| node_count  | Integer | Number of nodes returned. |
+| link_count  | Integer | Number of links returned. |
+| nodes | Array of Node Objects | Rippled nodes and details |
+| links | Array of Link Objects | Links between rippled nodes |
+
+
+Node Object fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| node_public_key | String | node public key |
+| version | String | Rippled version at the time of query |
+| uptime | Integer | Uptime of the node in seconds |
+| ip | String | IP address of the node (may be omitted) |
+| port | Integer | Host port (may be omitted) |
+| inbound_count | Integer | Number of inbound connections (may be omitted) |
+| inbound_added | String | Number of inbound connections added (may be omitted) |
+| inbound_dropped | String | Number of inbound connections dropped (may be omitted) |
+| outbound_count | Integer | Number of outbound connections (may be omitted) |
+| outbound_added | String | Number of outbound connections added (may be omitted) |
+| outbound_dropped | String | Number of outbound connections dropped (may be omitted) |
+
+Link Object fields:
+| Field  | Value | Description |
+|--------|-------|-------------|
+| source | String | Source node public key |
+| target | String | Target node public key |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/topology
+```
+
+Response:
+
+```
+{
+  result: "success",
+  date: "2016-03-21T16:38:52Z",
+  node_count: 99,
+  link_count: 1632,
+  nodes: [
+    {
+      node_public_key: "n94Extku8HiQVY8fcgxeot4bY7JqK2pNYfmdnhgf6UbcmgucHFY8",
+      version: "rippled-0.30.1-hf2",
+      uptime: 1729008,
+      inbound_count: 4,
+      outbound_count: 20
+    },
+    ...
+  ],
+  links: [
+    {
+      source: "n94Extku8HiQVY8fcgxeot4bY7JqK2pNYfmdnhgf6UbcmgucHFY8",
+      target: "n9JccBLfrDJBLBF2X5N7bUW8251riCwSf9e3VQ3P5fK4gYr5LBu4"
+    },
+    ...
+  ]
+}
+```
+
+
+
+## Get Topology Nodes##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getNodes.js "Source")
+
+Get known Rippled nodes and connections between them.
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/topology/nodes
+```
+
+<!--</div>-->
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| date | String - [Timestamp][]  | Date and time for historical query (defaults to latest) |
+| format | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| date   | String - [Timestamp][] | The time at which this data was measured. |
+| count  | Integer | Number of nodes returned. |
+| nodes | Array of Node Objects | Rippled nodes and details |
+
+Node Object fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| node_public_key | String | node public key |
+| version | String | Rippled version at the time of query |
+| uptime | Integer | Uptime of the node in seconds |
+| ip | String | IP address of the node (may be omitted) |
+| port | Integer | Host port (may be omitted) |
+| inbound_count | Integer | Number of inbound connections (may be omitted) |
+| inbound_added | String | Number of inbound connections added (may be omitted) |
+| inbound_dropped | String | Number of inbound connections dropped (may be omitted) |
+| outbound_count | Integer | Number of outbound connections (may be omitted) |
+| outbound_added | String | Number of outbound connections added (may be omitted) |
+| outbound_dropped | String | Number of outbound connections dropped (may be omitted) |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/topology/nodes
+```
+
+Response:
+
+```
+{
+  result: "success",
+  date: "2016-03-21T16:38:52Z",
+  count: 99,
+  nodes: [
+    {
+      node_public_key: "n94Extku8HiQVY8fcgxeot4bY7JqK2pNYfmdnhgf6UbcmgucHFY8",
+      version: "rippled-0.30.1-hf2",
+      uptime: 1729008,
+      inbound_count: 4,
+      outbound_count: 20
+    },
+    ...
+  ]
+}
+```
+
+
+
+## Get Topology Links ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getLinks.js "Source")
+
+Get known Rippled nodes and connections between them.
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/topology/links
+```
+
+<!--</div>-->
+
+Optionally, you can include the following query parameters:
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| date | String - [Timestamp][]  | Date and time for historical query (defaults to latest) |
+| format | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| date   | String - [Timestamp][] | The time at which this data was measured. |
+| count  | Integer | Number of links returned. |
+| links | Array of Link Objects | Links between rippled nodes |
+
+Link Object fields:
+| Field  | Value | Description |
+|--------|-------|-------------|
+| source | String | Source node public key |
+| target | String | Target node public key |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/topology/links
+```
+
+Response:
+
+```
+{
+  result: "success",
+  date: "2016-03-21T16:38:52Z",
+  count: 1632,
+  links: [
+    {
+      source: "n94Extku8HiQVY8fcgxeot4bY7JqK2pNYfmdnhgf6UbcmgucHFY8",
+      target: "n9JccBLfrDJBLBF2X5N7bUW8251riCwSf9e3VQ3P5fK4gYr5LBu4"
+    },
+    ...
+  ]
+}
+```
+
 
 
 ## Get All Gateways ##
