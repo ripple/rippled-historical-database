@@ -24,6 +24,10 @@ var Server = function (options) {
 
   rippleAPI.connect();
 
+  rippleAPI.on('error', function(errorCode, errorMessage, data) {
+    console.log(errorCode, errorMessage, data);
+  });
+
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({extended:true}));
   app.use(json2csv.expressDecorator);
