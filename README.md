@@ -1,4 +1,4 @@
-![Travis Build Status](https://travis-ci.org/ripple/rippled-historical-database.svg?branch=develop)
+[![Circle CI](https://circleci.com/gh/ripple/rippled-historical-database.svg?style=svg)](https://circleci.com/gh/ripple/rippled-historical-database)
 
 Ripple Data API v2
 ==================
