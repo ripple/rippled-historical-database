@@ -1,4 +1,4 @@
-var config = require('../config/test.config.json');
+var config = require('../config/test.config');
 var assert = require('assert');
 var request = require('request');
 var path = require('path');
@@ -7,9 +7,10 @@ var Server = require('../api/server');
 
 var port = 7111;
 var baseURL = 'http://localhost:' + port + '/v2/';
+
 var server = new Server({
   postgres: undefined,
-  hbase: config.hbase,
+  hbase: config.get('hbase'),
   port: port
 });
 
