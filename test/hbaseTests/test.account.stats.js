@@ -3,7 +3,7 @@ var assert = require('assert');
 var moment = require('moment');
 var Promise = require('bluebird');
 var utils = require('../utils');
-var config = require('../../config/import.config');
+var config = require('../../config/test.config');
 var port = config.get('port') || 7111;
 var txStats = require('../mock/account-stats-tx.json');
 var valueStats = require('../mock/account-stats-value.json');
@@ -40,13 +40,13 @@ describe('account stats API endpoint', function() {
         data['type:' + key] = r.type[key];
       }
 
-      key = account + '|' + moment(r.date).format('YYYYMMDDHHmmss');
+      key = account + '|' + moment.utc(r.date).format('YYYYMMDDHHmmss');
       rows.push(hbase.putRow('agg_account_stats', key, data));
     });
 
     valueStats.forEach(function(r) {
       r.account = account;
-      var key = account + '|' + moment(r.date).format('YYYYMMDDHHmmss');
+      var key = account + '|' + moment.utc(r.date).format('YYYYMMDDHHmmss');
       rows.push(hbase.putRow('agg_account_balance_changes', key, r));
     });
 
@@ -172,7 +172,7 @@ describe('account stats API endpoint', function() {
     var url = 'http://localhost:' + port + '/v2/accounts/' +
         account + '/stats/transactions?limit=5';
     var linkHeader = '<' + url +
-      '&marker=r3fRiC42XCDHFkE4vLdJUhsVcx7hFbE5gU|20150105160000>; rel="next"';
+      '&marker=r3fRiC42XCDHFkE4vLdJUhsVcx7hFbE5gU|20150106000000>; rel="next"';
 
     request({
       url: url,

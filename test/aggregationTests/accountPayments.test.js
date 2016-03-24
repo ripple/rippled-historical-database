@@ -3,7 +3,7 @@ var Parser       = require('../../lib/ledgerParser');
 var Hbase        = require('../../lib/hbase/hbase-client');
 var utils        = require('../../lib/utils');
 var fs           = require('fs');
-var config       = require('../../config/import.config');
+var config       = require('../../config/test.config');
 var options = config.get('hbase')
 
 
