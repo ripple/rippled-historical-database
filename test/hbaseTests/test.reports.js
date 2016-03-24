@@ -2,7 +2,7 @@ var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
 var utils = require('../utils');
-var config = require('../../config/import.config');
+var config = require('../../config/test.config');
 var port = config.get('port') || 7111;
 
 describe('reports API endpoint', function() {

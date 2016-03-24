@@ -1,4 +1,4 @@
-var config  = require('../config/import.config.json');
+var config  = require('../config/test.config.json');
 var assert  = require('assert');
 var Parser  = require('../lib/ledgerParser');
 var Rest    = require('../lib/hbase/hbase-rest');

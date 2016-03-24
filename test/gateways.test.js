@@ -1,4 +1,4 @@
-var config = require('../config/import.config.json');
+var config = require('../config/test.config.json');
 var assert = require('assert');
 var request = require('request');
 var path = require('path');
@@ -18,7 +18,7 @@ var currencies = path.resolve(__dirname + '/../api/gateways/currencyAssets/');
 var gatewayList = require('../api/gateways/gateways.json');
 var bitstampLogo = fs.readFileSync(assetPath + '/bitstamp.logo.svg').toString();
 var defaultCurrency = fs.readFileSync(currencies + '/default.svg').toString();
-var logoUSD = fs.readFileSync(currencies + '/USD.svg').toString();
+var logoUSD = fs.readFileSync(currencies + '/usd.svg').toString();
 
 describe('Gateways and Currencies APIs', function() {
   it('should get all gateways', function(done) {

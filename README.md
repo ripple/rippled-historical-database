@@ -3875,6 +3875,17 @@ Reports, stats, and aggregated exchange data needs additional processing before 
 
 At this point, the rippled Historical Database is installed. See [Services](#services) for the different components that you can run.
 
+### Tests ###
+
+Dependencies:
+* [Docker Compose](https://docs.docker.com/compose/install/)
+
+```
+$ docker-compose build
+$ docker-compose up -d hbase
+$ docker-compose run webapp npm test
+```
+
 ### Services ###
 
 The `rippled` Historical Database consists of several processes that can be run separately.
