@@ -1,7 +1,7 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
-var config = require('../../config/test.config');
 var port = config.get('port') || 7111;
 
 describe('ledgers API endpoint', function() {

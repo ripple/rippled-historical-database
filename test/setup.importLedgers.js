@@ -1,16 +1,16 @@
-var config = require('../../config/test.config');
+var config = require('./config');
 var assert = require('assert');
-var Parser = require('../../lib/ledgerParser');
-var Rest = require('../../lib/hbase/hbase-rest');
-var HBase = require('../../lib/hbase/hbase-client');
+var Parser = require('../lib/ledgerParser');
+var Rest = require('../lib/hbase/hbase-rest');
+var HBase = require('../lib/hbase/hbase-client');
 var Promise = require('bluebird');
 var moment = require('moment');
-var exAggregation = require('../../lib/aggregation/exchanges');
-var statsAggregation = require('../../lib/aggregation/stats');
-var paymentsAggregation = require('../../lib/aggregation/accountPayments');
+var exAggregation = require('../lib/aggregation/exchanges');
+var statsAggregation = require('../lib/aggregation/stats');
+var paymentsAggregation = require('../lib/aggregation/accountPayments');
 
 var fs = require('fs');
-var path = __dirname + '/../ledgers/';
+var path = __dirname + '/mock/ledgers/';
 var files = fs.readdirSync(path);
 var hbaseConfig = config.get('hbase');
 var statsConfig;
@@ -63,7 +63,7 @@ describe('import ledgers', function(done) {
             assert.ifError(err);
             hbase.saveLedger(parsed.ledger, function(err, resp) {
               assert.ifError(err);
-              console.log(ledger.ledger_index, 'saved');
+              console.log('saved ledger:', ledger.ledger_index);
               resolve();
             });
           });
@@ -89,7 +89,6 @@ describe('import ledgers', function(done) {
           base     : ex.base,
           counter  : ex.counter,
           hbase    : hbase,
-          logLevel : 3,
           earliest : moment.unix(ex.time).utc()
         });
       }
@@ -106,15 +105,15 @@ describe('import ledgers', function(done) {
 
   // NOTE: would be better to have a callback here
   it('should save stats into hbase', function(done) {
-    this.timeout(10000);
+    this.timeout(5000);
     updates.forEach(function(u) {
       stats.update(u);
     });
-    setTimeout(done, 9000);
+    setTimeout(done, 4500);
   });
 
   it('should aggregate account payments', function(done) {
-    this.timeout(10000);
+    this.timeout(5000);
     payments.forEach(function(p) {
       aggPayments.add({
         data: p,
@@ -126,7 +125,7 @@ describe('import ledgers', function(done) {
         account: p.destination
       });
     });
-    setTimeout(done, 9000);
+    setTimeout(done, 4500);
   });
 });
 

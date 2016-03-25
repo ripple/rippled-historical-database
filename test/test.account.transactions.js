@@ -1,8 +1,8 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
-var utils = require('../utils');
-var config = require('../../config/test.config');
+var utils = require('./utils');
 var port = config.get('port') || 7111;
 
 describe('account transactions API endpoint', function() {
@@ -212,7 +212,6 @@ describe('account transactions API endpoint', function() {
   });
 
   it('should handle pagination correctly', function(done) {
-    this.timeout(12000);
     var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
     var start= '2015-01-14T18:27:20';
     var end= '2015-01-14T18:27:20';

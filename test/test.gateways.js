@@ -1,18 +1,11 @@
-var config = require('../config/test.config');
+var config = require('./config');
 var assert = require('assert');
 var request = require('request');
 var path = require('path');
 var fs = require('fs');
-var Server = require('../api/server');
+var port = config.get('port') || 7111;
 
-var port = 7111;
 var baseURL = 'http://localhost:' + port + '/v2/';
-
-var server = new Server({
-  postgres: undefined,
-  hbase: config.get('hbase'),
-  port: port
-});
 
 var assetPath = path.resolve(__dirname + '/../api/gateways/gatewayAssets/');
 var currencies = path.resolve(__dirname + '/../api/gateways/currencyAssets/');

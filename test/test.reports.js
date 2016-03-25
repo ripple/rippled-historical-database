@@ -1,8 +1,8 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
-var utils = require('../utils');
-var config = require('../../config/test.config');
+var utils = require('./utils');
 var port = config.get('port') || 7111;
 
 describe('reports API endpoint', function() {
@@ -91,7 +91,6 @@ describe('reports API endpoint', function() {
   });
 
   it('should handle pagination correctly', function(done) {
-    this.timeout(7000);
     var date = '2015-02-09T00:00:00';
     var url = 'http://localhost:' + port + '/v2/reports/' + date + '?';
 
