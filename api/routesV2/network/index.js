@@ -8,6 +8,7 @@ module.exports = function(db) {
     topCurrencies: require('./topCurrencies')(db),
     getNodes: require('./getNodes')(db),
     getLinks: require('./getLinks')(db),
-    getTopology: require('./getTopology')(db)
+    getTopology: require('./getTopology')(db),
+    getValidatorReports: require('./getValidatorReports')(db)
   }
 };

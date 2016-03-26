@@ -49,9 +49,10 @@ General Methods:
 * [Get Issued Value - `GET /v2/network/issued_value`](#get-issued-value)
 * [Get Top Currencies - `GET /v2/network/top_currencies`](#get-top-currencies)
 * [Get Top Markets - `GET /v2/network/top_markets`](#get-top-markets)
-* [Get Top Markets - `GET /v2/network/topology`](#get-topology)
-* [Get Top Markets - `GET /v2/network/topology/nodes`](#get-topology-nodes)
-* [Get Top Markets - `GET /v2/network/topology/links`](#get-topology-links)
+* [Get Topology - `GET /v2/network/topology`](#get-topology)
+* [Get Topology Nodes - `GET /v2/network/topology/nodes`](#get-topology-nodes)
+* [Get Topology Links - `GET /v2/network/topology/links`](#get-topology-links)
+* [Get Top Validator Reports - `GET /v2/network/validator_reports`](#get-validator-reports)
 * [Get All Gateways - `GET /v2/gateways`](#get-all-gateways)
 * [Get Gateway - `GET /v2/gateways/{:gateway}`](#get-gateway)
 * [Get Currency Image - `GET /v2/currencies/{:currencyimage}`](#get-currency-image)
@@ -2211,6 +2212,85 @@ Response:
 ```
 
 
+## Get Validator Reports ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getValidatorReports "Source")
+
+Get Daily reports for known validators.
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/validator_reports
+```
+
+<!--</div>-->
+
+Optionally, you can include the following query parameters:
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| date | String - [Timestamp][]  | Date and time for historical query (defaults to latest) |
+| format | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count  | Integer | Number of links returned. |
+| reports | Array of Validator Report Objects | daily summaries for each validator |
+
+Validator Report Object fields:
+| Field  | Value | Description |
+|--------|-------|-------------|
+| validation_public_key | String | public key identifier of the validator |
+| date | String - [Timestamp][]  | date of the report |
+| total_ledgers | Integer | number of ledgers validated |
+| main_net_ledgers | Integer | number of main net ledgers validated |
+| main_net_agreeement | String | coeeficient of agreement with main net ledgers |
+| alt_net_ledgers | Integer | number of alt net ledgers validated |
+| alt_net_agreeement | String | coeeficient of agreement with alt net ledgers |
+| other_ledgers | Integer | number of other ledgers validated |
+
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/validator_reports
+```
+
+Response:
+
+```
+{
+  result: "success",
+  count: 25,
+  reports: [
+    {
+      validation_public_key: "n9L81uNCaPgtUJfaHh89gmdvXKAmSt5Gdsw2g1iPWaPkAHW5Nm4C",
+      date: "2016-03-25T00:00:00Z",
+      total_ledgers: 1035,
+      main_net_agreeement: "1.0000",
+      main_net_ledgers: 1035,
+      alt_net_agreeement: "0.0000",
+      alt_net_ledgers: 0,
+      other_ledgers: 0
+    },
+    ...
+  ]
+}
+```
+
+
 
 ## Get All Gateways ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/gateways.js "Source")
@@ -4175,7 +4255,7 @@ Dependencies:
 ```
 $ docker-compose build
 $ docker-compose up -d hbase
-$ docker-compose run webapp npm test
+$ docker-compose run --rm webapp npm test
 ```
 
 ### Services ###

@@ -1,0 +1,112 @@
+[
+  {
+    "rowkey": "20160323000000|n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7",
+    "alt_net_agreement": "0.0000",
+    "alt_net_ledgers": "0",
+    "date": "2016-03-23T00:00:00Z",
+    "main_net_agreement": "1.0000",
+    "main_net_ledgers": "23968",
+    "other_ledgers": "0",
+    "total_ledgers": "23968",
+    "validation_public_key": "n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7"
+  },
+  {
+    "rowkey": "20160323000000|n94a8g8RVLQR3jTRJRatdSvWM7JYmeH433jizBHFaezPVWendSoo",
+    "alt_net_agreement": "0.99929",
+    "alt_net_ledgers": "22456",
+    "date": "2016-03-23T00:00:00Z",
+    "main_net_agreement": "0.0000",
+    "main_net_ledgers": "0",
+    "other_ledgers": "19",
+    "total_ledgers": "22475",
+    "validation_public_key": "n94a8g8RVLQR3jTRJRatdSvWM7JYmeH433jizBHFaezPVWendSoo"
+  },
+  {
+    "rowkey": "20160323000000|n9KDJnMxfjH5Ez8DeWzWoE9ath3PnsmkUy3GAHiVjE7tn7Q7KhQ2",
+    "alt_net_agreement": "0.0000",
+    "alt_net_ledgers": "0",
+    "date": "2016-03-23T00:00:00Z",
+    "main_net_agreement": "0.99979",
+    "main_net_ledgers": "23963",
+    "other_ledgers": "0",
+    "total_ledgers": "23963",
+    "validation_public_key": "n9KDJnMxfjH5Ez8DeWzWoE9ath3PnsmkUy3GAHiVjE7tn7Q7KhQ2"
+  },
+  {
+    "rowkey": "20160323000000|n9KDWeLbHfZuXDfdJoe5wVXtHxLwWVTp5QE7PnWL6LctqoaFsVox",
+    "alt_net_agreement": "0.0000",
+    "alt_net_ledgers": "0",
+    "date": "2016-03-23T00:00:00Z",
+    "main_net_agreement": "0.99579",
+    "main_net_ledgers": "23867",
+    "other_ledgers": "34",
+    "total_ledgers": "23901",
+    "validation_public_key": "n9KDWeLbHfZuXDfdJoe5wVXtHxLwWVTp5QE7PnWL6LctqoaFsVox"
+  },
+  {
+    "rowkey": "20160323000000|n9KM73uq5BM3Fc6cxG3k5TruvbLc8Ffq17JZBmWC4uP4csL4rFST",
+    "alt_net_agreement": "0.0000",
+    "alt_net_ledgers": "0",
+    "date": "2016-03-23T00:00:00Z",
+    "main_net_agreement": "0.99499",
+    "main_net_ledgers": "23848",
+    "other_ledgers": "43",
+    "total_ledgers": "23891",
+    "validation_public_key": "n9KM73uq5BM3Fc6cxG3k5TruvbLc8Ffq17JZBmWC4uP4csL4rFST"
+  },
+    {
+    "rowkey": "20160323000000|n9KNt266X52gZLoLNUnhYdJE5K8n68LnFSaKhpFhtLf3uhALa71m",
+    "alt_net_agreement": "0.0000",
+    "alt_net_ledgers": "0",
+    "date": "2016-03-23T00:00:00Z",
+    "main_net_agreement": "0.99850",
+    "main_net_ledgers": "23932",
+    "other_ledgers": "1",
+    "total_ledgers": "23933",
+    "validation_public_key": "n9KNt266X52gZLoLNUnhYdJE5K8n68LnFSaKhpFhtLf3uhALa71m"
+  },
+  {
+    "rowkey": "20160323000000|n9KeL6TaqiQoUGndmyYKFDE868bFSAQQJ6XT1LmsuCDCebBdF5BV",
+    "alt_net_agreement": "0.0000",
+    "alt_net_ledgers": "0",
+    "date": "2016-03-23T00:00:00Z",
+    "main_net_agreement": "0.99741",
+    "main_net_ledgers": "23906",
+    "other_ledgers": "35",
+    "total_ledgers": "23941",
+    "validation_public_key": "n9KeL6TaqiQoUGndmyYKFDE868bFSAQQJ6XT1LmsuCDCebBdF5BV"
+  },
+  {
+    "rowkey": "20160322000000|n9KewxBFnenSchiTC7ZdZBCz4mithyBVQCFjJqmkAYpHvPVWJ4xP",
+    "alt_net_agreement": "0.0000",
+    "alt_net_ledgers": "0",
+    "date": "2016-03-22T00:00:00Z",
+    "main_net_agreement": "0.97121",
+    "main_net_ledgers": "23278",
+    "other_ledgers": "215",
+    "total_ledgers": "23493",
+    "validation_public_key": "n9KewxBFnenSchiTC7ZdZBCz4mithyBVQCFjJqmkAYpHvPVWJ4xP"
+  },
+  {
+    "rowkey": "20160322000000|n9KiYM9CgngLvtRCQHZwgC2gjpdaZcCcbt3VboxiNFcKuwFVujzS",
+    "alt_net_agreement": "0.0000",
+    "alt_net_ledgers": "0",
+    "date": "2016-03-22T00:00:00Z",
+    "main_net_agreement": "0.99996",
+    "main_net_ledgers": "23967",
+    "other_ledgers": "1",
+    "total_ledgers": "23968",
+    "validation_public_key": "n9KiYM9CgngLvtRCQHZwgC2gjpdaZcCcbt3VboxiNFcKuwFVujzS"
+  },
+  {
+    "rowkey": "20160322000000|n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr",
+    "alt_net_agreement": "0.99938",
+    "alt_net_ledgers": "22458",
+    "date": "2016-03-22T00:00:00Z",
+    "main_net_agreement": "0.0000",
+    "main_net_ledgers": "0",
+    "other_ledgers": "18",
+    "total_ledgers": "22476",
+    "validation_public_key": "n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr"
+  }
+]
