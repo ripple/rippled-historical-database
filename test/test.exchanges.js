@@ -1,8 +1,8 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
-var utils = require('../utils');
-var config = require('../../config/test.config');
+var utils = require('./utils');
 var port = config.get('port') || 7111;
 
 describe('exchanges API endpoint', function() {
@@ -98,7 +98,6 @@ describe('exchanges API endpoint', function() {
   });
 
   it('should make sure exchanges handles pagination correctly', function(done) {
-    this.timeout(5000);
     var url = 'http://localhost:' + port + '/v2/exchanges/USD+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/xrp?';
     utils.checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.exchanges.length, 1);
@@ -108,7 +107,6 @@ describe('exchanges API endpoint', function() {
   });
 
   it('should invert data when base and counter are inverted', function(done) {
-    this.timeout(5000);
     var url1 = 'http://localhost:' + port + '/v2/exchanges/xrp/USD+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q';
     var url2 = 'http://localhost:' + port + '/v2/exchanges/USD+rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/xrp';
     var exchanges;

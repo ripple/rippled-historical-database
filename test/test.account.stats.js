@@ -1,14 +1,14 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
 var Promise = require('bluebird');
-var utils = require('../utils');
-var config = require('../../config/test.config');
-var port = config.get('port') || 7111;
-var txStats = require('../mock/account-stats-tx.json');
-var valueStats = require('../mock/account-stats-value.json');
+var utils = require('./utils');
+var HBase = require('../lib/hbase/hbase-client');
+var txStats = require('./mock/account-stats-tx.json');
+var valueStats = require('./mock/account-stats-value.json');
 var prefix = config.get('prefix') || 'TEST_';
-var HBase = require('../../lib/hbase/hbase-client');
+var port = config.get('port') || 7111;
 
 var hbaseConfig = config.get('hbase');
 var account = 'r3fRiC42XCDHFkE4vLdJUhsVcx7hFbE5gU';
@@ -187,7 +187,6 @@ describe('account stats API endpoint', function() {
   });
 
   it('should handle pagination correctly', function(done) {
-    this.timeout(12000);
     var url = 'http://localhost:' + port + '/v2/accounts/' +
         account + '/stats/transactions?';
 

@@ -1,5 +1,5 @@
-var Server = require('../../api/server');
-var config = require('../../config/test.config');
+var Server = require('../api/server');
+var config = require('./config');
 var assert = require('assert');
 var request = require('request');
 var hbaseConfig = config.get('hbase');
@@ -18,7 +18,7 @@ server = new Server({
   port: port
 });
 
-describe('server', function() {
+describe('server setup', function() {
 
   it('should handle duplicate query params', function(done) {
     var url = 'http://localhost:' + port + '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?type=sent&type=sent';

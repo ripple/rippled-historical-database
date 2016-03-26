@@ -8,7 +8,8 @@
   },
   "scripts": {
     "postinstall": "node install.js",
-    "test": "test/test.sh",
+    "pretest": "node_modules/.bin/mocha --ui tdd -R spec test/setup.removeTables.js test/setup.createTables.js test/setup.importLedgers.js --logLevel 3",
+    "test": "node_modules/.bin/mocha --ui tdd -R spec test/setup.api.js test/test.*.js --logLevel 0",
     "start": "nodemon api/index.js"
   },
   "author": "",

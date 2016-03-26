@@ -1,8 +1,8 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
-var utils = require('../utils');
-var config = require('../../config/test.config');
+var utils = require('./utils');
 var port = config.get('port') || 7111;
 
 describe('accounts API endpoint', function() {
@@ -116,7 +116,6 @@ describe('accounts API endpoint', function() {
   });
 
   it('should make sure accounts handles pagination correctly', function(done) {
-    this.timeout(5000);
     var url = 'http://localhost:' + port + '/v2/accounts?';
     utils.checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.accounts.length, 1);

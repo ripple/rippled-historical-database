@@ -1,22 +1,23 @@
+var config = require('./config');
 var request = require('request');
 var Promise = require('bluebird');
 var assert = require('assert');
 var moment = require('moment');
-var utils = require('../utils');
-var config = require('../../config/test.config');
+var utils = require('./utils');
+
+var HBase = require('../lib/hbase/hbase-client');
+var mockExchangeVolume = require('./mock/exchange-volume.json');
+var mockPaymentVolume = require('./mock/payment-volume.json');
+var mockIssuedValue = require('./mock/issued-value.json');
+var mockTopCurrencies = require('./mock/top-currencies.json');
+var mockTopMarkets = require('./mock/top-markets.json');
+
 var port = config.get('port') || 7111;
 var prefix = config.get('prefix') || 'TEST_';
-var HBase = require('../../lib/hbase/hbase-client');
-var mockExchangeVolume = require('../mock/exchange-volume.json');
-var mockPaymentVolume = require('../mock/payment-volume.json');
-var mockIssuedValue = require('../mock/issued-value.json');
-var mockTopCurrencies = require('../mock/top-currencies.json');
-var mockTopMarkets = require('../mock/top-markets.json');
 
 var hbaseConfig = config.get('hbase');
 hbaseConfig.prefix = prefix;
-hbaseConfig.logLevel = 2;
-hbaseConfig.max_sockets = 200;
+hbaseConfig.max_sockets = 500;
 hbaseConfig.timeout = 60000;
 
 hbase = new HBase(hbaseConfig);
