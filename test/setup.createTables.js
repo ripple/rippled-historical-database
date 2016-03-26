@@ -16,7 +16,7 @@ rest = new Rest(restConfig);
 
 hbaseConfig.prefix = prefix;
 hbaseConfig.logLevel = 2;
-hbaseConfig.max_sockets = 500;
+hbaseConfig.max_sockets = 200;
 hbaseConfig.timeout = 30000;
 
 describe('create Hbase tables', function(done) {
@@ -24,7 +24,10 @@ describe('create Hbase tables', function(done) {
     this.timeout(60000);
     rest.initTables('ledgers', function(err, resp) {
       assert.ifError(err);
-      done();
+      rest.initTables('validations', function(err, resp) {
+        assert.ifError(err);
+        done();
+      });
     });
   });
 });

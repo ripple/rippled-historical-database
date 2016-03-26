@@ -3,7 +3,7 @@ var moment = require('moment');
 var assert  = require('assert');
 
 
-describe('smoment: ', function() {
+describe('smoment tests', function() {
 
   before(function(done) {
     done();

@@ -14,6 +14,7 @@ var mockTopMarkets = require('./mock/top-markets.json');
 var mockTopologyNodes = require('./mock/topology-nodes.json');
 var mockTopologyLinks = require('./mock/topology-links.json');
 var mockTopologyInfo = require('./mock/topology-info.json');
+var mockValidatorReports = require('./mock/validator-reports.json');
 
 var port = config.get('port') || 7111;
 var prefix = config.get('prefix') || 'TEST_';
@@ -25,8 +26,12 @@ hbaseConfig.timeout = 60000;
 
 hbase = new HBase(hbaseConfig);
 
-describe('network - exchange volume', function() {
-  before(function(done) {
+/**
+ * setup
+ */
+
+describe('setup mock data', function() {
+  it('load data into hbase', function(done) {
     var table = 'agg_metrics';
     var rows = [
       hbase.putRow({
@@ -111,13 +116,26 @@ describe('network - exchange volume', function() {
       }));
     });
 
+    mockValidatorReports.forEach(function(r) {
+      rows.push(hbase.putRow({
+        table: 'validator_reports',
+        rowkey: r.rowkey,
+        columns: r
+      }));
+    });
+
     Promise.all(rows).nodeify(function(err, resp) {
       assert.ifError(err);
       done();
     });
   });
+});
 
+/**
+ * exchange volume
+ */
 
+describe('network - exchange volume', function() {
   it('get live exchange volume', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/network/exchange_volume';
@@ -293,6 +311,10 @@ describe('network - exchange volume', function() {
   });
 });
 
+/**
+ * payment volume
+ */
+
 describe('network - payment volume', function() {
   it('get live payments volume', function(done) {
     var url = 'http://localhost:' + port +
@@ -422,6 +444,10 @@ describe('network - issued value', function() {
   });
 });
 
+/**
+ * top markets
+ */
+
 describe('network - top markets', function() {
   it('should get top markets', function(done) {
     var date = '2015-01-14';
@@ -477,6 +503,10 @@ describe('network - top markets', function() {
     });
   });
 });
+
+/**
+ * topCurrencies
+ */
 
 describe('network - top currencies', function() {
   it('should get top currencies', function(done) {
@@ -534,6 +564,9 @@ describe('network - top currencies', function() {
   });
 });
 
+/**
+ * Topology - nodes and links
+ */
 
 describe('network - topology', function() {
   it('should get topology nodes and links', function(done) {
@@ -597,7 +630,6 @@ describe('network - topology', function() {
       json: true,
     },
     function (err, res, body) {
-      console.log(body.date);
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(body.date, '2016-03-15T23:59:54Z');
@@ -616,7 +648,6 @@ describe('network - topology', function() {
       json: true,
     },
     function (err, res, body) {
-      console.log(body.date);
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(body.date, '2016-03-15T23:59:54Z');
@@ -634,7 +665,6 @@ describe('network - topology', function() {
       json: true,
     },
     function (err, res, body) {
-      console.log(body.date);
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(body.date, '2016-03-15T23:59:54Z');
@@ -728,6 +758,86 @@ describe('network - topology', function() {
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(res.headers['content-disposition'],
         'attachment; filename=topology links - 2016-03-18T22:31:33Z.csv');
+      done();
+    });
+  });
+});
+
+/**
+ * Validations
+ */
+
+describe('network - validations', function() {
+  it('should get validator reports', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/validator_reports';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.reports.length, 7);
+      body.reports.forEach(function(r) {
+        assert.strictEqual(r.date, '2016-03-23T00:00:00Z');
+      });
+      done();
+    });
+  });
+
+
+  it('should get validator reports by date', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/validator_reports?date=2016-03-22';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.reports.length, 3);
+      body.reports.forEach(function(r) {
+        assert.strictEqual(r.date, '2016-03-22T00:00:00Z');
+      });
+      done();
+    });
+  });
+
+  it('should error on invalid date', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/validator_reports?date=' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid date format');
+      done();
+    });
+  });
+
+  it('should get get validator reports in CSV format', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/validator_reports?format=csv';
+
+    request({
+      url: url
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers['content-disposition'],
+        'attachment; filename=validator reports.csv');
       done();
     });
   });
