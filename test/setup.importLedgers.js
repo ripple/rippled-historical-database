@@ -25,7 +25,7 @@ var aggPayments;
 
 hbaseConfig.prefix = config.get('prefix') || 'TEST_';
 hbaseConfig.logLevel = 2;
-hbaseConfig.max_sockets = 200;
+hbaseConfig.max_sockets = 100;
 hbaseConfig.timeout = 60000;
 
 aggPayments = new paymentsAggregation(hbaseConfig);
@@ -113,7 +113,7 @@ describe('import ledgers', function(done) {
   });
 
   it('should aggregate account payments', function(done) {
-    this.timeout(5000);
+    this.timeout(7000);
     payments.forEach(function(p) {
       aggPayments.add({
         data: p,
@@ -125,7 +125,7 @@ describe('import ledgers', function(done) {
         account: p.destination
       });
     });
-    setTimeout(done, 4500);
+    setTimeout(done, 6500);
   });
 });
 
