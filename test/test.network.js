@@ -14,7 +14,6 @@ var mockTopMarkets = require('./mock/top-markets.json');
 var mockTopologyNodes = require('./mock/topology-nodes.json');
 var mockTopologyLinks = require('./mock/topology-links.json');
 var mockTopologyInfo = require('./mock/topology-info.json');
-var mockValidatorReports = require('./mock/validator-reports.json');
 
 var port = config.get('port') || 7111;
 var prefix = config.get('prefix') || 'TEST_';
@@ -111,14 +110,6 @@ describe('setup mock data', function() {
       rows.push(hbase.putRow({
         prefix: prefix,
         table: 'rawls',
-        rowkey: r.rowkey,
-        columns: r
-      }));
-    });
-
-    mockValidatorReports.forEach(function(r) {
-      rows.push(hbase.putRow({
-        table: 'validator_reports',
         rowkey: r.rowkey,
         columns: r
       }));
@@ -758,86 +749,6 @@ describe('network - topology', function() {
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(res.headers['content-disposition'],
         'attachment; filename=topology links - 2016-03-18T22:31:33Z.csv');
-      done();
-    });
-  });
-});
-
-/**
- * Validations
- */
-
-describe('network - validations', function() {
-  it('should get validator reports', function(done) {
-    var url = 'http://localhost:' + port +
-        '/v2/network/validator_reports';
-
-    request({
-      url: url,
-      json: true,
-    },
-    function (err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(body.reports.length, 7);
-      body.reports.forEach(function(r) {
-        assert.strictEqual(r.date, '2016-03-23T00:00:00Z');
-      });
-      done();
-    });
-  });
-
-
-  it('should get validator reports by date', function(done) {
-    var url = 'http://localhost:' + port +
-        '/v2/network/validator_reports?date=2016-03-22';
-
-    request({
-      url: url,
-      json: true,
-    },
-    function (err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(body.reports.length, 3);
-      body.reports.forEach(function(r) {
-        assert.strictEqual(r.date, '2016-03-22T00:00:00Z');
-      });
-      done();
-    });
-  });
-
-  it('should error on invalid date', function(done) {
-    var date = 'zzz2015-01-14';
-    var url = 'http://localhost:' + port +
-        '/v2/network/validator_reports?date=' + date;
-
-    request({
-      url: url,
-      json: true,
-    },
-    function (err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(typeof body, 'object');
-      assert.strictEqual(body.result, 'error');
-      assert.strictEqual(body.message, 'invalid date format');
-      done();
-    });
-  });
-
-  it('should get get validator reports in CSV format', function(done) {
-    var url = 'http://localhost:' + port +
-        '/v2/network/validator_reports?format=csv';
-
-    request({
-      url: url
-    },
-    function (err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(res.headers['content-disposition'],
-        'attachment; filename=validator reports.csv');
       done();
     });
   });
