@@ -16,6 +16,7 @@ describe('reports API endpoint', function() {
       json: true
     },
     function(err, res, body) {
+      assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
@@ -50,6 +51,7 @@ describe('reports API endpoint', function() {
       }
     },
     function(err, res, body) {
+      assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
@@ -76,6 +78,7 @@ describe('reports API endpoint', function() {
       }
     },
     function(err, res, body) {
+      assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
