@@ -91,6 +91,20 @@ function accountOrders(req, res) {
       limit: opts.limit
     };
 
+    if (!rippleAPI.isConnected()) {
+      errorResponse({
+        code: 500,
+        error: 'rippled connection error.'
+      });
+      rippleAPI.disconnect()
+      .then(function() {
+        return rippleAPI.connect();
+      }).catch(function(e) {
+        log.error(e);
+      });
+      return;
+    }
+
     rippleAPI.getOrders(opts.account, params)
     .then(function(orders) {
       var results = {
@@ -120,18 +134,14 @@ function accountOrders(req, res) {
   */
 
   function errorResponse(err) {
+    var code = err.code || 500;
+    var message = err.error || 'unable to retrieve balances';
+
     log.error(err.error || err);
-    if (err.code && err.code.toString()[0] === '4') {
-      res.status(err.code).json({
-        result: 'error',
-        message: err.error
-      });
-    } else {
-      res.status(500).json({
-        result: 'error',
-        message: 'unable to retrieve orders'
-      });
-    }
+    res.status(code).json({
+      result: 'error',
+      message: message
+    });
   }
 
  /**

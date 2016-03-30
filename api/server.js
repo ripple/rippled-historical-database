@@ -22,7 +22,13 @@ var Server = function (options) {
   var routes;
   var server;
 
-  rippleAPI.connect();
+  rippleAPI.connect()
+  .then(function() {
+    console.log('ripple API connected.');
+  })
+  .catch(function(e) {
+    console.log(e);
+  });
 
   rippleAPI.on('error', function(errorCode, errorMessage, data) {
     console.log(errorCode, errorMessage, data);
