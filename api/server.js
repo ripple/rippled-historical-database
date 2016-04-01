@@ -76,6 +76,7 @@ var Server = function (options) {
     app.get('/v2/transactions/', routesV2.getTransactions);
     app.get('/v2/transactions/:tx_hash', routesV2.getTransactions);
     app.get('/v2/ledgers/:ledger_param?', routesV2.getLedger);
+    app.get('/v2/ledgers/:ledger_hash/validations', routesV2.network.getLedgerValidations);
     app.get('/v2/accounts', routesV2.accounts);
     app.get('/v2/accounts/:address', routesV2.getAccount);
     app.get('/v2/accounts/:address/transactions/:sequence', routesV2.accountTxSeq);
