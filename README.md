@@ -35,6 +35,7 @@ General Methods:
 
 * [Get Ledger - `GET /v2/ledgers/{:ledger_identifier}`](#get-ledger)
 * [Get Ledger Validations - `GET /v2/ledger/{:hash}/validations`](#get-ledger-validations)
+* [Get Ledger Validation - `GET /v2/ledger/{:hash}/validations/:validation_pubkey`](#get-ledger-validation)
 * [Get Transaction - `GET /v2/transactions/{:hash}`](#get-transaction)
 * [Get Transactions - `GET /v2/transactions/`](#get-transactions)
 * [Get Payments - `GET /v2/payments/{:currency}`](#get-payments)
@@ -149,6 +150,8 @@ Response:
 }
 ```
 
+
+
 ## Get Ledger Validations ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/getLedger.js "Source")
 
@@ -172,7 +175,7 @@ The following URL parameters are required by this API endpoint:
 
 | Field | Value | Description |
 |-------|-------|-------------|
-| ledger_hash | Ledger [Hash][] | Ledger hash to retrieve validations for. |
+| ledger_hash | [Hash][] | Ledger hash to retrieve validations for. |
 
 Optionally, you can also include the following query parameters:
 
@@ -235,6 +238,75 @@ Response:
   ]
 }
 ```
+
+
+
+## Get Ledger Validation ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/getLedger.js "Source")
+
+Retrieve a validation recorded for a specific ledger hash by a specific validator.  This dataset includes ledgers that are outside the main ledger chain, and only includes data that we have recorded. As such, some ledgers may have no validations even though they were validated by consensus.
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/ledgers/{:ledger_hash}/validations/{:validation_public_key}
+```
+
+<!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-ledger)
+
+The following URL parameters are required by this API endpoint:
+
+| Field | Value | Description |
+|-------|-------|-------------|
+| ledger_hash | [Hash][] | Ledger hash to retrieve validations for. |
+| validation_public_key | String| Validator public key identifier |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count  | Integer | The number of rippleds that reported this validation. |
+| ledger_hash | [hash][]  | Ledger hash validated. |
+| reporter_public_key | String | Public key of the node that first reported this validation. |
+| validation_public_key   | Object | The `currency` and `issuer` that identify the base currency of this market. There is no `issuer` for XRP. |
+| signature | Validator signature of the validation details. |
+| first_datetime | [Timestamp][] | Date and time of the first report of this validation |
+| last_datetime | [Timestamp][] | Date and time of the last report of this validation |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/ledgers/EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5/validations/n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7
+```
+
+Response:
+
+```
+200 OK
+{
+  count: 2,
+  first_datetime: "2016-03-28T18:24:24.846Z",
+  last_datetime: "2016-03-28T18:24:24.945Z",
+  ledger_hash: "EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5",
+  reporter_public_key: "n9LGDURtWWoaayddmJpjKwTC7p4AKde2L7mC8o5kx1CFDSZdQjcd",
+  signature: "304402206F77C7688199343FD911B2ABB0232DBEEC6E30A94F4E00CF7B99CEF444E17FC1022018FF6B21A2A6CB2784429CAAB647AF336E383B5E1630C4B6321616050508306F",
+  validation_public_key: "n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7",
+  result: "success"
+}
+```
+
+
 
 ## Get Transaction ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/getTransactions.js "Source")

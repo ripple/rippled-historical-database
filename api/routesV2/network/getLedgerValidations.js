@@ -11,6 +11,7 @@ var getLedgerValidations = function (req, res, next) {
   var hexMatch = new RegExp('^(0x)?[0-9A-Fa-f]+$');
   var options = {
     ledger_hash: req.params.ledger_hash,
+    validation_pubkey: req.params.validation_pubkey,
     marker: req.query.marker,
     limit: Number(req.query.limit || 200),
     format: (req.query.format || 'json').toLowerCase()
@@ -38,6 +39,30 @@ var getLedgerValidations = function (req, res, next) {
 
 
   log.info(options.ledger_hash);
+
+  if (options.validation_pubkey) {
+    hbase.getRow({
+      table: 'validations_by_ledger',
+      rowkey: options.ledger_hash + '|' + options.validation_pubkey
+    }, function(err, validation) {
+      if (err) {
+        errorResponse(err);
+
+      } else if (validation) {
+        validation.result = 'success';
+        validation.count = Number(validation.count);
+        delete validation.rowkey;
+
+        res.json(validation);
+      } else {
+        errorResponse({
+          error: "validation not found",
+          code: 404
+        });
+      }
+    });
+    return;
+  }
 
   hbase.getLedgerValidations(options)
   .nodeify(function(err, resp) {

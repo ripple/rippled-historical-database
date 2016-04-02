@@ -152,6 +152,25 @@ describe('ledger validations', function() {
     }, done);
   });
 
+  it('should include a link header when marker is present', function(done) {
+    var hash = 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5';
+    var url = 'http://localhost:' + port +
+        '/v2/ledgers/' + hash + '/validations?limit=1';
+    var linkHeader = '<' + url +
+      '&marker=EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5|n9KDJnMxfjH5Ez8DeWzWoE9ath3PnsmkUy3GAHiVjE7tn7Q7KhQ2>; rel="next"';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers.link, linkHeader);
+      done();
+    });
+  });
+
 
   it('should get ledger validations in CSV format', function(done) {
     var hash = 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5';
@@ -166,6 +185,25 @@ describe('ledger validations', function() {
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(res.headers['content-disposition'],
         'attachment; filename=' + hash + ' - validations.csv');
+      done();
+    });
+  });
+
+  it('should get a specific ledger validation', function(done) {
+    var hash = 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5';
+    var pubkey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7';
+    var url = 'http://localhost:' + port +
+        '/v2/ledgers/' + hash + '/validations/' + pubkey;
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.ledger_hash, hash);
+      assert.strictEqual(body.validation_public_key, pubkey);
       done();
     });
   });
@@ -185,6 +223,26 @@ describe('ledger validations', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(body.message, 'invalid ledger hash');
+      done();
+    });
+  });
+
+  it('should error on validation not found', function(done) {
+    var hash = 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5';
+    var pubkey = 'abcd';
+    var url = 'http://localhost:' + port +
+        '/v2/ledgers/' + hash + '/validations/' + pubkey;
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 404);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'validation not found');
       done();
     });
   });
