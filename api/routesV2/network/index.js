@@ -10,6 +10,7 @@ module.exports = function(db) {
     getLinks: require('./getLinks')(db),
     getTopology: require('./getTopology')(db),
     getValidatorReports: require('./getValidatorReports')(db),
-    getLedgerValidations: require('./getLedgerValidations')(db)
+    getLedgerValidations: require('./getLedgerValidations')(db),
+    getValidators: require('./getValidators')(db)
   }
 };

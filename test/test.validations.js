@@ -247,3 +247,71 @@ describe('ledger validations', function() {
     });
   });
 });
+
+
+describe('validators', function() {
+  it('should get all validators', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.validators.length, 6);
+      done();
+    });
+  });
+
+  it('should get a single validator', function(done) {
+    var pubkey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7';
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey;
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.validation_public_key, pubkey);
+      done();
+    });
+  });
+
+  it('should get error on validator not found', function(done) {
+    var pubkey = 'zzz';
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey;
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 404);
+      done();
+    });
+  });
+
+  it('should get validators in CSV format', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators?format=csv';
+
+    request({
+      url: url
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers['content-disposition'],
+        'attachment; filename=validators.csv');
+      done();
+    });
+  });
+});

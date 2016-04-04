@@ -288,6 +288,8 @@ describe('manifests', function(done) {
       master_public_key = manifests.getMasterKey(manifest.ephemeral_public_key);
       assert.strictEqual(master_public_key, manifest.master_public_key);
       done();
+    }).catch((e) => {
+      assert.ifError(e);
     });
   });
 });

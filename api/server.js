@@ -71,6 +71,8 @@ var Server = function (options) {
     app.get('/v2/network/topology/nodes', routesV2.network.getNodes);
     //app.get('/v2/network/topology/nodes/:pubkey', routesV2.network.getNodes);
     app.get('/v2/network/topology/links', routesV2.network.getLinks);
+    app.get('/v2/network/validators', routesV2.network.getValidators);
+    app.get('/v2/network/validators/:validation_pubkey', routesV2.network.getValidators);
     app.get('/v2/network/validator_reports', routesV2.network.getValidatorReports);
     app.get('/v2/last_validated', routesV2.getLastValidated);
     app.get('/v2/transactions/', routesV2.getTransactions);
