@@ -7,26 +7,66 @@ var hbase;
 
 var getValidatorReports = function(req, res) {
   var options = {
+    pubkey: req.params.pubkey,
     date: req.query.date ? smoment(req.query.date) : undefined,
     format: (req.query.format || 'json').toLowerCase()
   };
+  var days;
 
-  if (req.query.date) {
-    options.start = smoment(req.query.date);
+  if (options.pubkey) {
+    options.start = smoment(req.query.start);
+    options.end = smoment(req.query.end);
 
     if (!options.start) {
       errorResponse({
-        error: 'invalid date format',
+        error: 'invalid start date format',
+        code: 400
+      });
+      return;
+
+    } else if (!options.end) {
+      errorResponse({
+        error: 'invalid end date format',
+        code: 400
+      });
+      return;
+
+    } else if (!req.query.start) {
+      options.start.moment.subtract(200, 'days');
+    }
+
+    days = options.end.moment.diff(options.start.moment, 'days');
+    if (!days) {
+      options.start.moment.startOf('day');
+
+    } else if(Math.abs(days) > 200) {
+      errorResponse({
+        error: 'choose a date range less than 200 days',
         code: 400
       });
       return;
     }
 
-    options.start.moment.startOf('day');
-    options.end = smoment(options.start);
-  }
+    log.info(options.pubkey);
 
-  log.info(options.start ? options.start.format() : 'latest')
+  } else {
+    if (req.query.date) {
+      options.start = smoment(req.query.date);
+
+      if (!options.start) {
+        errorResponse({
+          error: 'invalid date format',
+          code: 400
+        });
+        return;
+      }
+
+      options.start.moment.startOf('day');
+      options.end = smoment(options.start);
+    }
+
+    log.info(options.start ? options.start.format() : 'latest')
+  }
 
   hbase.getValidatorReports(options)
   .nodeify(function(err, resp) {
@@ -71,13 +111,13 @@ var getValidatorReports = function(req, res) {
 
     if (options.format === 'csv') {
       filename = 'validator reports.csv';
-      res.csv(data.reports, filename);
+      res.csv(data.rows, filename);
 
     } else {
       res.json({
         result: 'success',
-        count: data.reports.length,
-        reports: data.reports
+        count: data.rows.length,
+        reports: data.rows
       });
     }
   }

@@ -7,11 +7,11 @@ var hbase;
 
 var getValidators = function(req, res) {
   var options = {
-    validation_public_key: req.params.validation_pubkey,
+    pubkey: req.params.pubkey,
     format: (req.query.format || 'json').toLowerCase()
   };
 
-  log.info(options.validation_public_key || '');
+  log.info(options.pubkey || '');
 
   hbase.getValidators(options)
   .then(function(data) {
@@ -57,7 +57,7 @@ var getValidators = function(req, res) {
 
   function successResponse(d) {
 
-    if (options.validation_public_key) {
+    if (options.pubkey) {
       d.result = 'success';
       res.json(d);
 

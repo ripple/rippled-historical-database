@@ -102,6 +102,63 @@ describe('validator reports', function() {
     });
   });
 
+  it ('should get reports by validator', function(done) {
+    var pubkey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7';
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey + '/reports';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.reports.length, 1);
+      done();
+    });
+  });
+
+  it('should error on invalid start date', function(done) {
+    var pubkey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7';
+    var start = 'zzz';
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey + '/reports?start=' + start;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid start date format');
+      done();
+    });
+  });
+
+  it('should error on invalid end date', function(done) {
+    var pubkey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7';
+    var end = 'zzz';
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey + '/reports?end=' + end;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid end date format');
+      done();
+    });
+  });
+
   it('should get validator reports in CSV format', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/network/validator_reports?format=csv';
