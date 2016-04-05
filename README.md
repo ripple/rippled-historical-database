@@ -54,7 +54,10 @@ General Methods:
 * [Get Topology - `GET /v2/network/topology`](#get-topology)
 * [Get Topology Nodes - `GET /v2/network/topology/nodes`](#get-topology-nodes)
 * [Get Topology Links - `GET /v2/network/topology/links`](#get-topology-links)
-* [Get Top Validator Reports - `GET /v2/network/validator_reports`](#get-validator-reports)
+* [Get Validators  - `GET /v2/network/validators`](#get-validators)
+* [Get Validator  - `GET /v2/network/validators/:pubkey`](#get-validator)
+* [Get Single Validator Reports - `GET /v2/network/validator_reports`](#get-single-validator-reports)
+* [Get Daily Validator Reports - `GET /v2/network/validator_reports`](#get-validator-reports)
 * [Get All Gateways - `GET /v2/gateways`](#get-all-gateways)
 * [Get Gateway - `GET /v2/gateways/{:gateway}`](#get-gateway)
 * [Get Currency Image - `GET /v2/currencies/{:currencyimage}`](#get-currency-image)
@@ -2370,7 +2373,201 @@ Response:
 ```
 
 
-## Get Validator Reports ##
+## Get Validator ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getValidators "Source")
+
+Get details of a single validator by validation public key
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/validators/:pubkey
+```
+
+<!--</div>-->
+
+This method requires the following URL parameters:
+
+| Field     | Value   | Description |
+|-----------|---------|-------------|
+| :pubkey  | String  | Validator public key |
+
+
+Optionally, you can include the following query parameters:
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| format | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| last_datetime  | Integer | Number of links returned. |
+| validation_public_key | String | Validator public key identifier |
+
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/validators/n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7
+```
+
+Response:
+
+```
+{
+  result: "success",
+  last_datetime: "2016-02-11T23:20:41.319Z",
+  validation_public_key: "n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7"
+}
+```
+
+
+
+## Get Validators ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getValidators "Source")
+
+Get a list of known validators
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/validators
+```
+
+<!--</div>-->
+
+
+Optionally, you can include the following query parameters:
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| format | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| coun
+| last_datetime  | Integer | Number of links returned. |
+| validation_public_key | String | Validator public key identifier |
+
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/validators/n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7
+```
+
+Response:
+
+```
+{
+  result: "success",
+  last_datetime: "2016-02-11T23:20:41.319Z",
+  validation_public_key: "n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7"
+}
+```
+
+
+
+## Get Single Validator Reports ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getValidatorReports "Source")
+
+Get Daily reports for a single validator by validation public key.
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/validators/:pubkey/reports
+```
+
+<!--</div>-->
+
+This method requires the following URL parameters:
+
+| Field     | Value   | Description |
+|-----------|---------|-------------|
+| :pubkey  | String  | Validator public key |
+
+
+Optionally, you can include the following query parameters:
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| start | String - [Timestamp][]  | Start date and time for historical query (defaults to 200 days before now) |
+| end | String - [Timestamp][]  | End date and time for historical query (defaults to now) |
+| format | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count  | Integer | Number of validators returned. |
+| validators | Array of Validator Objects | Details of each validator. |
+
+Validator Report Object fields:
+| Field  | Value | Description |
+|--------|-------|-------------|
+| validation_public_key | String | public key identifier of the validator |
+| last_datetime | String - [Timestamp][]  | date of last reported validation |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/validators/n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7/reports
+```
+
+Response:
+
+```
+{
+  result: "success",
+  count: 2,
+  validators: [
+    {
+    last_datetime: "2016-02-11T23:20:41.779Z",
+    validation_public_key: "n94a8g8RVLQR3jTRJRatdSvWM7JYmeH433jizBHFaezPVWendSoo"
+    },
+    ...
+  ]
+}
+```
+
+
+
+## Get Daily Validator Reports ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getValidatorReports "Source")
 
 Get Daily reports for known validators.
@@ -2402,7 +2599,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | Field  | Value | Description |
 |--------|-------|-------------|
 | result | `success` | Indicates that the body represents a successful response. |
-| count  | Integer | Number of links returned. |
+| count  | Integer | Number of reports returned. |
 | reports | Array of Validator Report Objects | daily summaries for each validator |
 
 Validator Report Object fields:
