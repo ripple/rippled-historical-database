@@ -54,8 +54,10 @@ General Methods:
 * [Get Topology - `GET /v2/network/topology`](#get-topology)
 * [Get Topology Nodes - `GET /v2/network/topology/nodes`](#get-topology-nodes)
 * [Get Topology Links - `GET /v2/network/topology/links`](#get-topology-links)
+* [Get Validations - `GET /v2/network/validations`](#get-validations)
 * [Get Validators  - `GET /v2/network/validators`](#get-validators)
 * [Get Validator  - `GET /v2/network/validators/:pubkey`](#get-validator)
+* [Get Validator Validations - `GET /v2/network/validators/:pubkey/validations`](#get-validator-validations)
 * [Get Single Validator Reports - `GET /v2/network/validator_reports`](#get-single-validator-reports)
 * [Get Daily Validator Reports - `GET /v2/network/validator_reports`](#get-validator-reports)
 * [Get All Gateways - `GET /v2/gateways`](#get-all-gateways)
@@ -172,7 +174,7 @@ GET /v2/ledgers/{:ledger_hash}/validations
 
 <!--</div>-->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-ledger)
+[Try it! >](https://ripple.com/build/data-api-tool/#get-ledger-validations)
 
 The following URL parameters are required by this API endpoint:
 
@@ -206,7 +208,7 @@ Each object in the `validations` array represents a validation report received, 
 | count  | Integer | The number of rippleds that reported this validation. |
 | ledger_hash | [hash][]  | Ledger hash validated. |
 | reporter_public_key | String | Public key of the node that first reported this validation. |
-| validation_public_key   | Object | The `currency` and `issuer` that identify the base currency of this market. There is no `issuer` for XRP. |
+| validation_public_key   | Public key of the validator. |
 | signature | Validator signature of the validation details. |
 | first_datetime | [Timestamp][] | Date and time of the first report of this validation |
 | last_datetime | [Timestamp][] | Date and time of the last report of this validation |
@@ -261,7 +263,7 @@ GET /v2/ledgers/{:ledger_hash}/validations/{:validation_public_key}
 
 <!--</div>-->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-ledger)
+[Try it! >](https://ripple.com/build/data-api-tool/#get-ledger-validation)
 
 The following URL parameters are required by this API endpoint:
 
@@ -280,7 +282,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | count  | Integer | The number of rippleds that reported this validation. |
 | ledger_hash | [hash][]  | Ledger hash validated. |
 | reporter_public_key | String | Public key of the node that first reported this validation. |
-| validation_public_key   | Object | The `currency` and `issuer` that identify the base currency of this market. There is no `issuer` for XRP. |
+| validation_public_key   | Object | Public key of the validator. |
 | signature | Validator signature of the validation details. |
 | first_datetime | [Timestamp][] | Date and time of the first report of this validation |
 | last_datetime | [Timestamp][] | Date and time of the last report of this validation |
@@ -2373,6 +2375,146 @@ Response:
 ```
 
 
+
+## Get Validations ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getValdations.js "Source")
+
+Retrieve a validations.  This dataset includes ledgers that are outside the main ledger chain, and only includes data that we have recorded. As such, some ledgers may have no validations even though they were validated by consensus.
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/validations
+```
+
+<!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-validations)
+
+Optionally, you can also include the following query parameters:
+
+| Field | Value | Description |
+|-------|-------|-------------|
+| start | [Timestamp][] | Start date and time of range to query. |
+| end | [Timestamp][] | End date and time of range to query. |
+| limit      | Integer | Max results per page (defaults to 200). Cannot be more than 1000. |
+| marker     | String  | [Pagination](#pagination) key from previously returned response. |
+| format     | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count | Integer | Number of validations returned. |
+| marker | String | (May be omitted) [Pagination](#pagination) marker |
+| validations | Array of [Validation Objects][] | The requested validations. |
+
+Each object in the `validations` array represents a validation report received, and has the following fields:
+
+| Field  | Value  | Description |
+|--------|--------|-------------|
+| count  | Integer | The number of rippleds that reported this validation. |
+| ledger_hash | [hash][]  | Ledger hash validated. |
+| reporter_public_key | String | Public key of the node that first reported this validation. |
+| validation_public_key   | Object | Public key of the validator. |
+| signature | Validator signature of the validation details. |
+| first_datetime | [Timestamp][] | Date and time of the first report of this validation |
+| last_datetime | [Timestamp][] | Date and time of the last report of this validation |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/validations
+```
+
+Response:
+
+```
+200 OK
+{
+  result: "success",
+  count: 18,
+  marker: "20160321220050|n9L81uNCaPgtUJfaHh89gmdvXKAmSt5Gdsw2g1iPWaPkAHW5Nm4C|FEDEB98F78265AB3DBAE95C316101CAD583E348144AFC41A410D598BD79DD5C2",
+  validations: [
+    {
+      count: 2,
+      first_datetime: "2016-03-28T18:24:24.846Z",
+      last_datetime: "2016-03-28T18:24:24.945Z",
+      ledger_hash: "EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5",
+      reporter_public_key: "n9LGDURtWWoaayddmJpjKwTC7p4AKde2L7mC8o5kx1CFDSZdQjcd",
+      signature: "304402206F77C7688199343FD911B2ABB0232DBEEC6E30A94F4E00CF7B99CEF444E17FC1022018FF6B21A2A6CB2784429CAAB647AF336E383B5E1630C4B6321616050508306F",
+      validation_public_key: "n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7"
+    },
+    ...
+  ]
+}
+```
+
+
+## Get Validators ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getValidators "Source")
+
+Get a list of known validators
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/validators
+```
+
+<!--</div>-->
+
+
+Optionally, you can include the following query parameters:
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| format | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| coun
+| last_datetime  | Integer | Number of links returned. |
+| validation_public_key | String | Validator public key identifier |
+
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/validators/n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7
+```
+
+Response:
+
+```
+{
+  result: "success",
+  last_datetime: "2016-02-11T23:20:41.319Z",
+  validation_public_key: "n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7"
+}
+```
+
+
 ## Get Validator ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getValidators "Source")
 
@@ -2434,12 +2576,10 @@ Response:
 ```
 
 
+## Get Validator Validations ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getValdations.js "Source")
 
-## Get Validators ##
-[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getValidators "Source")
-
-Get a list of known validators
-
+Retrieve a validations for a specified validator.  This dataset includes ledgers that are outside the main ledger chain, and only includes data that we have recorded. As such, some ledgers may have no validations even though they were validated by consensus.
 
 #### Request Format ####
 
@@ -2448,18 +2588,28 @@ Get a list of known validators
 *REST*
 
 ```
-GET /v2/network/validators
+GET /v2/network/validators/:pubkey/validations
 ```
 
 <!--</div>-->
 
+[Try it! >](https://ripple.com/build/data-api-tool/#get-validator-validations)
 
-Optionally, you can include the following query parameters:
+This method requires the following URL parameters:
 
-| Field  | Value   | Description |
-|--------|---------|-------------|
-| format | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+| Field     | Value   | Description |
+|-----------|---------|-------------|
+| :pubkey  | String  | Validator public key |
 
+Optionally, you can also include the following query parameters:
+
+| Field | Value | Description |
+|-------|-------|-------------|
+| start | [Timestamp][] | Start date and time of range to query. |
+| end | [Timestamp][] | End date and time of range to query. |
+| limit      | Integer | Max results per page (defaults to 200). Cannot be more than 1000. |
+| marker     | String  | [Pagination](#pagination) key from previously returned response. |
+| format     | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 #### Response Format ####
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
@@ -2467,29 +2617,52 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | Field  | Value | Description |
 |--------|-------|-------------|
 | result | `success` | Indicates that the body represents a successful response. |
-| coun
-| last_datetime  | Integer | Number of links returned. |
-| validation_public_key | String | Validator public key identifier |
+| count | Integer | Number of validations returned. |
+| marker | String | (May be omitted) [Pagination](#pagination) marker |
+| validations | Array of [Validation Objects][] | The requested validations. |
 
+Each object in the `validations` array represents a validation report received, and has the following fields:
+
+| Field  | Value  | Description |
+|--------|--------|-------------|
+| count  | Integer | The number of rippleds that reported this validation. |
+| ledger_hash | [hash][]  | Ledger hash validated. |
+| reporter_public_key | String | Public key of the node that first reported this validation. |
+| validation_public_key   | Object | Public key of the validator. |
+| signature | Validator signature of the validation details. |
+| first_datetime | [Timestamp][] | Date and time of the first report of this validation |
+| last_datetime | [Timestamp][] | Date and time of the last report of this validation |
 
 #### Example ####
 
 Request:
 
 ```
-GET /v2/network/validators/n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7
+GET /v2/network/validator/n9KDWeLbHfZuXDfdJoe5wVXtHxLwWVTp5QE7PnWL6LctqoaFsVox/validations
 ```
 
 Response:
 
 ```
+200 OK
 {
   result: "success",
-  last_datetime: "2016-02-11T23:20:41.319Z",
-  validation_public_key: "n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7"
+  count: 18,
+  marker: "n9KDWeLbHfZuXDfdJoe5wVXtHxLwWVTp5QE7PnWL6LctqoaFsVox|20160321222943|8D75A43EF0AA72E6FF5908855F35D88145E042D9AEB6B40B2E66AB3CC5BF5AEF",
+  validations: [
+    {
+      count: 2,
+      first_datetime: "2016-03-28T18:24:24.846Z",
+      last_datetime: "2016-03-28T18:24:24.945Z",
+      ledger_hash: "EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5",
+      reporter_public_key: "n9LGDURtWWoaayddmJpjKwTC7p4AKde2L7mC8o5kx1CFDSZdQjcd",
+      signature: "304402206F77C7688199343FD911B2ABB0232DBEEC6E30A94F4E00CF7B99CEF444E17FC1022018FF6B21A2A6CB2784429CAAB647AF336E383B5E1630C4B6321616050508306F",
+      validation_public_key: "n9KDWeLbHfZuXDfdJoe5wVXtHxLwWVTp5QE7PnWL6LctqoaFsVox"
+    },
+    ...
+  ]
 }
 ```
-
 
 
 ## Get Single Validator Reports ##

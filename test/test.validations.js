@@ -3,6 +3,7 @@ var assert = require('assert');
 var request = require('request');
 var Promise = require('bluebird');
 var smoment = require('../lib/smoment');
+var moment = require('moment');
 var utils = require('./utils');
 var Validations = require('../lib/validations/validations');
 var mockValidations = require('./mock/validations.json');
@@ -198,7 +199,7 @@ describe('ledger validations', function() {
     });
   });
 
-  it('should make sure /accounts/:account/payments handles pagination correctly', function(done) {
+  it('should handle /ledgers/:hash/validations pagination correctly', function(done) {
     var hash = 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5';
     var url = 'http://localhost:' + port +
         '/v2/ledgers/' + hash + '/validations?';
@@ -368,6 +369,156 @@ describe('validators', function() {
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(res.headers['content-disposition'],
         'attachment; filename=validators.csv');
+      done();
+    });
+  });
+});
+
+describe('validations', function() {
+  it('should get validations', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/validations';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.validations.length, 6);
+      done();
+    });
+  });
+
+  it('should limit results based on start date', function(done) {
+    var start = moment.utc().add(1, 'day').format('YYYY-MM-DD');
+    var url = 'http://localhost:' + port +
+        '/v2/network/validations?start=' + start;
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.validations.length, 0);
+      done();
+    });
+  });
+
+  it('should limit results based on end date', function(done) {
+    var end = moment.utc().subtract(1, 'day').format('YYYY-MM-DD');
+    var url = 'http://localhost:' + port +
+        '/v2/network/validations?end=' + end;
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.validations.length, 0);
+      done();
+    });
+  });
+
+  it('should get validations by validator public key', function(done) {
+    var pubkey = 'n9KDJnMxfjH5Ez8DeWzWoE9ath3PnsmkUy3GAHiVjE7tn7Q7KhQ2';
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey + '/validations';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.validations.length, 1);
+      done();
+    });
+  });
+
+  it('should handle /network/validations pagination correctly', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/validations?';
+
+    utils.checkPagination(url, undefined, function(ref, i, body) {
+      assert.strictEqual(body.validations.length, 1);
+      assert.equal(body.validations[0].signature, ref.validations[i].signature);
+    }, done);
+  });
+
+
+  it('should include a link header when marker is present', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/validations?limit=2';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof res.headers.link, 'string');
+      done();
+    });
+  });
+
+  it('should get validations in CSV format', function(done) {
+ var url = 'http://localhost:' + port +
+        '/v2/network/validations?format=csv';
+
+    request({
+      url: url
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers['content-disposition'],
+        'attachment; filename=validations.csv');
+      done();
+    });
+  });
+
+  it('should error on invalid start', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/validations?start=' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid start date format');
+      done();
+    });
+  });
+
+  it('should error on invalid end', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+        '/v2/network/validations?end=' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid end date format');
       done();
     });
   });
