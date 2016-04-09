@@ -41,6 +41,16 @@ describe('validations import', function() {
       assert.ifError(e);
     });
   });
+
+  it('should update validator domains', function(done) {
+    this.timeout(20000);
+
+    validations.verifyDomains()
+    .then(done)
+    .catch(e => {
+      assert.ifError(e);
+    });
+  });
 });
 
 describe('validator reports', function() {

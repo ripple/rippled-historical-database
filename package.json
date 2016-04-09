@@ -16,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "async": "^0.9.0",
+    "babel-runtime": "^6.6.1",
     "bignumber.js": "2.0.7",
     "bluebird": "^2.3.4",
     "body-parser": "^1.8.2",
@@ -44,6 +45,7 @@
     "response": "https://github.com/mikeal/response/archive/master.tar.gz",
     "ripple-address-codec": "2.0.1",
     "ripple-binary-codec": "0.1.1",
+    "ripple-domain-verifier": "^0.1.7",
     "ripple-lib": "0.16.10",
     "ripple-lib-transactionparser": "0.6.0",
     "serve-favicon": "^2.3.0",
