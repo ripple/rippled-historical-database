@@ -391,6 +391,17 @@
     }],
     "hotwallets": ["rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4"],
     "domain": "gatehub.net"
+}, {
+    "name": "Gatehub Fifth",
+    "start_date":"2016-04-05",
+    "accounts": [{
+        "address": "rcA8X3TVMST1n3CJeAdGk1RdRCHii7N2h",
+        "currencies": {
+          "ETH" : { "featured" : false }
+        }
+    }],
+    "hotwallets": ["rhPGyJfM8bGjfNCiXLL7WRU8VZ5Cw4kHVe"],
+    "domain": "gatehub.net"
   }, {
     "name": "EXRP",
     "start_date":"2015-03-16",
