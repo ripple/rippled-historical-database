@@ -6,6 +6,8 @@ var moment = require('moment');
 var utils = require('./utils');
 
 var HBase = require('../lib/hbase/hbase-client');
+var Geolocation = require('../lib/validations/geolocation');
+
 var mockExchangeVolume = require('./mock/exchange-volume.json');
 var mockPaymentVolume = require('./mock/payment-volume.json');
 var mockIssuedValue = require('./mock/issued-value.json');
@@ -19,11 +21,18 @@ var port = config.get('port') || 7111;
 var prefix = config.get('prefix') || 'TEST_';
 
 var hbaseConfig = config.get('hbase');
+var geo;
+
 hbaseConfig.prefix = prefix;
 hbaseConfig.max_sockets = 500;
 hbaseConfig.timeout = 60000;
 
 hbase = new HBase(hbaseConfig);
+geo = Geolocation({
+  hbase: hbaseConfig,
+  table: prefix + 'node_state',
+  columnFamily: 'd'
+});
 
 /**
  * setup
@@ -94,6 +103,16 @@ describe('setup mock data', function() {
         table: 'rawl_node_stats',
         rowkey: r.rowkey,
         columns: r
+      }));
+
+      rows.push(hbase.putRow({
+        prefix: prefix,
+        table: 'node_state',
+        rowkey: r.pubkey,
+        columns: {
+          ipp: r.ipp || 'not_present',
+          version: r.version,
+        }
       }));
     });
 
@@ -560,6 +579,16 @@ describe('network - top currencies', function() {
  */
 
 describe('network - topology', function() {
+  it('should update node geolocation', function(done) {
+    this.timeout(15000);
+
+    geo.geolocateNodes()
+    .then(done)
+    .catch(e => {
+      assert.ifError(e);
+    });
+  });
+
   it('should get topology nodes and links', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/network/topology/';

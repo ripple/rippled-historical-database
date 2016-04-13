@@ -28,6 +28,7 @@
     "deep-diff": "^0.2.0",
     "elliptic": "^6.2.3",
     "express": "^4.9.3",
+    "geoip2ws": "^1.8.2",
     "hbase": "^0.1.7",
     "int64-buffer": "^0.1.1",
     "knex": "^0.6.22",
