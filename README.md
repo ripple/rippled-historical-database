@@ -49,6 +49,7 @@ General Methods:
 * [Get Exchange Volume - `GET /v2/network/exchange_volume`](#get-exchange-volume)
 * [Get Payment Volume - `GET /v2/network/payment_volume`](#get-payment-volume)
 * [Get Issued Value - `GET /v2/network/issued_value`](#get-issued-value)
+* [Get XRP Distribution - `GET /v2/network/xrp_distribution`](#get-xrp-distribution)
 * [Get Top Currencies - `GET /v2/network/top_currencies`](#get-top-currencies)
 * [Get Top Markets - `GET /v2/network/top_markets`](#get-top-markets)
 * [Get Topology - `GET /v2/network/topology`](#get-topology)
@@ -1923,6 +1924,82 @@ Response:
 }
 ```
 
+
+
+## Get XRP distribution ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/xrpDistribution.js "Source")
+
+Get total XRP, aggregate amount held by Ripple, Inc., and aggregate amount held by others.
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/xrp_distribution
+```
+
+<!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-xrp-distribution)
+
+Optionally, you can include the following query parameters:
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| start      | String - [Timestamp][]  | Start time of query range. Defaults to the start of the most recent interval. |
+| end        | String - [Timestamp][]  | End time of query range. Defaults to the end of the most recent interval. |
+| limit    | Integer | Max results per page. Defaults to 200. Cannot be more than 1000. |
+| marker   | String  | [Pagination](#pagination) key from previously returned response |
+| descending | Boolean | Reverse chronological order | |
+| format     | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| count | Integer | Number of rows returned. |
+| rows | Array of Distribution Objects | Weekly distribution snapshots. |
+
+Each Distribution Object has the following fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| date | String - [Timestamp][] | The time at which this data was measured. |
+| total | String | Total XRP in existence. |
+| undistributed | String | Aggregate amount of XRP held by Ripple, Inc. |
+| distributed | String | Aggregate amount of XRP held by others.  |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/xrp_distribution
+```
+
+Response:
+
+```
+{
+  "result": "success",
+  "count": 171,
+  "rows": [
+    {
+      "date": "2016-04-10T00:00:00Z",
+      "distributed": "34918644255.77274",
+      "total": "99997725821.25714",
+      "undistributed": "65079081565.4844"
+    },
+    ...
+  ]
+}
+```
 
 
 

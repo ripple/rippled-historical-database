@@ -98,6 +98,10 @@ var generateMap = function(url) {
         route: '/v2/network/issued_value',
         example: url + '/network/issued_value'
       }, {
+        action: 'Get XRP Distribution',
+        route: '/v2/network/xrp_distribution',
+        example: url + '/network/xrp_distribution'
+      }, {
         action: 'Get Top Currencies',
         route: '/v2/network/top_currencies/{:date}',
         example: url + '/network/top_currencies'

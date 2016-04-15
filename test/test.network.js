@@ -11,6 +11,7 @@ var Geolocation = require('../lib/validations/geolocation');
 var mockExchangeVolume = require('./mock/exchange-volume.json');
 var mockPaymentVolume = require('./mock/payment-volume.json');
 var mockIssuedValue = require('./mock/issued-value.json');
+var mockXrpDistribution = require('./mock/xrp-distribution.json');
 var mockTopCurrencies = require('./mock/top-currencies.json');
 var mockTopMarkets = require('./mock/top-markets.json');
 var mockTopologyNodes = require('./mock/topology-nodes.json');
@@ -78,6 +79,14 @@ describe('setup mock data', function() {
         columns: mockIssuedValue
       })
     ];
+
+    mockXrpDistribution.forEach(function(r) {
+      rows.push(hbase.putRow({
+        table: 'xrp_distribution',
+        rowkey: moment.utc(r.date).format('YYYYMMDDHHmmss'),
+        columns: r
+      }));
+    });
 
     mockTopCurrencies.forEach(function(r, i) {
       var key = '20150114|00000' + (i + 1);
@@ -449,6 +458,166 @@ describe('network - issued value', function() {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(res.headers.link, linkHeader);
+      done();
+    });
+  });
+});
+
+/**
+ * XRP distribution
+ */
+
+describe('network - XRP distribution', function() {
+  it('get XRP distribution', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/xrp_distribution';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 5);
+      assert.strictEqual(body.rows[0].distributed, '34403590264.90344');
+      done();
+    });
+  });
+
+  it('get limit results by start and end date', function(done) {
+    var start = '2016-03-20T00:00:00Z';
+    var end = '2016-04-03T00:00:00Z';
+    var url = 'http://localhost:' + port +
+        '/v2/network/xrp_distribution?' +
+        'start=' + start +
+        '&end=' + end;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 3);
+      assert.strictEqual(body.rows[0].distributed, '34404396143.21523');
+      assert.strictEqual(body.rows[2].distributed, '34868657431.30438');
+      done();
+    });
+  });
+
+  it('should should get distribution in descending order', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/xrp_distribution?descending=true';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        descending: true
+      }
+    },
+    function (err, res, body) {
+      var d;
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 5);
+      body.rows.forEach(function(r) {
+        if (d) {
+          assert(d.diff(r.date) >= 0);
+        }
+
+        d = moment.utc(r.date);
+      });
+      done();
+    });
+  });
+
+  it('should include a link header when marker is present', function(done) {
+    var url = 'http://localhost:' + port +
+      '/v2/network/xrp_distribution?limit=1'
+    var linkHeader = '<' + url +
+      '&marker=20160320000000>; rel="next"';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers.link, linkHeader);
+      done();
+    });
+  });
+
+  it('should handle pagination correctly', function(done) {
+    var url = 'http://localhost:' + port +
+      '/v2/network/xrp_distribution?';
+
+    utils.checkPagination(url, undefined, function(ref, i, body) {
+      assert.strictEqual(body.rows.length, 1);
+      assert.deepEqual(body.rows[0], ref.rows[i]);
+    }, done);
+  });
+
+  it('should get XRP distribution in CSV format', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/xrp_distribution?format=csv';
+
+    request({
+      url: url
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers['content-disposition'],
+        'attachment; filename=XRP-distribution.csv');
+      done();
+    });
+  });
+
+  it('should error on invalid start date', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+      '/v2/network/xrp_distribution?start=' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid start date format');
+      done();
+    });
+  });
+
+  it('should error on invalid end date', function(done) {
+    var date = 'zzz2015-01-14';
+    var url = 'http://localhost:' + port +
+      '/v2/network/xrp_distribution?end=' + date;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid end date format');
       done();
     });
   });

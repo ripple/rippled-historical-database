@@ -4,6 +4,7 @@ module.exports = function(db) {
     exchangeVolume: getMetric.bind(undefined, 'trade_volume'),
     paymentVolume: getMetric.bind(undefined, 'payment_volume'),
     issuedValue: getMetric.bind(undefined, 'issued_value'),
+    xrpDistribution: require('./xrpDistribution')(db),
     topMarkets: require('./topMarkets')(db),
     topCurrencies: require('./topCurrencies')(db),
     getNodes: require('./getNodes')(db),
