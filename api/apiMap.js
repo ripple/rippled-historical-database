@@ -110,6 +110,46 @@ var generateMap = function(url) {
         route: '/v2/network/top_markets{:date}',
         example: url + '/network/top_markets'
       }, {
+        action: 'Get Top Markets',
+        route: '/v2/network/top_markets{:date}',
+        example: url + '/network/top_markets'
+      }, {
+        action: 'Get Netwotk Topology',
+        route: '/v2/network/topology',
+        example: url + '/network/topology'
+      }, {
+        action: 'Get Netwotk Topology Nodes',
+        route: '/v2/network/topology/nodes',
+        example: url + '/network/topology/nodes'
+      }, {
+        action: 'Get Netwotk Topology Links',
+        route: '/v2/network/topology/links',
+        example: url + '/network/topology/links'
+      }, {
+        action: 'Get Validators',
+        route: '/v2/network/validators',
+        example: url + '/network/validators'
+      }, {
+        action: 'Get Validator',
+        route: '/v2/network/validators/{:pubkey}',
+        example: url + '/network/validators/n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7',
+      }, {
+        action: 'Get Validator Validations',
+        route: '/v2/network/validators/{:pubkey}/validations',
+        example: url +  '/network/validators/n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7/validations',
+      }, {
+        action: 'Get Validator Reports',
+        route: '/v2/network/validators/{:pubkey}/reports',
+        example: url + '/network/validators/n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7/reports',
+      }, {
+        action: 'Get Validator Reports',
+        route: '/v2/network/validator_reports',
+        example: url + '/network/validator_reports',
+      }, {
+        action: 'Get Validations',
+        route: '/v2/network/validations',
+        example: url + '/network/validations',
+      }, {
         action: 'Get Exchange Rate',
         route: '/v2/exchange_rates/{:base}/{:counter}',
         example: url + '/exchange_rates/XRP/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
