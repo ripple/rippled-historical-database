@@ -24,6 +24,7 @@ The Ripple Data API v2 replaces the Historical Database v1 and the [Charts API](
 [v2.0.6]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.0.6
 [v2.0.7]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.0.7
 [v2.0.8]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.0.8
+[v2.1.0]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.1.0
 
 
 # API Method Reference #
@@ -1029,7 +1030,7 @@ The `family` and `metrics` query parameters provide a way to filter results to a
 
 | Family | Included Metrics | Meaning |
 |--------|------------------|---------|
-| type | All Ripple [transaction types](https://ripple.com/build/transactions/), including `Payment`, `AccountSet`, `SetRegularKey`, `OfferCreate`, `OfferCancel`, `TrustSet`. | Number of transactions of the given type that occurred during the interval. |
+| type | All Ripple [transaction types](https://ripple.com/build/transactions/), including `Payment`, `AccountSet`, `OfferCreate`, and others. | Number of transactions of the given type that occurred during the interval. |
 | result | All [transaction result codes](https://ripple.com/build/transactions/#transaction-results) (string codes, not the numeric codes), including `tesSUCCESS`, `tecPATH_DRY`, and many others. | Number of transactions that resulted in the given code during the interval. |
 | metric | Data-API defined Special Transaction Metrics. | (Varies) |
 
@@ -1423,7 +1424,7 @@ Each object in the `components` array of the Volume Objects represent the volume
 | amount | Number | The amount of volume in the market, in units of the base currency. |
 | base   | Object | The `currency` and `issuer` that identify the base currency of this market. There is no `issuer` for XRP. |
 | counter | Object | The `currency` and `issuer` that identify the counter currency of this market. There is no `issuer` for XRP. |
-| converted_amount | Number | The total amount of volume in the market, converted to the display currency. |
+| converted\_amount | Number | The total amount of volume in the market, converted to the display currency. _(Before [v2.1.0][], this was `convertedAmount`.)_ |
 
 #### Example ####
 
@@ -1571,7 +1572,7 @@ Each object in the `components` array of the Volume Objects represent the volume
 | amount | Number | Total payment volume for this currency during the interval, in units of the currency itself. |
 | count  | Number | The total number of payments in this currency |
 | rate   | Number | The exchange rate between this currency and the display currency. |
-| converted_amount | Number | Total payment volume for this currency, converted to the display currency. |
+| converted\_amount | Number | Total payment volume for this currency, converted to the display currency. _(Before [v2.1.0][], this was `convertedAmount`.)_ |
 
 #### Example ####
 
@@ -1761,24 +1762,28 @@ Response:
 ## Get Top Currencies ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/topCurrencies.js "Source")
 
-Get a list of the top currencies on the ripple network based on useage comparisons and thresholds over a rolling 30 day window.  By default, the top currencies for the latest date are shown.  The currencies are ordered from highest ranked to lowest.  Historical data can be queried by including a date in the format YYYY-MM-DD
+Returns the top currencies on the Ripple Consensus Ledger over a rolling 30 day window. The currencies are ordered from highest ranked to lowest, where the rank is determined by the volume and count of transactions and the number of unique counterparties. By default, returns the top currencies for the most recent date available. You can query historical data by date. _(New in [v2.1.0][])_
 
 
 #### Request Format ####
 
 <!--<div class='multicode'>-->
 
-*REST*
+*Most Recent*
 
 ```
 GET /v2/network/top_currencies
 ```
+
+*By Date*
 
 ```
 GET /v2/network/top_currencies/2016-01-01
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-top-currencies)
 
 
 #### Response Format ####
@@ -1792,17 +1797,17 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | count  | Integer | Number of results returned. |
 | currencies | Array of Top Currency Objects | A currency + issuer, and the metrics measured for inclusion and ranking |
 
-Top Currency Object fields:
+Each Top Currency Object has the following fields:
 
 | Field  | Value | Description |
 |--------|-------|-------------|
-| currency | String | Currency code |
-| issuer | String | Address of the issuing account |
-| avg_exchange_count | String | Daily average number of exchanges |
-| avg_exchange_volume | String | Daily average volume of exchanges (XRP normalized) |
-| avg_payment_count | String | Daily average number of payments |
-| avg_payment_volume | String | Daily average volume of payments (XRP normalized) |
-| issued_value | String | Total currency issuance from this account, normalized to XRP |
+| currency | String - [Currency Code][] | The currency this object describes |
+| issuer | String - [Address][] | The Ripple address that issues this currency |
+| avg_exchange_count | [String - Number][] | Daily average number of exchanges |
+| avg_exchange_volume | [String - Number][] | Daily average volume of exchanges, normalized to XRP |
+| avg_payment_count | [String - Number][] | Daily average number of payments |
+| avg_payment_volume | [String - Number][] | Daily average volume of payments, normalized to XRP |
+| issued_value | [String - Number][] | Total amount of this currency issued by this issuer, normalized to XRP |
 
 #### Example ####
 
@@ -1857,24 +1862,28 @@ Response:
 ## Get Top Markets ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/topMarkets.js "Source")
 
-Get a list of the top exchange markets on the ripple network based on useage comparisons and thresholds over a rolling 30 day window.  By default, the top markets for the latest date are shown.  The markets are ordered from highest ranked to lowest.  Historical data can be queried by including a date in the format YYYY-MM-DD
+Returns the top exchange markets on the Ripple Consensus Ledger over a rolling 30 day window.  The markets are ordered from highest ranked to lowest, where the rank is determined by the number and volume of exchanges and the number of counterparties participating.  By default, returns top markets for the latest date available.  You can query historical data by date. _(New in [v2.1.0][])_
 
 
 #### Request Format ####
 
 <!--<div class='multicode'>-->
 
-*REST*
+*Most Recent*
 
 ```
 GET /v2/network/top_markets
 ```
+
+*By Date*
 
 ```
 GET /v2/network/top_markets/2016-01-01
 ```
 
 <!--</div>-->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-top-markets)
 
 
 #### Response Format ####
@@ -1888,18 +1897,18 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | count  | Integer | Number of results returned. |
 | markets | Array of Top Market Objects | A currency pair and the metrics measured for inclusion and ranking |
 
-Top Currency Object fields:
+Each Top Market object has the following fields:
 
 | Field  | Value | Description |
 |--------|-------|-------------|
-| base_currency | String | Base currency code |
-| base_issuer | String | Address of the issuing account for the base currency |
-| counter_currency | String | Counter currency code |
-| counter_issuer | String | Address of the issuing account for the counter currency |
+| base_currency | String - [Currency Code][] | The base currency for this market |
+| base_issuer | String - [Address][] | (Omitted if `base_currency` is XRP) The Ripple address that issues the base currency |
+| counter_currency | String - [Currency Code][] | The counter currency for this market |
+| counter_issuer | String - [Address][] | (Omitted if `counter_currency` is XRP) The Ripple address that issues the counter currency |
 | avg_base_volume | String | Daily average volume in terms of the base currency |
 | avg_counter_volume | String | Daily average volume in terms of the counter currency |
 | avg_exchange_count | String | Daily average number of exchanges |
-| avg_volume | String | Daily average volume (XRP normalized) |
+| avg_volume | String | Daily average volume, normalized to XRP |
 
 #### Example ####
 
@@ -1950,6 +1959,7 @@ Response:
 ```
 
 
+
 ## Get All Gateways ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/gateways.js "Source")
 
@@ -1982,7 +1992,7 @@ Each field in the top level JSON object is a [Currency Code][]. The content of e
 |----------|---------|-------------|
 | name     | String  | A human-readable proper name for the gateway. |
 | account  | String - [Address][] | The issuing account (cold wallet) that issues the currency. |
-| featured | Boolean | Whether this gateway is considered a "featured" issuer of the currency. Ripple, Inc. decides which gateways to feature based on responsible business practices, volume, and other measures. |
+| featured | Boolean | Whether this gateway is considered a "featured" issuer of the currency. Ripple decides which gateways to feature based on responsible business practices, volume, and other measures. |
 | label    | String  | (May be omitted) Only provided when the [Currency Code][] is a 40-character hexadecimal value. This is an alternate human-readable name for the currency issued by this gateway.
 | assets   | Array of Strings | Graphics filenames available for this gateway, if any. (Mostly, these are logos used by Ripple Charts.) |
 
@@ -2081,8 +2091,8 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 |-------------|--------|-------------|
 | name        | String | Human-readable name of the gateway
 | start\_date | String - [Timestamp][] | The approximate date of the first time exchanges for this gateway's currencies appeared in the ledger. |
-| accounts    | Array | A list of [issuing addresses](https://ripple.com/build/gateway-guide/#hot-and-cold-wallets) (cold wallets) used by this gateway. (Gateways may use different issuing accounts for different currencies.) |
-| hotwallets  | Array of [Address][]es | The addresses of the Ripple accounts this gateway uses as [operational addresses](https://ripple.com/build/gateway-guide/#hot-and-cold-wallets) (hot wallets). |
+| accounts    | Array | A list of [issuing addresses](https://ripple.com/knowledge_center/issuing-operational-addresses/) (cold wallets) used by this gateway. (Gateways may use different issuing accounts for different currencies.) |
+| hotwallets  | Array of [Address][]es | The addresses of the Ripple accounts this gateway uses as [operational addresses](https://ripple.com/knowledge_center/issuing-operational-addresses/) (hot wallets). |
 | domain      | String | The domain name where this gateway does business. Typically the gateway hosts a [`ripple.txt`](https://wiki.ripple.com/Ripple.txt) there. |
 | normalized  | String | A normalized version of the `name` field suitable for including in URLs. |
 | assets      | Array of Strings | Graphics filenames available for this gateway, if any. (Mostly, these are logos used by Ripple Charts.) |
@@ -2091,8 +2101,8 @@ Each object in the `accounts` field array has the following fields:
 
 | Field      | Value  | Description |
 |------------|--------|-------------|
-| address    | String | The [Address][] of an [issuing address](https://ripple.com/build/gateway-guide/#hot-and-cold-wallets) (cold wallet) used by this gateway. |
-| currencies | Object | Each field in this object is a [Currency Code][] corresponding to a currency issued from this address. Each value is an object with a `featured` boolean indicating whether that currency is featured. Ripple, Inc. decides which currencies and gateways to feature based on responsible business practices, volume, and other measures. |
+| address    | String | The [Address][] of an [issuing address](https://ripple.com/knowledge_center/issuing-operational-addresses/) (cold wallet) used by this gateway. |
+| currencies | Object | Each field in this object is a [Currency Code][] corresponding to a currency issued from this address. Each value is an object with a `featured` boolean indicating whether that currency is featured. Ripple decides which currencies and gateways to feature based on responsible business practices, volume, and other measures. |
 
 #### Example ####
 
@@ -2180,19 +2190,19 @@ Content-Type: image/svg+xml
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 18.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-   width="200px" height="200px" viewBox="0 0 200 200" enable-background="new 0 0 200 200" xml:space="preserve">
+	 width="200px" height="200px" viewBox="0 0 200 200" enable-background="new 0 0 200 200" xml:space="preserve">
 <g>
-  <path fill="#FC6E74" d="M105.1,181.5c-12.2,0-24-2.1-35.1-6.2c-11.1-4.1-21.6-10.5-31.1-19.1l-1.3-1.2l18.8-22.3l1.4,1.2
-    c7.4,6.4,14.9,11.3,22.4,14.7c7.4,3.4,16,5.1,25.5,5.1c8,0,14.4-1.7,19-5c4.5-3.2,6.7-7.3,6.7-12.7c0-3-0.4-5.2-1.3-7.1
-    c-0.8-1.8-2.4-3.6-4.8-5.4c-2.4-1.8-5.9-3.5-10.2-5.1c-4.5-1.6-10.3-3.2-17.5-4.8c-8.3-1.9-15.8-4.1-22.4-6.6
-    c-6.6-2.5-12.3-5.6-16.8-9.2C54,94.3,50.4,89.8,48,84.5c-2.4-5.2-3.6-11.6-3.6-18.9c0-7.4,1.4-13.8,4.1-19.5
-    c2.7-5.8,6.6-10.7,11.4-14.8c4.8-4.1,10.6-7.3,17.3-9.5c6.7-2.3,14-3.4,21.9-3.4c11.6,0,22.2,1.7,31.4,5.1
-    c9.3,3.4,18.1,8.4,26.2,14.8l1.4,1.1l-16.8,23.6l-1.5-1.1c-6.9-5-13.9-9-20.7-11.6c-6.7-2.6-13.6-4-20.4-4
-    c-7.5,0-13.4,1.6-17.5,4.9c-4,3.2-6,7-6,11.6c0,3.1,0.5,5.5,1.4,7.5c0.9,2,2.6,3.8,5,5.4c2.6,1.8,6.3,3.4,10.9,5
-    c4.8,1.6,10.9,3.3,18.2,5c8.3,2.1,15.7,4.4,22,7c6.5,2.6,12,5.8,16.3,9.5c4.3,3.8,7.7,8.3,9.9,13.3c2.2,5,3.4,10.9,3.4,17.5
-    c0,7.9-1.4,14.7-4.2,20.7c-2.8,6-6.8,11.1-11.9,15.3c-5,4.1-11.1,7.3-18.1,9.4C121.2,180.5,113.4,181.5,105.1,181.5z"/>
-  <rect x="86.7" y="0" fill="#FC6E74" width="26.5" height="40.1"/>
-  <rect x="86.5" y="159.2" fill="#FC6E74" width="27" height="40.8"/>
+	<path fill="#FC6E74" d="M105.1,181.5c-12.2,0-24-2.1-35.1-6.2c-11.1-4.1-21.6-10.5-31.1-19.1l-1.3-1.2l18.8-22.3l1.4,1.2
+		c7.4,6.4,14.9,11.3,22.4,14.7c7.4,3.4,16,5.1,25.5,5.1c8,0,14.4-1.7,19-5c4.5-3.2,6.7-7.3,6.7-12.7c0-3-0.4-5.2-1.3-7.1
+		c-0.8-1.8-2.4-3.6-4.8-5.4c-2.4-1.8-5.9-3.5-10.2-5.1c-4.5-1.6-10.3-3.2-17.5-4.8c-8.3-1.9-15.8-4.1-22.4-6.6
+		c-6.6-2.5-12.3-5.6-16.8-9.2C54,94.3,50.4,89.8,48,84.5c-2.4-5.2-3.6-11.6-3.6-18.9c0-7.4,1.4-13.8,4.1-19.5
+		c2.7-5.8,6.6-10.7,11.4-14.8c4.8-4.1,10.6-7.3,17.3-9.5c6.7-2.3,14-3.4,21.9-3.4c11.6,0,22.2,1.7,31.4,5.1
+		c9.3,3.4,18.1,8.4,26.2,14.8l1.4,1.1l-16.8,23.6l-1.5-1.1c-6.9-5-13.9-9-20.7-11.6c-6.7-2.6-13.6-4-20.4-4
+		c-7.5,0-13.4,1.6-17.5,4.9c-4,3.2-6,7-6,11.6c0,3.1,0.5,5.5,1.4,7.5c0.9,2,2.6,3.8,5,5.4c2.6,1.8,6.3,3.4,10.9,5
+		c4.8,1.6,10.9,3.3,18.2,5c8.3,2.1,15.7,4.4,22,7c6.5,2.6,12,5.8,16.3,9.5c4.3,3.8,7.7,8.3,9.9,13.3c2.2,5,3.4,10.9,3.4,17.5
+		c0,7.9-1.4,14.7-4.2,20.7c-2.8,6-6.8,11.1-11.9,15.3c-5,4.1-11.1,7.3-18.1,9.4C121.2,180.5,113.4,181.5,105.1,181.5z"/>
+	<rect x="86.7" y="0" fill="#FC6E74" width="26.5" height="40.1"/>
+	<rect x="86.5" y="159.2" fill="#FC6E74" width="27" height="40.8"/>
 </g>
 </svg>
 ```
@@ -3204,11 +3214,10 @@ Response:
 
 
 
-
 ## Get Account Transaction Stats ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/accountStats.js "Source")
 
-Retrieve daily summaries of transaction activity for an account.
+Retrieve daily summaries of transaction activity for an account. _(New in [v2.1.0][].)_
 
 <!--<div class='multicode'>-->
 
@@ -3248,36 +3257,55 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 |--------|-------|-------------|
 | result | `success` | Indicates that the body represents a successful response. |
 | count | Integer | Number of reports returned. |
-| rows | Array of [Transaction Stats Objects][] | Daily summaries of account transaction activity for the given account. |
+| rows | Array of Transaction Stats Objects | Daily summaries of account transaction activity for the given account. |
+
+Each Transaction Stats Object has the following fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| date   | String - [Timestamp][] | The date this transaction stats object describes. |
+| transaction\_count | Integer | The total number of transactions sent by the account on this date. |
+| result | Object | Map of [transaction result codes](https://ripple.com/build/transactions/#transaction-results), indicating how many of each result code occurred in the transactions sent by this account on this date. |
+| type | Object | Map of [transaction types](https://ripple.com/build/transactions/), indicating how many of each transaction type the account sent on this date. |
 
 #### Example ####
 
 Request:
 
 ```
-GET /v2/accounts/rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/stats/transactions?start=2015-01-01
+GET /v2/accounts/rGFuMiw48HdbnrUbkRYuitXTmfrDBNTCnX/stats/transactions?start=2015-01-01&limit=2
 ```
 
 Response:
 
 ```
 {
-  result: "success",
-  count: 200,
-  marker: "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q|20150720000000",
-  rows: [
+  "result": "success",
+  "count": 2,
+  "marker": "rGFuMiw48HdbnrUbkRYuitXTmfrDBNTCnX|20150116000000",
+  "rows": [
     {
-      date: "2015-01-01T00:00:00Z",
-      transaction_count: 167,
-      result: {
-        tecUNFUNDED_PAYMENT: 1,
-        tesSUCCESS: 166
+      "date": "2015-01-14T00:00:00Z",
+      "transaction_count": 44,
+      "result": {
+        "tecUNFUNDED_PAYMENT": 1,
+        "tesSUCCESS": 43
       },
-      type: {
-        Payment: 167
+      "type": {
+        "Payment": 42,
+        "TrustSet": 2
       }
     },
-    ...
+    {
+      "date": "2015-01-15T00:00:00Z",
+      "transaction_count": 116,
+      "result": {
+        "tesSUCCESS": 116
+      },
+      "type": {
+        "Payment": 116
+      }
+    }
   ]
 }
 ```
@@ -3287,7 +3315,7 @@ Response:
 ## Get Account Value Stats ##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/accountStats.js "Source")
 
-Retrieve daily summaries of transaction activity for an account.
+Retrieve daily summaries of transaction activity for an account. _(New in [v2.1.0][].)_
 
 <!--<div class='multicode'>-->
 
@@ -3312,12 +3340,12 @@ Optionally, you can also include the following query parameters:
 
 | Field      | Value   | Description |
 |------------|---------|-------------|
-| start      | String  | UTC start time of query range. Defaults to start of current date. |
-| end        | String  | UTC end time of query range. Defaults to current date. |
+| start      | String - [Timestamp][] | Start time of query range. Defaults to the start of the most recent interval. |
+| end        | String - [Timestamp][] | End time of query range. Defaults to the end of the most recent interval. |
 | limit      | Integer | Max results per page (defaults to 200). Cannot be more than 1000. |
 | marker     | String  | [Pagination](#pagination) key from previously returned response. |
 | descending | Boolean | If true, sort results with most recent first. By default, sort results with oldest first. |
-| format     | String  | Format of returned results: `csv`,`json` defaults to `json` |
+| format     | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 
 #### Response Format ####
@@ -3327,30 +3355,42 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 |--------|-------|-------------|
 | result | `success` | Indicates that the body represents a successful response. |
 | count | Integer | Number of reports returned. |
-| rows | Array of [Value Stats Objects][] | Daily summaries of account value for the given account. |
+| rows | Array of Value Stats Objects | Daily summaries of account value for the given account. |
+
+Each Value Stats Object has the following fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| date   | String - [Timestamp][] | This date this object describes. |
+| value  | [String - Number][] | The total of all currency held by this account, normalized to XRP. |
+| balance_change_count | Number | The number of times the account's balance changed on this date. |
 
 #### Example ####
 
 Request:
 
 ```
-GET /v2/accounts/rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q/stats/value?start=2015-01-01
+GET /v2/accounts/rGFuMiw48HdbnrUbkRYuitXTmfrDBNTCnX/stats/value?limit=2&descending=true
 ```
 
 Response:
 
 ```
 {
-  result: "success",
-  count: 200,
-  marker: "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q|20150720000000",
-  rows: [
+  "result": "success",
+  "count": 2,
+  "marker": "rGFuMiw48HdbnrUbkRYuitXTmfrDBNTCnX|20160412000000",
+  "rows": [
     {
-      date: "2015-01-01T00:00:00Z",
-      account_value: "2070.2759309995818",
-      balance_change_count: 6989
+      "date": "2016-04-14T00:00:00Z",
+      "account_value": "7.666658705139822E7",
+      "balance_change_count": 58
     },
-    ...
+    {
+      "date": "2016-04-13T00:00:00Z",
+      "account_value": "1.0022208004947332E8",
+      "balance_change_count": 184
+    }
   ]
 }
 ```
@@ -3412,9 +3452,9 @@ Response:
 
 ```
 {
-  score: 0,
-  response_time: "0.389s",
-  response_time_threshold: "5s"
+	"score": 0,
+	"response_time": "0.014s",
+	"response_time_threshold": "5s"
 }
 ```
 
@@ -3478,12 +3518,12 @@ Response:
 
 ```
 {
-  "score": 0,
-  "response_time": "0.081s",
-  "ledger_gap": "1.891s",
-  "ledger_gap_threshold": "5.00m",
-  "validation_gap": "29.894s",
-  "validation_gap_threshold": "15.00m"
+    "score": 0,
+    "response_time": "0.081s",
+    "ledger_gap": "1.891s",
+    "ledger_gap_threshold": "5.00m",
+    "validation_gap": "29.894s",
+    "validation_gap_threshold": "15.00m"
 }
 ```
 
@@ -3931,7 +3971,7 @@ The `--startIndex` parameter defines the most-recent ledger to retrieve. The Bac
 
 The `--stopIndex` parameter defines the oldest ledger to retrieve. The Backfiller stops after it retrieves this ledger. If omitted, the Backfiller continues as far back as possible. Because backfilling goes from most recent to least recent, the stop index should be a smaller than the start index.
 
-**Warning:** The Backfiller is best for filling in relatively short histories of transactions. Importing a complete history of all Ripple transactions using the Backfiller could take weeks. If you want a full history, we recommend acquiring a database dump with early transctions, and importing it directly. Ripple, Inc. used the internal SQLite database from an offline `rippled` to populate its historical databases with the early transactions, then used the Backfiller to catch up to date after the import finished.
+**Warning:** The Backfiller is best for filling in relatively short histories of transactions. Importing a complete history of all Ripple transactions using the Backfiller could take weeks. If you want a full history, we recommend acquiring a database dump with early transctions, and importing it directly. For the public server, Ripple (the company) used the internal SQLite database from an offline `rippled` to populate its historical databases with the early transactions, then used the Backfiller to catch up to date after the import finished.
 
 Example usage:
 
