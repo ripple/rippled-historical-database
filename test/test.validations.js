@@ -11,7 +11,7 @@ var validations;
 
 var hbaseConfig = config.get('hbase');
 var port = config.get('port') || 7111;
-var prefix = config.get('prefix') || 'TEST_';
+var prefix = config.get('prefix');
 
 hbaseConfig.prefix = prefix;
 validations = new Validations(hbaseConfig);

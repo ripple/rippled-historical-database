@@ -9,7 +9,7 @@ const dateFormat = 'YYYY-MM-DDTHH:mm:ss.SSS[Z]';
 
 var hbaseConfig = config.get('hbase');
 var port = config.get('port') || 7111;
-var prefix = config.get('prefix') || 'TEST_';
+var prefix = config.get('prefix');
 
 hbaseConfig.prefix = prefix;
 

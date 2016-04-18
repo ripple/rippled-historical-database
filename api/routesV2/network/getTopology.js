@@ -7,6 +7,7 @@ var hbase;
 
 var getNodes = function(req, res) {
   var options = {
+    details: (/true/i).test(req.query.verbose) ? true : false,
     date: smoment(req.query.date),
     links: true,
   };

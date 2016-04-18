@@ -107,11 +107,7 @@ var generateMap = function(url) {
         example: url + '/network/top_currencies'
       }, {
         action: 'Get Top Markets',
-        route: '/v2/network/top_markets{:date}',
-        example: url + '/network/top_markets'
-      }, {
-        action: 'Get Top Markets',
-        route: '/v2/network/top_markets{:date}',
+        route: '/v2/network/top_markets/{:date}',
         example: url + '/network/top_markets'
       }, {
         action: 'Get Netwotk Topology',
@@ -121,6 +117,10 @@ var generateMap = function(url) {
         action: 'Get Netwotk Topology Nodes',
         route: '/v2/network/topology/nodes',
         example: url + '/network/topology/nodes'
+      }, {
+        action: 'Get Netwotk Topology Node by public key',
+        route: '/v2/network/topology/nodes/:',
+        example: url + '/network/topology/nodes/n94JjtkVyx6oTN1Rxs6RyxB9xCQB7NHpv5ibStmNHVQtDAZMJ2LB'
       }, {
         action: 'Get Netwotk Topology Links',
         route: '/v2/network/topology/links',

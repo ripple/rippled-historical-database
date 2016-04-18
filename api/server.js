@@ -70,7 +70,7 @@ var Server = function (options) {
     app.get('/v2/network/top_currencies/:date?', routesV2.network.topCurrencies);
     app.get('/v2/network/topology', routesV2.network.getTopology);
     app.get('/v2/network/topology/nodes', routesV2.network.getNodes);
-    //app.get('/v2/network/topology/nodes/:pubkey', routesV2.network.getNodes);
+    app.get('/v2/network/topology/nodes/:pubkey', routesV2.network.getNodes);
     app.get('/v2/network/topology/links', routesV2.network.getLinks);
     app.get('/v2/network/validators', routesV2.network.getValidators);
     app.get('/v2/network/validators/:pubkey', routesV2.network.getValidators);

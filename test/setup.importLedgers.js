@@ -23,7 +23,7 @@ var stats;
 var aggPayments;
 
 
-hbaseConfig.prefix = config.get('prefix') || 'TEST_';
+hbaseConfig.prefix = config.get('prefix');
 hbaseConfig.logLevel = 2;
 hbaseConfig.max_sockets = 100;
 hbaseConfig.timeout = 60000;

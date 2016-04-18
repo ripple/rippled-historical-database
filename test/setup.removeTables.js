@@ -3,7 +3,7 @@ var assert = require('assert');
 var Rest = require('../lib/hbase/hbase-rest');
 var restConfig = config.get('hbase-rest');
 
-restConfig.prefix = config.get('prefix') || 'TEST_';
+restConfig.prefix = config.get('prefix');
 
 var rest = new Rest(restConfig);
 

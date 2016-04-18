@@ -7,7 +7,9 @@ var hbase;
 
 var getNodes = function(req, res) {
   var options = {
+    pubkey: req.params.pubkey,
     date: smoment(req.query.date),
+    details: (/true/i).test(req.query.verbose) ? true : false,
     format: (req.query.format || 'json').toLowerCase()
   };
 
@@ -19,14 +21,21 @@ var getNodes = function(req, res) {
     return;
   }
 
-  log.info(options.date.format())
+  log.info(options.pubkey || options.date.format());
 
   hbase.getTopologyNodes(options)
   .nodeify(function(err, resp) {
     if (err) {
       errorResponse(err);
+
+    } else if (!resp) {
+      errorResponse({
+        error: 'node not found',
+        code: 404
+      });
+
     } else {
-      successResponse(resp, options);
+      successResponse(resp);
     }
   });
 
@@ -47,7 +56,7 @@ var getNodes = function(req, res) {
     } else {
       res.status(500).json({
         result: 'error',
-        message: 'unable to retrieve topology nodes'
+        message: 'unable to retrieve topology node(s)'
       });
     }
   }
@@ -59,20 +68,27 @@ var getNodes = function(req, res) {
   * @param {Object} options
   */
 
-  function successResponse(data, options) {
-    var filename;
+  function successResponse(data) {
 
-    if (options.format === 'csv') {
-      filename = 'topology nodes - ' + data.date + '.csv';
-      res.csv(data.nodes, filename);
+    if (options.pubkey) {
+      data.result = 'success';
+      res.json(data);
 
     } else {
-      res.json({
-        result: 'success',
-        date: data.date,
-        count: data.nodes.length,
-        nodes: data.nodes
-      });
+      var filename;
+
+      if (options.format === 'csv') {
+        filename = 'topology nodes - ' + data.date + '.csv';
+        res.csv(data.nodes, filename);
+
+      } else {
+        res.json({
+          result: 'success',
+          date: data.date,
+          count: data.nodes.length,
+          nodes: data.nodes
+        });
+      }
     }
   }
 };

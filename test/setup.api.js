@@ -3,7 +3,7 @@ var config = require('./config');
 var assert = require('assert');
 var request = require('request');
 var hbaseConfig = config.get('hbase');
-var prefix = config.get('prefix') || 'TEST_';
+var prefix = config.get('prefix');
 var port = config.get('port') || 7111;
 var server;
 

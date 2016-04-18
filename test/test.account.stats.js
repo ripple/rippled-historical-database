@@ -7,7 +7,7 @@ var utils = require('./utils');
 var HBase = require('../lib/hbase/hbase-client');
 var txStats = require('./mock/account-stats-tx.json');
 var valueStats = require('./mock/account-stats-value.json');
-var prefix = config.get('prefix') || 'TEST_';
+var prefix = config.get('prefix');
 var port = config.get('port') || 7111;
 
 var hbaseConfig = config.get('hbase');

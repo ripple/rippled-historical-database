@@ -19,7 +19,7 @@ var mockTopologyLinks = require('./mock/topology-links.json');
 var mockTopologyInfo = require('./mock/topology-info.json');
 
 var port = config.get('port') || 7111;
-var prefix = config.get('prefix') || 'TEST_';
+var prefix = config.get('prefix');
 
 var hbaseConfig = config.get('hbase');
 var geo;
@@ -108,27 +108,25 @@ describe('setup mock data', function() {
 
     mockTopologyNodes.forEach(function(r) {
       rows.push(hbase.putRow({
-        prefix: prefix,
-        table: 'rawl_node_stats',
+        table: 'crawl_node_stats',
         rowkey: r.rowkey,
         columns: r
       }));
 
       rows.push(hbase.putRow({
-        prefix: prefix,
         table: 'node_state',
         rowkey: r.pubkey,
         columns: {
           ipp: r.ipp || 'not_present',
           version: r.version,
+          city: 'San Francisco'
         }
       }));
     });
 
     mockTopologyLinks.forEach(function(r) {
       rows.push(hbase.putRow({
-        prefix: prefix,
-        table: 'onnections',
+        table: 'connections',
         rowkey: r.rowkey,
         columns: r
       }));
@@ -136,8 +134,7 @@ describe('setup mock data', function() {
 
     mockTopologyInfo.forEach(function(r) {
       rows.push(hbase.putRow({
-        prefix: prefix,
-        table: 'rawls',
+        table: 'crawls',
         rowkey: r.rowkey,
         columns: r
       }));
@@ -772,6 +769,26 @@ describe('network - topology', function() {
       assert.strictEqual(body.date, '2016-03-18T22:31:33Z');
       assert.strictEqual(body.node_count, 9);
       assert.strictEqual(body.link_count, 5);
+      assert.strictEqual(body.nodes[0].city, undefined);
+      done();
+    });
+  });
+
+  it('should get topology nodes and links in verbose', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology?verbose=true';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z');
+      assert.strictEqual(body.node_count, 9);
+      assert.strictEqual(body.link_count, 5);
+      assert.strictEqual(body.nodes[0].city, 'San Francisco');
       done();
     });
   });
@@ -789,6 +806,25 @@ describe('network - topology', function() {
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(body.date, '2016-03-18T22:31:33Z');
       assert.strictEqual(body.count, 9);
+      assert.strictEqual(body.nodes[0].city, undefined);
+      done();
+    });
+  });
+
+  it('should get topology nodes in verbose', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/nodes?verbose=true';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z');
+      assert.strictEqual(body.count, 9);
+      assert.strictEqual(body.nodes[0].city, 'San Francisco');
       done();
     });
   });
@@ -806,6 +842,24 @@ describe('network - topology', function() {
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(body.date, '2016-03-18T22:31:33Z');
       assert.strictEqual(body.count, 5);
+      done();
+    });
+  });
+
+  it('should get a single topology node', function(done) {
+    var pubkey = 'n94Extku8HiQVY8fcgxeot4bY7JqK2pNYfmdnhgf6UbcmgucHFY8';
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/nodes/' + pubkey;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.node_public_key, pubkey);
+      assert.strictEqual(body.city, 'San Francisco');
       done();
     });
   });

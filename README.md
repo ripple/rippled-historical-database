@@ -54,12 +54,13 @@ General Methods:
 * [Get Top Markets - `GET /v2/network/top_markets`](#get-top-markets)
 * [Get Topology - `GET /v2/network/topology`](#get-topology)
 * [Get Topology Nodes - `GET /v2/network/topology/nodes`](#get-topology-nodes)
+* [Get Topology Node - `GET /v2/network/topology/nodes/{:pubkey}`](#get-topology-nodes)
 * [Get Topology Links - `GET /v2/network/topology/links`](#get-topology-links)
 * [Get Validations - `GET /v2/network/validations`](#get-validations)
 * [Get Validators  - `GET /v2/network/validators`](#get-validators)
-* [Get Validator  - `GET /v2/network/validators/:pubkey`](#get-validator)
-* [Get Validator Validations - `GET /v2/network/validators/:pubkey/validations`](#get-validator-validations)
-* [Get Single Validator Reports - `GET /v2/network/validator_reports`](#get-single-validator-reports)
+* [Get Validator  - `GET /v2/network/validators/{:pubkey}`](#get-validator)
+* [Get Validator Validations - `GET /v2/network/validators/{:pubkey}/validations`](#get-validator-validations)
+* [Get Single Validator Reports - `GET /v2/network/validators/{:pubkey}/reports`](#get-single-validator-reports)
 * [Get Daily Validator Reports - `GET /v2/network/validator_reports`](#get-validator-reports)
 * [Get All Gateways - `GET /v2/gateways`](#get-all-gateways)
 * [Get Gateway - `GET /v2/gateways/{:gateway}`](#get-gateway)
@@ -2229,6 +2230,7 @@ Optionally, you can include the following query parameters:
 | Field  | Value   | Description |
 |--------|---------|-------------|
 | date | String - [Timestamp][]  | Date and time for historical query (defaults to latest) |
+| verbose | Boolean | Option to include full details for each node (defaults to false) |
 
 #### Response Format ####
 
@@ -2259,6 +2261,21 @@ Node Object fields:
 | outbound_count | Integer | Number of outbound connections (may be omitted) |
 | outbound_added | String | Number of outbound connections added (may be omitted) |
 | outbound_dropped | String | Number of outbound connections dropped (may be omitted) |
+
+Additional Optional Node Object fields (verbose = true)
+| Field  | Value | Description |
+|--------|-------|-------------|
+| city | String | city (IP geolocation) |
+| region | String | region (IP geolocation) |
+| country | String | country (IP geolocation) |
+| region_code | String | ISO region code (IP geolocation) |
+| country_code | String | ISO country code (IP geolocation) |
+| postal_code | String | Postal Code (IP geolocation) |
+| timezone | String | ISO timezone (IP geolocation) |
+| lat | String | Latitude (IP geolocation) |
+| long | String | Longitude (IP geolocation) |
+| isp | String | Internet Service Provider (IP lookup) |
+| org | String | Organization (IP lookup) |
 
 Link Object fields:
 | Field  | Value | Description |
@@ -2307,7 +2324,7 @@ Response:
 ## Get Topology Nodes##
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getNodes.js "Source")
 
-Get known Rippled nodes and connections between them.
+Get known Rippled nodes.
 
 
 #### Request Format ####
@@ -2325,6 +2342,7 @@ GET /v2/network/topology/nodes
 | Field  | Value   | Description |
 |--------|---------|-------------|
 | date | String - [Timestamp][]  | Date and time for historical query (defaults to latest) |
+| verbose | Boolean | Option to include full details for each node (defaults to false) |
 | format | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 #### Response Format ####
@@ -2354,6 +2372,22 @@ Node Object fields:
 | outbound_added | String | Number of outbound connections added (may be omitted) |
 | outbound_dropped | String | Number of outbound connections dropped (may be omitted) |
 
+Additional Optional Node Object fields (verbose = true)
+| Field  | Value | Description |
+|--------|-------|-------------|
+| city | String | city (IP geolocation) |
+| region | String | region (IP geolocation) |
+| country | String | country (IP geolocation) |
+| region_code | String | ISO region code (IP geolocation) |
+| country_code | String | ISO country code (IP geolocation) |
+| postal_code | String | Postal Code (IP geolocation) |
+| timezone | String | ISO timezone (IP geolocation) |
+| lat | String | Latitude (IP geolocation) |
+| long | String | Longitude (IP geolocation) |
+| isp | String | Internet Service Provider (IP lookup) |
+| org | String | Organization (IP lookup) |
+
+
 #### Example ####
 
 Request:
@@ -2381,6 +2415,86 @@ Response:
   ]
 }
 ```
+
+
+
+## Get Topology Node ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getNodes.js "Source")
+
+Get a single rippled node by node public key
+
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+*REST*
+
+```
+GET /v2/network/topology/nodes
+```
+
+<!--</div>-->
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| date | String - [Timestamp][]  | Date and time for historical query (defaults to latest) |
+| format | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | `success` | Indicates that the body represents a successful response. |
+| date   | String - [Timestamp][] | The time at which this data was measured. |
+| node_public_key | String | node public key |
+| version | String | Rippled version at the time of query |
+| uptime | Integer | Uptime of the node in seconds |
+| ip | String | IP address of the node (may be omitted) |
+| port | Integer | Host port (may be omitted) |
+| inbound_count | Integer | Number of inbound connections (may be omitted) |
+| inbound_added | String | Number of inbound connections added (may be omitted) |
+| inbound_dropped | String | Number of inbound connections dropped (may be omitted) |
+| outbound_count | Integer | Number of outbound connections (may be omitted) |
+| outbound_added | String | Number of outbound connections added (may be omitted) |
+| outbound_dropped | String | Number of outbound connections dropped (may be omitted) |
+| city | String | city (IP geolocation) |
+| region | String | region (IP geolocation) |
+| country | String | country (IP geolocation) |
+| region_code | String | ISO region code (IP geolocation) |
+| country_code | String | ISO country code (IP geolocation) |
+| postal_code | String | Postal Code (IP geolocation) |
+| timezone | String | ISO timezone (IP geolocation) |
+| lat | String | Latitude (IP geolocation) |
+| long | String | Longitude (IP geolocation) |
+| isp | String | Internet Service Provider (IP lookup) |
+| org | String | Organization (IP lookup) |
+
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/topology/nodes/n94Extku8HiQVY8fcgxeot4bY7JqK2pNYfmdnhgf6UbcmgucHFY8
+```
+
+Response:
+
+```
+{
+  result: "success",
+  date: "2016-03-21T16:38:52Z",
+  node_public_key: "n94Extku8HiQVY8fcgxeot4bY7JqK2pNYfmdnhgf6UbcmgucHFY8",
+  version: "rippled-0.30.1-hf2",
+  uptime: 1729008,
+  inbound_count: 4,
+  outbound_count: 20
+}
+```
+
 
 
 

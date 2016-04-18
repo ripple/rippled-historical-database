@@ -5,7 +5,7 @@ var restConfig = config.get('hbase-rest');
 var HBase = require('../lib/hbase/hbase-client');
 
 var hbaseConfig = config.get('hbase');
-var prefix = config.get('prefix') || 'TEST_';
+var prefix = config.get('prefix');
 var port = config.get('port') || 7111;
 var hbase;
 var server;

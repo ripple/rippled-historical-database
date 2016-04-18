@@ -4,8 +4,8 @@ nconf.argv()
   .env()
   .defaults({
     port: 7112,
+    prefix: '',
     hbase: {
-      prefix: 'test_',
       servers: [
         {
           host: 'hbase',
@@ -14,7 +14,6 @@ nconf.argv()
       ]
     },
     'hbase-rest' : {
-      prefix: 'test_',
       host: 'hbase',
       port: 8080
     }
