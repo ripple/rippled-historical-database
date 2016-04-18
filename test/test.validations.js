@@ -225,7 +225,7 @@ describe('ledger validations', function() {
     var url = 'http://localhost:' + port +
         '/v2/ledgers/' + hash + '/validations?limit=1';
     var linkHeader = '<' + url +
-      '&marker=EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5|n9KDJnMxfjH5Ez8DeWzWoE9ath3PnsmkUy3GAHiVjE7tn7Q7KhQ2>; rel="next"';
+      '&marker=EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5|n9KDJnMxfjH5Ez8DeWzWoE9ath3PnsmkUy3GAHiVjE7tn7Q7KhQ2|';
 
     request({
       url: url,
@@ -234,7 +234,7 @@ describe('ledger validations', function() {
     function (err, res, body) {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(res.headers.link, linkHeader);
+      assert.strictEqual(res.headers.link.substr(0,244), linkHeader);
       done();
     });
   });

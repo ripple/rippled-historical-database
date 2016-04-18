@@ -41,14 +41,17 @@ var getLedgerValidations = function (req, res, next) {
   log.info(options.ledger_hash);
 
   if (options.pubkey) {
-    hbase.getRow({
+    hbase.getScan({
       table: 'validations_by_ledger',
-      rowkey: options.ledger_hash + '|' + options.pubkey
-    }, function(err, validation) {
+      startRow: options.ledger_hash + '|' + options.pubkey,
+      stopRow: options.ledger_hash + '|' + options.pubkey + '~',
+      limit: 1
+    }, function(err, resp) {
       if (err) {
         errorResponse(err);
 
-      } else if (validation) {
+      } else if (resp && resp.length) {
+        var validation = resp[0];
         validation.result = 'success';
         validation.count = Number(validation.count);
         delete validation.rowkey;
