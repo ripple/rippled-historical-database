@@ -85,6 +85,8 @@ Health Checks:
 
 * [API Health Check - `GET /v2/health/api`](#health-check-api)
 * [Importer Health Check - `GET /v2/health/importer`](#health-check-ledger-importer)
+* [Nodes ETL Health Check - `GET /v2/health/nodes_etl`](#health-check-nodes-etl)
+* [Validations ETL Health Check - `GET /v2/health/validations_etl`](#health-check-validations-etl)
 
 
 ## Get Ledger ##
@@ -4481,13 +4483,12 @@ The health value `0` always indicates a healthy status. Other health values are 
 |-------|---------|
 | `0`   | API service is up, and response time to HBase is less than `threshold` value from request. |
 | `1`   | API service is up, but response time to HBase is greater than `threshold` value from request. |
-| `2`   | API service was unable to contact HBase, or received an error in connecting. |
 
 If the request specifies `verbose=true` in the query parameters, the response body is a JSON object, with the following fields:
 
 | Field  | Value | Description |
 |--------|-------|-------------|
-| score | 0-2 | Health value, as defined above. |
+| score | 0-1 | Health value, as defined above. |
 | response\_time | String - Human-readable time | The actual response time of the database. |
 | response\_time\_threshold | String - Human-readable time | The maximum response time to be considered healthy. |
 
@@ -4544,13 +4545,12 @@ The health value `0` always indicates a healthy status. Other health values are 
 | `0`   | The most recent imported ledger was less than `threshold2` (Default: 60) seconds ago, and most recent validated ledger was less than `threshold` seconds ago. |
 | `1`   | The most recent imported ledger was less than `threshold2` (Default: 60) seconds ago, but the most recent validated ledger is older than `threshold` seconds. |
 | `2`   | The most recent imported ledger was more than `threshold2` seconds ago. |
-| `3`   | An error occurred when connecting to HBase, or the API was unable to determine when a ledger was most recently imported. |
 
 If the request specifies `verbose=true` in the query parameters, the response body is a JSON object, with the following fields:
 
 | Field  | Value | Description |
 |--------|-------|-------------|
-| score  | 0-3 | Health value, as defined above. |
+| score  | 0-2 | Health value, as defined above. |
 | response\_time | String | The actual response time of the database. |
 | ledger\_gap | String - Human-readable time | Difference between the close time of the last saved ledger and the current time. |
 | ledger\_gap\_threshold | String - Human-readable time | Maximum ledger gap to be considered healthy. |
@@ -4578,6 +4578,131 @@ Response:
 }
 ```
 
+
+
+## Health Check - Nodes ETL ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/checkHealth.js "Source")
+
+Check the health of the Topology Nodes ETL Service.
+
+<!--<div class='multicode'>-->
+
+*REST - Nodes ETL Health*
+
+```
+GET /v2/health/nodes_etl
+```
+
+<!--</div>-->
+
+Optionally, you can also include the following query parameters:
+
+| Field      | Value   | Description |
+|------------|---------|-------------|
+| threshold  | Integer | Consider the service unhealthy if more than this amount of time, in seconds, has elapsed since the latest data was imported. Defaults to 120 seconds. |
+| verbose    | Boolean | If true, return a JSON response with data points. By default, return an integer value only. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**.
+
+The health value `0` always indicates a healthy status. Other health values are defined as follows:
+
+| Value | Meaning |
+|-------|---------|
+| `0`   | The most recent imported topology data was less than `threshold` (Default: 120) seconds ago |
+| `1`   | The most recent imported topology data was more than `threshold` seconds ago. |
+
+
+If the request specifies `verbose=true` in the query parameters, the response body is a JSON object, with the following fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| score  | 0-1 | Health value, as defined above. |
+| gap | String - Human-readable time | Difference between the latest imported data and the current time. |
+| gap_threshold | String - Human-readable time | Maximum gap to be considered healthy. |
+| message | String | Description of the reason for a non-zero score (if applicable) |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/health/nodes_etl?verbose=true
+```
+
+Response:
+
+```
+{
+  "score": 0,
+  "gap": "1.891s",
+  "gap_threshold": "2.00m",
+}
+```
+
+
+
+## Health Check - Validations ETL ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/checkHealth.js "Source")
+
+Check the health of the Validations ETL Service.
+
+<!--<div class='multicode'>-->
+
+*REST - Validations ETL Health*
+
+```
+GET /v2/health/validations_etl
+```
+
+<!--</div>-->
+
+Optionally, you can also include the following query parameters:
+
+| Field      | Value   | Description |
+|------------|---------|-------------|
+| threshold  | Integer | Consider the service unhealthy if more than this amount of time, in seconds, has elapsed since the latest data was imported. Defaults to 120 seconds. |
+| verbose    | Boolean | If true, return a JSON response with data points. By default, return an integer value only. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**.
+
+The health value `0` always indicates a healthy status. Other health values are defined as follows:
+
+| Value | Meaning |
+|-------|---------|
+| `0`   | The most recent imported topology data was less than `threshold` (Default: 120) seconds ago |
+| `1`   | The most recent imported topology data was more than `threshold` seconds ago. |
+
+
+If the request specifies `verbose=true` in the query parameters, the response body is a JSON object, with the following fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| score  | 0-1 | Health value, as defined above. |
+| gap | String - Human-readable time | Difference between the latest imported data and the current time. |
+| gap_threshold | String - Human-readable time | Maximum gap to be considered healthy. |
+| message | String | Description of the reason for a non-zero score (if applicable) |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/health/nodes_etl?verbose=true
+```
+
+Response:
+
+```
+{
+  "score": 0,
+  "gap": "1.891s",
+  "gap_threshold": "2.00m",
+}
+```
 
 
 

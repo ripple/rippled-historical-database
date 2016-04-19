@@ -1,59 +1,51 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'health check'});
 var moment = require('moment');
+var smoment = require('../../lib/smoment');
+
 var hbase;
 
-/*
-    /v2/health/ (defaults to api)
-    /v2/health/api
-    /v2/health/importer
-    /v2/health/importer?verbose=true
-    /v2/health/importer?verbose=true&threshold=120&threshold2=10
+var defaults = {
+  api: {
+    threshold1: 5
+  },
+  importer: {
+    threshold1: 60 * 5,
+    threshold2: 60 * 15
+  },
+  validations_etl: {
+    threshold1: 60 * 2
+  },
+  nodes_etl: {
+    threshold1: 60 * 2
+  }
+};
 
-    default response is the integer score only, and 0 is good health
-    'verbose' parameter will result in a JSON response with more details
+var aspects = Object.keys(defaults);
 
-    API health:
-      0 hbase response time < 5 seconds
-      1 hbase response time greater than 5 seconds
-      2 hbase response error or invalid response time
-
-      `threshold` parameter corresponds to response time,
-      measured in seconds, defaults to 5
-
-    Importer health:
-
-      0 last ledger imported < 60 seconds ago && last validated ledger < 300 seconds ago
-      1 last ledger imported < 60 seconds ago
-      2 last ledger imported over 60 seconds ago
-      3 hbase response error or invalid response time
-
-      `threshold` parameter corresponds to the ledger validator gap, measured in seconds, defaults to 300
-      'threshold2' parameter corresponds to the ledger close time gap, measured in seconds, defaults to 60
-*/
+/**
+ * checkHealth
+ */
 
 var checkHealth = function(req, res) {
-  var _DEFAULT_API_THRESHOLD1 = 5; // response time
-  var _DEFAULT_API_THRESHOLD2 = 15; // unused
-  var _DEFAULT_IMPORTER_THRESHOLD1 = 60 * 5; // importer
-  var _DEFAULT_IMPORTER_THRESHOLD2 = 60 * 15;  // validator
 
   var aspect = (req.params.aspect || 'api').toLowerCase();
   var verbose = (/true/i).test(req.query.verbose) ? true : false;
-  var t1 = Number(req.query.threshold || (aspect === 'api' ?
-    _DEFAULT_API_THRESHOLD1 : _DEFAULT_IMPORTER_THRESHOLD1));
-  var t2 = Number(req.query.threshold2 || (aspect === 'api' ?
-    _DEFAULT_API_THRESHOLD2 : _DEFAULT_IMPORTER_THRESHOLD2));
+  var t1;
+  var t2;
 
   var d = Date.now();
 
-  if (aspect !== 'api' && aspect !== 'importer') {
+  if (aspects.indexOf(aspect) === -1) {
     res.status(400).json({
       result: 'error',
       message: 'invalid aspect type'
     });
     return;
   }
+
+  t1 = Number(req.query.threshold || defaults[aspect].threshold1 || 0);
+  t2 = Number(req.query.threshold2 || defaults[aspect].threshold2 || 0);
 
   if (isNaN(t1) || isNaN(t2)) {
     res.status(400).json({
@@ -65,17 +57,98 @@ var checkHealth = function(req, res) {
 
   log.info(aspect);
 
-  hbase.getLedger({}, function(err, ledger) {
-    var now = Date.now();
-    var gap = ledger ? (now - ledger.close_time * 1000)/1000 : Infinity;
-    var responseTime = (Date.now() - d) / 1000;
+  if (aspect === 'nodes_etl') {
+    nodeHealthCheck();
 
-    if (aspect === 'api') {
-      apiHealthResponse(responseTime, err, verbose);
-    } else {
-      importerHealthResponse(responseTime, gap, err, verbose);
-    }
-  });
+  } else if (aspect === 'validations_etl') {
+    validationHealthCheck();
+
+  } else {
+    hbase.getLedger({}, function(err, ledger) {
+      var now = Date.now();
+      var gap = ledger ? (now - ledger.close_time * 1000)/1000 : Infinity;
+      var responseTime = (Date.now() - d) / 1000;
+
+      if (aspect === 'api') {
+        apiHealthResponse(responseTime, err, verbose);
+      } else {
+        importerHealthResponse(responseTime, gap, err, verbose);
+      }
+    });
+  }
+
+  /**
+   * nodeHealthCheck
+   */
+
+  function nodeHealthCheck() {
+    hbase.getTopologyInfo()
+    .then(function(info) {
+
+      var parts = info ? info.rowkey.split('_') : undefined;
+      var gap = info ? (Date.now() - parts[0])/1000 : Infinity;
+      var score = gap <= t1 ? 0 : 1;
+
+      if (verbose) {
+        res.json({
+          score: score,
+          gap: duration(gap * 1000),
+          gap_threshold: duration(t1 * 1000),
+          message: score ? 'last imported data exceeds threshold' : undefined
+        });
+      } else {
+        res.send(score.toString());
+      }
+    }).catch(function(err) {
+      log.error(err);
+      res.status(500).json({
+        result: 'error',
+        message: 'hbase response error'
+      });
+    });
+  }
+
+  /**
+   * validationHealthCheck
+   */
+
+  function validationHealthCheck() {
+    hbase.getScan({
+      table: 'validations_by_date',
+      startRow: 0,
+      stopRow: '~',
+      descending: true,
+      limit: 1
+    }, function(err, resp) {
+
+      if (err) {
+        log.error(err);
+        res.status(500).json({
+          result: 'error',
+          message: 'hbase response error'
+        });
+        return;
+      }
+
+      var last = resp && resp.length ?
+        moment(resp[0].datetime) : null;
+      var gap = last ?
+        (Date.now() - last.unix()*1000)/1000 : Infinity;
+      var score = gap <= t1 ? 0 : 1;
+
+      if (verbose) {
+        res.json({
+          score: score,
+          gap: duration(gap * 1000),
+          gap_threshold: duration(t1 * 1000),
+          message: score ? 'last imported data exceeds threshold' : undefined
+        });
+
+      } else {
+        res.send(score.toString());
+      }
+    });
+  }
 
   /**
    * apiHealthResponse
@@ -86,8 +159,13 @@ var checkHealth = function(req, res) {
     var message;
 
     if (err) {
-      score = 2;
-      message = 'hbase response error';
+      log.error(err);
+      res.status(500).json({
+        result: 'error',
+        message: 'hbase response error'
+      });
+      return;
+
     } else if (responseTime < 0 || isNaN(responseTime)) {
       score = 2;
       message = 'invalid response time';
@@ -103,9 +181,9 @@ var checkHealth = function(req, res) {
         score: score,
         response_time: duration(responseTime * 1000),
         response_time_threshold: duration(t1 * 1000),
-        message: message,
-        error: err || undefined
+        message: message
       });
+
     } else {
       res.send(score.toString());
     }
@@ -120,14 +198,20 @@ var checkHealth = function(req, res) {
     // get last validated ledger
     hbase.getLastValidated(function(err, resp) {
       var now = Date.now();
-      var closeTime = moment.utc(resp ? resp.close_time : undefined);
-      var validatorGap = (now - (closeTime.unix() * 1000))/1000;
+      var closeTime = resp && resp.close_time ?
+          moment.utc(resp.close_time) : undefined;
+      var validatorGap = closeTime ?
+          (now - (closeTime.unix() * 1000))/1000 : Infinity;
       var score;
       var message;
 
       if (err) {
-        score = 3;
-        message = 'hbase response error';
+        log.error(err);
+        res.status(500).json({
+          result: 'error',
+          message: 'hbase response error'
+        });
+
       } else if (responseTime < 0 || isNaN(responseTime)) {
         score = 3;
         message = 'invalid response time';
@@ -149,9 +233,9 @@ var checkHealth = function(req, res) {
           ledger_gap_threshold: duration(t1 * 1000),
           validation_gap: duration(validatorGap * 1000),
           validation_gap_threshold: duration(t2 * 1000),
-          message: message,
-          error: err || undefined
+          message: message
         });
+
       } else {
         res.send(score.toString());
       }
@@ -160,7 +244,7 @@ var checkHealth = function(req, res) {
 };
 
 // function for formatting duration
-function duration (ms) {
+function duration(ms) {
 
     if (ms === Infinity) {
       return ms.toString();
