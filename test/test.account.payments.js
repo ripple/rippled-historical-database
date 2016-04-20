@@ -1,8 +1,8 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
-var utils = require('../utils');
-var config = require('../../config/import.config');
+var utils = require('./utils');
 var port = config.get('port') || 7111;
 
 describe('account payments API endpoint', function() {
@@ -125,7 +125,6 @@ describe('account payments API endpoint', function() {
 
 
   it('should make sure /accounts/:account/payments handles pagination correctly', function(done) {
-    this.timeout(5000);
     var url = 'http://localhost:' + port + '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?';
     utils.checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.payments.length, 1);
@@ -135,7 +134,6 @@ describe('account payments API endpoint', function() {
   });
 
   it('should make sure /accounts/:account/payments handles pagination correctly (the descending false version)', function(done) {
-    this.timeout(5000);
     var url = 'http://localhost:' + port + '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?';
     utils.checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.payments.length, 1);

@@ -1,0 +1,12 @@
+machine:
+  services:
+    - docker
+
+dependencies:
+  pre:
+    - sudo pip install 'docker-compose<1.3' 'requests==2.5.3'
+    - docker-compose build
+    - docker-compose up -d hbase && sleep 3;
+test:
+  override:
+    - docker-compose run webapp npm test

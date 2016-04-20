@@ -15,7 +15,8 @@ var intervals = [
 var options = {
   start: config.get('start'),
   end: config.get('end'),
-  save: config.get('save')
+  save: config.get('save'),
+  top: config.get('top')
 };
 
 //all currencies we are going to check
@@ -147,17 +148,63 @@ function aggregateIssuedValue(params) {
 }
 
 function handleAggregation(params, done) {
-  getCapitalization()
+
+  getCurrencies()
+  .then(getCapitalization)
   .then(getRates)
   .then(normalize)
   .then(save)
   .nodeify(done);
 
-  function getCapitalization() {
+  function getCurrencies() {
+    return new Promise(function(resolve, reject) {
+      var date;
+      var max;
+
+      if (options.top) {
+
+        if (!params.live) {
+          max = smoment();
+          max.moment.subtract(2, 'days').startOf('day');
+
+          // get the date at the end
+          // of the provided interval
+          date = smoment(params.time);
+          date.moment.startOf(params.interval);
+
+          // use max if the date
+          // provided is later than that
+          if (date.moment.diff(max.moment) > 0) {
+            date = max;
+          }
+        }
+
+        hbase.getTopCurrencies({date: date}, function(err, currencyList) {
+
+          if (err) {
+            reject(err);
+
+          // no markets found
+          } else if (!currencyList.length) {
+            reject('no markets found');
+
+          } else {
+            resolve(currencyList);
+          }
+        });
+
+      } else {
+        resolve(currencies);
+      }
+    });
+  }
+
+  function getCapitalization(currencyList) {
+
     return new Promise(function(resolve, reject) {
 
       // get capitalization data for each currency
-      async.map(currencies, function(c, asyncCallbackPair) {
+      async.map(currencyList, function(c, asyncCallbackPair) {
 
         var options = {
           currency: c.currency,
@@ -205,39 +252,17 @@ function handleAggregation(params, done) {
         var options = {
           base: { currency: 'XRP' },
           counter: { currency: d.currency, issuer: d.issuer },
-          start: start,
-          end: end,
-          descending: true
+          date: smoment(params.time)
         };
 
-        // use last 50 trades for live
-        if (params.live) {
-          options.limit = 50;
-          options.reduce = true;
+        hbase.getExchangeRate(options)
+        .then(function(resp) {
 
-        // use daily rate
-        // from the previous day
-        } else {
-          end.moment.subtract(1, 'day');
-          options.interval = '1day';
-          options.limit = 1;
-        }
-
-        hbase.getExchanges(options, function(err, resp) {
-          if (err) {
-            asyncCallbackPair(err);
-            return;
-          }
-
-          if (resp && resp.reduced) {
-            d.rate = resp.reduced.vwap;
-          } else if (resp && resp.rows.length) {
-            d.rate = resp.rows[0].vwap;
-          } else {
-            d.rate = 0;
-          }
+          d.rate = resp || 0;
 
           asyncCallbackPair(null, d);
+        }).catch(function(err) {
+          asyncCallbackPair(err);
         });
 
       }, function (err, resp) {
@@ -253,8 +278,8 @@ function handleAggregation(params, done) {
   function normalize(data) {
     var total = 0;
     data.forEach(function(d) {
-      d.convertedAmount = d.rate ? d.amount / d.rate : 0;
-      total += d.convertedAmount;
+      d.converted_amount = d.rate ? d.amount / d.rate : 0;
+      total += d.converted_amount;
     });
 
     return {

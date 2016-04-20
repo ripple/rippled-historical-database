@@ -1,8 +1,8 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
-var utils = require('../utils');
-var config = require('../../config/import.config');
+var utils = require('./utils');
 var port = config.get('port') || 7111;
 
 describe('account transactions API endpoint', function() {
@@ -212,7 +212,6 @@ describe('account transactions API endpoint', function() {
   });
 
   it('should handle pagination correctly', function(done) {
-    this.timeout(12000);
     var account = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
     var start= '2015-01-14T18:27:20';
     var end= '2015-01-14T18:27:20';
@@ -221,7 +220,6 @@ describe('account transactions API endpoint', function() {
         '/transactions?start=' + start +
         '&end=' + end;
 
-    console.log(url);
     utils.checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.transactions.length, 1);
       assert.equal(body.transactions[0].hash, ref.transactions[i].hash);

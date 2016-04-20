@@ -281,31 +281,40 @@ function handleAggregation (params, done) {
 
       if (options.top) {
 
-        max = smoment();
-        max.moment.subtract(2, 'days').startOf('day');
+        if (!params.live) {
+          max = smoment();
+          max.moment.subtract(2, 'days').startOf('day');
 
-        // get the date at the end
-        // of the provided interval
-        date = smoment(params.start);
-        date.moment.add(1, params.interval);
+          // get the date at the end
+          // of the provided interval
+          date = smoment(params.start);
+          date.moment.startOf(params.interval);
 
-        // use  T-2 if the date
-        // provided is later than that
-        if (date.moment.diff(max.moment) > 0) {
-          date = max;
+          // use max if the date
+          // provided is later than that
+          if (date.moment.diff(max.moment) > 0) {
+            date = max;
+          }
         }
 
         hbase.getTopMarkets({date: date}, function(err, markets) {
+
           if (err) {
             reject(err);
 
-          // no markets found
-          } else if (!markets.length) {
-            reject('no markets found');
-
-          // take top 50
+          // format results
           } else {
-            resolve(markets.slice(0, 50));
+            markets.forEach(function(market) {
+              market.base = {
+                currency: market.base_currency,
+                issuer: market.base_issuer
+              };
+              market.counter = {
+                currency: market.counter_currency,
+                issuer: market.counter_issuer
+              };
+            });
+            resolve(markets);
           }
         });
 
@@ -363,7 +372,7 @@ function handleAggregation (params, done) {
           data.counter = market.counter;
 
           if (data.counter.currency === 'XRP') {
-            data.convertedAmount = resp.counter_volume;
+            data.converted_amount = resp.counter_volume;
             data.rate = resp.vwap ? 1 / resp.vwap : 0;
           }
 
@@ -409,20 +418,19 @@ function handleAggregation (params, done) {
       var swap
 
       // no trades or already determined
-      if (!market.count || market.convertedAmount) {
+      if (!market.count || market.converted_amount) {
         return;
 
       } else if (data.rates[base]) {
-        market.convertedAmount = market.amount / data.rates[base];
+        market.converted_amount = market.amount / data.rates[base];
         market.rate /= data.rates[base];
 
       } else if (data.rates[counter]) {
         swap = market.base;
         market.base = market.counter;
         market.counter = swap;
-        market.rate = 1 / market.rate;
         market.amount = market.rate * market.amount;
-        market.convertedAmount = market.amount / data.rates[counter];
+        market.converted_amount = market.amount / data.rates[counter];
         market.rate /= data.rates[counter];
 
       } else {
@@ -431,18 +439,17 @@ function handleAggregation (params, done) {
     });
 
     data.markets = data.markets.filter(function(market) {
-      return market.count && market.convertedAmount;
+      return market.count && market.converted_amount;
     });
 
     data.markets.sort(function(a, b) {
-      return b.convertedAmount - a.convertedAmount;
+      return b.converted_amount - a.converted_amount;
     });
 
     data.markets.forEach(function(market) {
-      total += market.convertedAmount;
+      total += market.converted_amount;
       count += market.count;
     });
-
 
     return {
       startTime: params.start.moment.format(),

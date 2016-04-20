@@ -1,24 +1,18 @@
-var config = require('../config/import.config.json');
+var config = require('./config');
 var assert = require('assert');
 var request = require('request');
 var path = require('path');
 var fs = require('fs');
-var Server = require('../api/server');
+var port = config.get('port') || 7111;
 
-var port = 7111;
 var baseURL = 'http://localhost:' + port + '/v2/';
-var server = new Server({
-  postgres: undefined,
-  hbase: config.hbase,
-  port: port
-});
 
 var assetPath = path.resolve(__dirname + '/../api/gateways/gatewayAssets/');
 var currencies = path.resolve(__dirname + '/../api/gateways/currencyAssets/');
 var gatewayList = require('../api/gateways/gateways.json');
 var bitstampLogo = fs.readFileSync(assetPath + '/bitstamp.logo.svg').toString();
 var defaultCurrency = fs.readFileSync(currencies + '/default.svg').toString();
-var logoUSD = fs.readFileSync(currencies + '/USD.svg').toString();
+var logoUSD = fs.readFileSync(currencies + '/usd.svg').toString();
 
 describe('Gateways and Currencies APIs', function() {
   it('should get all gateways', function(done) {

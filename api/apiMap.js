@@ -42,6 +42,14 @@ var generateMap = function(url) {
         route: '/v2/accounts/{:address}/orders',
         example: url + '/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/orders'
       }, {
+        action: 'Get Account Transaction Stats',
+        route: '/v2/accounts/{:address}/stats/transactions',
+        example: url + '/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/stats/transactions'
+      }, {
+        action: 'Get Account Value Stats',
+        route: '/v2/accounts/{:address}/stats/value',
+        example: url + '/accounts/r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV/stats/value'
+      }, {
         action: 'Get Account',
         route: '/v2/accounts/{:address}',
         example: url + '/accounts/rB31eWvkfKBAu6FDD9zgnzT4RwSfXGcqPm'
@@ -90,6 +98,14 @@ var generateMap = function(url) {
         route: '/v2/network/issued_value',
         example: url + '/network/issued_value'
       }, {
+        action: 'Get Top Currencies',
+        route: '/v2/network/top_currencies/{:date}',
+        example: url + '/network/top_currencies'
+      }, {
+        action: 'Get Top Markets',
+        route: '/v2/network/top_markets{:date}',
+        example: url + '/network/top_markets'
+      }, {
         action: 'Get Exchange Rate',
         route: '/v2/exchange_rates/{:base}/{:counter}',
         example: url + '/exchange_rates/XRP/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
@@ -106,6 +122,10 @@ var generateMap = function(url) {
         action: 'Get Transaction Statistics',
         route: '/v2/stats/{:family}/{:metric}',
         example: url + '/stats'
+      }, {
+        action: 'Check Health',
+        route: '/v2/health/{:component}',
+        example: url + '/health/importer?verbose=true'
       }
     ]
   };

@@ -2,6 +2,10 @@ var config = require('./config');
 var Storm = require('./storm');
 var LedgerStream = require('./lib/ledgerStream');
 var Spout = Storm.Spout;
+var nodemailer = require('nodemailer');
+var transporter = nodemailer.createTransport();
+var to = config.get('recipients');
+var exec = require('child_process').exec;
 
 var ledgerSpout;
 var stream;
@@ -20,13 +24,64 @@ var log = new Logger({
   level: config.get('logLevel')
 });
 
-process.on('uncaughtException', function(e) {
-  log.error(e);
-});
-
+// handle uncaught exceptions
+require('./exception')(log);
 
 stream = new LedgerStream(options);
 
+stream.live.api.on('error', handleAPIError);
+stream.validator.importer.api.on('error', handleAPIError);
+
+function handleAPIError(errorCode, errorMessage, data) {
+  var kill = errorCode === 'badMessage' ? false : true;
+  notify(errorCode + ': ' + errorMessage + ' data: ' + data, kill);
+}
+
+/**
+ * notify
+ */
+
+function notify(message, kill) {
+  var params = {
+    from: 'Storm Import<storm-import@ripple.com>',
+    to: to,
+    subject: 'rippleAPI error',
+    html: 'The import topology received ' +
+      'a rippleAPI error: <br /><br />\n' +
+      '<blockquote><pre>' + message + '</pre></blockquote><br />\n'
+  };
+
+  if (kill) {
+    params.html += 'Killing topology<br />\n';
+  }
+
+  transporter.sendMail(params, function() {
+    if (kill) {
+      killTopology();
+    }
+  });
+}
+
+/**
+ * killTopology
+ */
+
+function killTopology() {
+  exec('storm kill "ripple-ledger-importer"',
+       function callback(e, stdout, stderr) {
+    if (e) {
+      log.error(e);
+    }
+
+    if (stderr) {
+      log.error(stderr);
+    }
+
+    if (stdout) {
+      log.info(stdout);
+    }
+  });
+};
 
 /**
  * LedgerStreamSpout

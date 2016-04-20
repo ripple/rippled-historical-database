@@ -1,6 +1,6 @@
 {
   "name": "rippled-historical-database",
-  "version": "2.0.8",
+  "version": "2.1.0",
   "description": "SQL database storing historical data from Rippled.",
   "repository": {
     "type": "git",
@@ -8,7 +8,8 @@
   },
   "scripts": {
     "postinstall": "node install.js",
-    "test": "test/test.sh",
+    "pretest": "node_modules/.bin/mocha --ui tdd -R spec test/setup.removeTables.js test/setup.createTables.js test/setup.importLedgers.js --logLevel 3",
+    "test": "node_modules/.bin/mocha --ui tdd -R spec test/setup.api.js test/test.*.js --logLevel 0",
     "start": "nodemon api/index.js"
   },
   "author": "",
@@ -35,10 +36,11 @@
     "nodemon": "^1.2.1",
     "pg": "^3.5.0",
     "request": "^2.39.0",
+    "request-promise": "^2.0.0",
     "response": "https://github.com/mikeal/response/archive/master.tar.gz",
     "ripple-address-codec": "2.0.1",
     "ripple-binary-codec": "0.1.1",
-    "ripple-lib": "0.16.2",
+    "ripple-lib": "0.16.10",
     "ripple-lib-transactionparser": "0.6.0",
     "serve-favicon": "^2.3.0",
     "sjcl": "^1.0.3",

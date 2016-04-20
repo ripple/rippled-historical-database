@@ -1,8 +1,8 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
-var utils = require('../utils');
-var config = require('../../config/import.config');
+var utils = require('./utils');
 var port = config.get('port') || 7111;
 
 describe('account balance changes API endpoint', function() {
@@ -87,7 +87,6 @@ describe('account balance changes API endpoint', function() {
   });
 
   it('should handle pagination correctly', function(done) {
-    this.timeout(5000);
     var url = 'http://localhost:' + port +
       '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/balance_changes?';
 
@@ -100,7 +99,6 @@ describe('account balance changes API endpoint', function() {
   });
 
   it('should handle pagination correctly (descending)', function(done) {
-    this.timeout(5000);
     var url = 'http://localhost:' + port +
       '/v2/accounts/rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/balance_changes' +
       '?descending=true';

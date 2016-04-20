@@ -1,6 +1,6 @@
-var config = require('../../config/import.config');
+var config = require('./config');
 var assert = require('assert');
-var Rest = require('../../lib/hbase/hbase-rest');
+var Rest = require('../lib/hbase/hbase-rest');
 var restConfig = config.get('hbase-rest');
 
 restConfig.prefix = config.get('prefix') || 'TEST_';

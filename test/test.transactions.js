@@ -1,8 +1,8 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
-var utils = require('../utils');
-var config = require('../../config/import.config');
+var utils = require('./utils');
 var port = config.get('port') || 7111;
 
 describe('transactions API endpoint', function() {
@@ -89,7 +89,6 @@ describe('transactions API endpoint', function() {
   /**** transactions endpoint ****/
 
   it('should return transactions by time', function(done) {
-    this.timeout(60000);
     var url = 'http://localhost:' + port + '/v2/transactions/';
 
     request({
@@ -207,7 +206,6 @@ describe('transactions API endpoint', function() {
   });
 
   it('should handle pagination correctly', function(done) {
-    this.timeout(5000);
     var start = '2015-02-09T18:14:40';
     var end = '2015-02-09T18:14:50';
     var url = 'http://localhost:' + port +

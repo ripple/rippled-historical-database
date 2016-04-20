@@ -22,7 +22,17 @@ var Server = function (options) {
   var routes;
   var server;
 
-  rippleAPI.connect();
+  rippleAPI.connect()
+  .then(function() {
+    console.log('ripple API connected.');
+  })
+  .catch(function(e) {
+    console.log(e);
+  });
+
+  rippleAPI.on('error', function(errorCode, errorMessage, data) {
+    console.log(errorCode, errorMessage, data);
+  });
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({extended:true}));
@@ -55,12 +65,14 @@ var Server = function (options) {
     app.get('/v2/network/exchange_volume', routesV2.network.exchangeVolume);
     app.get('/v2/network/payment_volume', routesV2.network.paymentVolume);
     app.get('/v2/network/issued_value', routesV2.network.issuedValue);
-    //app.get('/v2/network/top_markets', routesV2.network.topMarkets);
-    //app.get('/v2/network/top_currencies', routesV2.network.topCurrencies);
+    app.get('/v2/network/top_markets/:date?', routesV2.network.topMarkets);
+    app.get('/v2/network/top_currencies/:date?', routesV2.network.topCurrencies);
     app.get('/v2/last_validated', routesV2.getLastValidated);
     app.get('/v2/transactions/', routesV2.getTransactions);
     app.get('/v2/transactions/:tx_hash', routesV2.getTransactions);
     app.get('/v2/ledgers/:ledger_param?', routesV2.getLedger);
+    app.get('/v2/accounts', routesV2.accounts);
+    app.get('/v2/accounts/:address', routesV2.getAccount);
     app.get('/v2/accounts/:address/transactions/:sequence', routesV2.accountTxSeq);
     app.get('/v2/accounts/:address/transactions', routesV2.accountTransactions);
     app.get('/v2/accounts/:address/balances', routesV2.accountBalances);
@@ -71,7 +83,7 @@ var Server = function (options) {
     app.get('/v2/accounts/:address/exchanges/:base', routesV2.accountExchanges);
     app.get('/v2/accounts/:address/exchanges/:base/:counter', routesV2.accountExchanges);
     app.get('/v2/accounts/:address/orders', routesV2.accountOrders);
-    app.get('/v2/accounts/:address', routesV2.getAccount);
+    app.get('/v2/accounts/:address/stats/:family', routesV2.accountStats);
     app.get('/v2/accounts', routesV2.accounts);
     app.get('/v2/payments/:currency?', routesV2.getPayments);
     app.get('/v2/exchanges/:base/:counter', routesV2.getExchanges);

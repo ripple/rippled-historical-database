@@ -1,8 +1,8 @@
+var config = require('./config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
-var utils = require('../utils');
-var config = require('../../config/import.config');
+var utils = require('./utils');
 var port = config.get('port') || 7111;
 
 describe('stats API endpoint', function() {
@@ -89,7 +89,6 @@ describe('stats API endpoint', function() {
   });
 
   it('should make sure stats handles pagination correctly', function(done) {
-    this.timeout(5000);
     var url = 'http://localhost:' + port + '/v2/stats?';
     utils.checkPagination(url, undefined, function(ref, i, body) {
       assert.strictEqual(body.stats.length, 1);

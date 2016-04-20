@@ -4,7 +4,7 @@ var Hbase        = require('../../lib/hbase/hbase-client');
 var utils        = require('../../lib/utils');
 var fs           = require('fs');
 var moment       = require('moment');
-var config       = require('../../config/import.config');
+var config       = require('../../config/test.config');
 var options = {
   logLevel : 4,
   hbase: config.get('hbase')
