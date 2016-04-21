@@ -55,6 +55,7 @@
       "currencies": {
         "BTC" : { "featured" : false },
         "ILS" : { "featured" : false },
+        "USD" : { "featured" : false },
         "LTC" : { "featured" : false }
       }
     }],
