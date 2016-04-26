@@ -16,6 +16,9 @@ nconf.argv()
     'hbase-rest' : {
       host: 'hbase',
       port: 8080
+    },
+    ripple: {
+      server: 'wss://s1.ripple.com:443'
     }
   });
 

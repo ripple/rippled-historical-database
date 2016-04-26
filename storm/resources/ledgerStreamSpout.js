@@ -113,6 +113,13 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
         return;
       }
 
+      //emit transaction
+      self.emit({
+        tuple: [row.feeSummary],
+        id: row.ledger.ledger_index + '|fs',
+        stream: 'feeSummaryStream'
+      });
+
       //if there are no transactions
       //just save the ledger
       if (!row.ledger.transactions.length) {

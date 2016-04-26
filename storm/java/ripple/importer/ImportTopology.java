@@ -23,6 +23,7 @@ public class ImportTopology {
     int e_count = Integer.parseInt(prop.getProperty("exchanges"));
     int p_count = Integer.parseInt(prop.getProperty("accountPayments"));
     int s_count = Integer.parseInt(prop.getProperty("stats"));
+    int f_count = Integer.parseInt(prop.getProperty("fees"));
     int w_count = Integer.parseInt(prop.getProperty("workers"));
     int timeout = Integer.parseInt(prop.getProperty("timeout"));
 
@@ -44,6 +45,9 @@ public class ImportTopology {
 
     builder.setBolt("accountPayments", new AccountPaymentsBolt(), p_count)
       .fieldsGrouping("transactions", "accountPaymentsAggregation", new Fields("account"));
+
+    builder.setBolt("feeSummary", new FeesBolt(), f_count)
+      .fieldsGrouping("ledgerStream", "feeSummaryStream", new Fields("feeSummary"));
 
     Config conf = new Config();
 
