@@ -110,19 +110,19 @@ var generateMap = function(url) {
         route: '/v2/network/top_markets/{:date}',
         example: url + '/network/top_markets'
       }, {
-        action: 'Get Netwotk Topology',
+        action: 'Get Network Topology',
         route: '/v2/network/topology',
         example: url + '/network/topology'
       }, {
-        action: 'Get Netwotk Topology Nodes',
+        action: 'Get Network Topology Nodes',
         route: '/v2/network/topology/nodes',
         example: url + '/network/topology/nodes'
       }, {
-        action: 'Get Netwotk Topology Node by public key',
+        action: 'Get Network Topology Node by public key',
         route: '/v2/network/topology/nodes/:',
         example: url + '/network/topology/nodes/n94JjtkVyx6oTN1Rxs6RyxB9xCQB7NHpv5ibStmNHVQtDAZMJ2LB'
       }, {
-        action: 'Get Netwotk Topology Links',
+        action: 'Get Network Topology Links',
         route: '/v2/network/topology/links',
         example: url + '/network/topology/links'
       }, {
