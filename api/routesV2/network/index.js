@@ -7,6 +7,7 @@ module.exports = function(db) {
     xrpDistribution: require('./xrpDistribution')(db),
     topMarkets: require('./topMarkets')(db),
     topCurrencies: require('./topCurrencies')(db),
+    getFees: require('./getFees')(db),
     getNodes: require('./getNodes')(db),
     getLinks: require('./getLinks')(db),
     getTopology: require('./getTopology')(db),

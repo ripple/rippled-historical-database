@@ -17,7 +17,7 @@ AccountExchanges = function (req, res, next) {
 
   } else if (!options.end) {
     errorResponse({
-      error: 'invalid start date format',
+      error: 'invalid end date format',
       code: 400
     });
     return;

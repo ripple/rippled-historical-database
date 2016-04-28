@@ -52,6 +52,7 @@ General Methods:
 * [Get XRP Distribution - `GET /v2/network/xrp_distribution`](#get-xrp-distribution)
 * [Get Top Currencies - `GET /v2/network/top_currencies`](#get-top-currencies)
 * [Get Top Markets - `GET /v2/network/top_markets`](#get-top-markets)
+* [Get Network Fees - `GET /v2/network/fees`](#get-network-fees)
 * [Get Topology - `GET /v2/network/topology`](#get-topology)
 * [Get Topology Nodes - `GET /v2/network/topology/nodes`](#get-topology-nodes)
 * [Get Topology Node - `GET /v2/network/topology/nodes/{:pubkey}`](#get-topology-nodes)
@@ -2206,6 +2207,91 @@ Response:
   ]
 }
 ```
+
+
+
+## Get Network Fees ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routesV2/network/getFees.js "Source")
+
+Returns network fee stats per ledger, hour, or day.  The data shows the average, minimum, maximum, and total fees incurred for the given interval/ledger. _(New in [v2.2.0][])_
+
+#### Request Format ####
+
+<!--<div class='multicode'>-->
+
+```
+GET /v2/network/fees
+```
+
+<!--</div>-->
+
+Optionally, you can include the following query parameters:
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| start      | String - [Timestamp][]  | Start time of query range. Defaults to the start of the most recent interval. |
+| end        | String - [Timestamp][]  | End time of query range. Defaults to the end of the most recent interval. |
+| interval | String  | Aggregation interval - valid intervals are `ledger`, `hour`, or `day`. Defaults to `ledger`. |
+| descending | Boolean | Reverse chronological order |
+| limit    | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
+| marker   | String  | [Pagination](#pagination) key from previously returned response |
+| format     | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-network-fees)
+
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| result | String | The value `success` indicates that this is a successful response. |
+| marker | String | (May be omitted) [Pagination](#pagination) marker. |
+| count  | Integer | Number of results in the `markets` field. |
+| rows | Array of Fee Summary Objects | Network fee statistics for each specific interval. |
+
+Each Fee Summary object has the following fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| avg | Number | Average network fee |
+| min | Number | Minimum network fee |
+| max | Number | Maximum network fee |
+| total | Number | Total XRP consumed as network fees |
+| tx_count | Number | Number of transactions in this interval |
+| date | String - [Timestamp][] | Interval start time or ledger close time |
+| ledger_index | Integer | Ledger index (present in `ledger` interval only) |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/fees?interval=hour
+```
+
+Response:
+
+```
+{
+  result: "success",
+  marker: "hour|20130124080000",
+  count: 200,
+  rows: [
+    {
+      avg: 0.00001,
+      max: 0.00001,
+      min: 0.00001,
+      total: 0.00001,
+      tx_count: 1,
+      date: "2013-01-02T06:00:00Z"
+    },
+    ...
+  ]
+}
+```
+
 
 
 

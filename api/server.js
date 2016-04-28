@@ -68,6 +68,7 @@ var Server = function (options) {
     app.get('/v2/network/xrp_distribution', routesV2.network.xrpDistribution);
     app.get('/v2/network/top_markets/:date?', routesV2.network.topMarkets);
     app.get('/v2/network/top_currencies/:date?', routesV2.network.topCurrencies);
+    app.get('/v2/network/fees', routesV2.network.getFees);
     app.get('/v2/network/topology', routesV2.network.getTopology);
     app.get('/v2/network/topology/nodes', routesV2.network.getNodes);
     app.get('/v2/network/topology/nodes/:pubkey', routesV2.network.getNodes);

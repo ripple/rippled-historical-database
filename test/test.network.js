@@ -148,6 +148,239 @@ describe('setup mock data', function() {
 });
 
 /**
+ * network fees
+ */
+
+describe('network fees', function() {
+  it('should get ledger fee summaries', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 52);
+      body.rows.forEach(function(r) {
+        assert.strictEqual(typeof r.avg, 'number');
+        assert.strictEqual(typeof r.min, 'number');
+        assert.strictEqual(typeof r.max, 'number');
+        assert.strictEqual(typeof r.total, 'number');
+        assert.strictEqual(typeof r.tx_count, 'number');
+        assert.strictEqual(typeof r.ledger_index, 'number');
+        assert(moment(r.date).isValid());
+      });
+      done();
+    });
+  });
+
+  it('should restrict by start and end dates', function(done) {
+    var start = '2015-01-14T18:00:00';
+    var end = '2015-02-01';
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees?' +
+        'start=' + start +
+        '&end=' + end;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 38);
+      body.rows.forEach(function(r) {
+        var date = moment(r.date);
+        assert.strictEqual(typeof r.avg, 'number');
+        assert.strictEqual(typeof r.min, 'number');
+        assert.strictEqual(typeof r.max, 'number');
+        assert.strictEqual(typeof r.total, 'number');
+        assert.strictEqual(typeof r.tx_count, 'number');
+        assert(date.isValid());
+        assert(date.diff(start) >= 0);
+        assert(date.diff(end) <= 0);
+      });
+      done();
+    });
+  });
+
+  it('should get fee summaries in decending order', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees?descending=true';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      var date;
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 52);
+      body.rows.forEach(function(r) {
+        if (date) {
+          assert(date.diff(r.date) >= 0)
+        }
+
+        date = moment(r.date);
+      });
+      done();
+    });
+  });
+
+  it('should get hourly fee summaries', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees?interval=hour';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 8);
+      body.rows.forEach(function(r) {
+        assert.strictEqual(typeof r.avg, 'number');
+        assert.strictEqual(typeof r.min, 'number');
+        assert.strictEqual(typeof r.max, 'number');
+        assert.strictEqual(typeof r.total, 'number');
+        assert.strictEqual(typeof r.tx_count, 'number');
+        assert(moment(r.date).isValid());
+      });
+      done();
+    });
+  });
+
+  it('should get daily fee summaries', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees?interval=day';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 5);
+      body.rows.forEach(function(r) {
+        assert.strictEqual(typeof r.avg, 'number');
+        assert.strictEqual(typeof r.min, 'number');
+        assert.strictEqual(typeof r.max, 'number');
+        assert.strictEqual(typeof r.total, 'number');
+        assert.strictEqual(typeof r.tx_count, 'number');
+        assert(moment(r.date).isValid());
+      });
+      done();
+    });
+  });
+
+  it('should handle pagination correctly', function(done) {
+    var url = 'http://localhost:' + port +
+      '/v2/network/fees?interval=hour';
+
+    utils.checkPagination(url, undefined, function(ref, i, body) {
+      assert.strictEqual(body.rows.length, 1);
+      assert.deepEqual(body.rows[0], ref.rows[i]);
+    }, done);
+  });
+
+  it('should include a link header when marker is present', function(done) {
+    var url = 'http://localhost:' + port + '/v2/network/fees?limit=1';
+    var linkHeader = '<' + url +
+      '&marker=ledger|20131025102710|000002964124>; rel="next"';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers.link, linkHeader);
+      done();
+    });
+  });
+
+  it('should error on invalid start date', function(done) {
+    var start = 'x2015-01-14T00:00';
+    var end = '2015-01-14T00:00';
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees' +
+        '?start=' + start +
+        '&end=' + end;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid start date format');
+      done();
+    });
+  });
+
+  it('should error on invalid end date', function(done) {
+    var start = '2015-01-14T00:00';
+    var end = 'x2015-01-14T00:00';
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees' +
+        '?start=' + start +
+        '&end=' + end;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid end date format');
+      done();
+    });
+  });
+
+  it('should error on invalid interval', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees?interval=zzz';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid interval');
+      done();
+    });
+  });
+});
+
+/**
  * exchange volume
  */
 

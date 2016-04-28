@@ -8,6 +8,7 @@ var moment = require('moment');
 var exAggregation = require('../lib/aggregation/exchanges');
 var statsAggregation = require('../lib/aggregation/stats');
 var paymentsAggregation = require('../lib/aggregation/accountPayments');
+var feesAggregation = require('../lib/aggregation/fees');
 
 var fs = require('fs');
 var path = __dirname + '/mock/ledgers/';
@@ -17,10 +18,12 @@ var statsConfig;
 var updates = [];
 var exchanges = [];
 var payments = [];
+var fees = [];
 var pairs = { };
 var hbase;
 var stats;
 var aggPayments;
+var aggFees;
 
 
 hbaseConfig.prefix = config.get('prefix');
@@ -29,6 +32,7 @@ hbaseConfig.max_sockets = 100;
 hbaseConfig.timeout = 60000;
 
 aggPayments = new paymentsAggregation(hbaseConfig);
+aggFees = new feesAggregation(hbaseConfig);
 stats = new statsAggregation(hbaseConfig);
 hbase = new HBase(hbaseConfig);
 
@@ -45,6 +49,9 @@ describe('import ledgers', function(done) {
 
         //save payments
         payments.push.apply(payments, parsed.payments);
+
+        //save fees
+        fees.push(parsed.feeSummary);
 
         //save stats
         addStats(parsed);
@@ -73,6 +80,19 @@ describe('import ledgers', function(done) {
       assert.ifError(err);
       console.log(resp.length + ' ledgers saved');
       done(err);
+    });
+  });
+
+  it('should aggregate network fees', function(done) {
+    this.timeout(7000);
+    Promise.map(fees, function(feeSummary) {
+      return aggFees.handleFeeSummary(feeSummary);
+    })
+    .then(function() {
+      done();
+    })
+    .catch(function(e) {
+      assert.ifError(e);
     });
   });
 
