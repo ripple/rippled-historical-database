@@ -9,7 +9,8 @@ var getValidatorReports = function(req, res) {
   var options = {
     pubkey: req.params.pubkey,
     date: req.query.date ? smoment(req.query.date) : undefined,
-    format: (req.query.format || 'json').toLowerCase()
+    format: (req.query.format || 'json').toLowerCase(),
+    details: true
   };
   var days;
 
