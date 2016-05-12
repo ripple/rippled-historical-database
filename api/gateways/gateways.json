@@ -398,7 +398,7 @@
     "accounts": [{
         "address": "rcA8X3TVMST1n3CJeAdGk1RdRCHii7N2h",
         "currencies": {
-          "ETH" : { "featured" : false }
+          "ETH" : { "featured" : true }
         }
     }],
     "hotwallets": ["rhPGyJfM8bGjfNCiXLL7WRU8VZ5Cw4kHVe"],
