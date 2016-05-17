@@ -1,10 +1,10 @@
 'use strict';
-var config = require('../../config/import.config');
-var Hbase = require('../../lib/hbase/hbase-client');
-var utils = require('../../lib/utils');
+var config = require('../config/import.config');
+var Hbase = require('../lib/hbase/hbase-client');
+var utils = require('../lib/utils');
 var BigNumber = require('bignumber.js');
 var moment = require('moment');
-var ledger = require('../../lib/32570.json');
+var ledger = require('../lib/32570.json');
 var hbase = new Hbase(config.get('hbase'));
 var count = 0;
 var time = utils.formatTime(ledger.close_time_human);

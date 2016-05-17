@@ -5185,7 +5185,7 @@ Dependencies:
 ```
 $ docker-compose build
 $ docker-compose up -d hbase
-$ docker-compose run --rm webapp npm test
+$ docker-compose run webapp npm test
 ```
 
 ### Services ###

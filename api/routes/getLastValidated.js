@@ -1,36 +1,32 @@
-var response = require('response');
-var Logger   = require('../../lib/logger');
-var log      = new Logger({scope : 'last validated'});
-var postgres;
-var Validated;
+var Logger = require('../../lib/logger');
+var log = new Logger({scope : 'last validated'});
+var smoment = require('../../lib/smoment');
+var hbase;
 
-Validated = function(req, res, next) {
+var getLastValidated = function(req, res, next) {
 
   log.info('get last validated ledger');
 
-  if (!postgres) {
-    response.json({result:'error', message:'unavailable'}).status(500).pipe(res);
-    return;
-  }
-
-  postgres.getLastValidated(function(err, resp) {
+  hbase.getLastValidated(function(err, resp) {
     if (err) {
-      response.json({result:'error', message:'unavailable'}).status(500).pipe(res);
+      res.status(500).json({
+        result: 'error',
+        message: 'unavailable'
+      });
 
     } else if (resp) {
-      var result = {
-        result       : 'success',
-        ledger_index : resp.ledger_index,
-        ledger_hash  : resp.ledger_hash.toUpperCase(),
-        parent_hash  : resp.parent_hash.toUpperCase()
-      };
-
-      response.json(result).pipe(res);
+      res.json({
+        result: 'success',
+        ledger_index: resp.ledger_index,
+        ledger_hash: resp.ledger_hash,
+        parent_hash: resp.parent_hash,
+        close_time: smoment(resp.close_time).format()
+      });
     }
   });
 };
 
 module.exports = function(db) {
-  postgres = db;
-  return Validated;
+  hbase = db;
+  return getLastValidated;
 };

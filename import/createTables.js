@@ -1,5 +1,5 @@
-var Rest    = require('../../lib/hbase/hbase-rest');
-var config  = require('../../config/import.config');
+var Rest    = require('../lib/hbase/hbase-rest');
+var config  = require('../config/import.config');
 var rest    = new Rest(config.get('hbase-rest'));
 
 

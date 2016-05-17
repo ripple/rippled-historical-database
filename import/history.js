@@ -1,9 +1,9 @@
-var config   = require('../../config/import.config');
-var Importer = require('../../lib/ripple-importer');
-var Logger   = require('../../lib/logger');
-var Hbase    = require('../../lib/hbase/hbase-client');
-var Parser   = require('../../lib/ledgerParser');
-var utils    = require('../../lib/utils.js');
+var config   = require('../config/import.config');
+var Importer = require('../lib/ripple-importer');
+var Logger   = require('../lib/logger');
+var Hbase    = require('../lib/hbase/hbase-client');
+var Parser   = require('../lib/ledgerParser');
+var utils    = require('../lib/utils.js');
 var Promise  = require('bluebird');
 var moment   = require('moment');
 

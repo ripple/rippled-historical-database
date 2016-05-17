@@ -1,28 +1,8 @@
 {
-  "logLevel"    : 3,
-  "logFile"     : null,
-  "ripple" : {
-    "trace"                 : false,
-    "allow_partial_history" : false,
-    "servers" : [
-      { "host" : "s-west.ripple.com", "port" : 443, "secure" : true },
-      { "host" : "s-east.ripple.com", "port" : 443, "secure" : true }
-    ]
-  },
-  "postgres" : {
-    "host"     : "127.0.0.1",
-    "user"     : "",
-    "password" : "",
-    "database" : "ripple_data",
-    "charset"  : "utf8"
-  },
-  "couchdb" : {
-    "host"     : "127.0.0.1",
-    "port"     : 5984,
-    "username" : "",
-    "password" : "",
-    "database" : "",
-    "protocol" : "http"
+  "logLevel": 3,
+  "logFile": null,
+  "ripple": {
+    "server": "wss://s1.ripple.com:443"
   },
   "hbase" : {
     "prefix" : "test_",

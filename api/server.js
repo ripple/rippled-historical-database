@@ -5,9 +5,7 @@ var bodyParser = require('body-parser');
 var compression = require('compression')
 var Hbase = require('../lib/hbase/hbase-client');
 var cors = require('cors');
-var Postgres = require('./lib/db');
 var Routes = require('./routes');
-var RoutesV2 = require('./routesV2');
 var map = require('./apiMap');
 var json2csv = require('nice-json2csv');
 var favicon = require('serve-favicon');
@@ -16,10 +14,8 @@ var ripple = require('ripple-lib');
 var Server = function (options) {
   var rippleAPI = new ripple.RippleAPI(options.ripple);
   var app = express();
-  var hbase;
-  var routesV2;
-  var postgres;
-  var routes;
+  var hbase = new Hbase(options.hbase);
+  var routes = Routes(hbase, rippleAPI);
   var server;
 
   rippleAPI.connect()
@@ -43,80 +39,67 @@ var Server = function (options) {
   app.use(compression());
   app.use(cacheControl);
 
-  // deprecated v1 routes
-  app.get('/v1/accounts/:address/transactions', map.deprecated);
-  app.get('/v1/accounts/:address/transactions/:sequence', map.deprecated);
-  app.get('/v1/accounts/:address/balances', map.deprecated);
-  app.get('/v1/ledgers/:ledger_param?', map.deprecated);
-  app.get('/v1/transactions/:tx_hash', map.deprecated);
-  app.get('/v1/last_validated', map.deprecated);
+  app.get('/v2/health/:aspect?', routes.checkHealth);
+  app.get('/v2/gateways/:gateway?', routes.gateways.Gateways);
+  app.get('/v2/gateways/:gateway/assets/:filename?', routes.gateways.Assets);
+  app.get('/v2/currencies/:currencyAsset?', routes.gateways.Currencies);
+  app.get('/v2/capitalization/:currency', routes.capitalization);
+  app.get('/v2/active_accounts/:base/:counter', routes.activeAccounts);
+  app.get('/v2/network/exchange_volume', routes.network.exchangeVolume);
+  app.get('/v2/network/payment_volume', routes.network.paymentVolume);
+  app.get('/v2/network/issued_value', routes.network.issuedValue);
+  app.get('/v2/network/xrp_distribution', routes.network.xrpDistribution);
+  app.get('/v2/network/top_markets/:date?', routes.network.topMarkets);
+  app.get('/v2/network/top_currencies/:date?', routes.network.topCurrencies);
+  app.get('/v2/network/fees', routes.network.getFees);
+  app.get('/v2/network/topology', routes.network.getTopology);
+  app.get('/v2/network/topology/nodes', routes.network.getNodes);
+  app.get('/v2/network/topology/nodes/:pubkey', routes.network.getNodes);
+  app.get('/v2/network/topology/links', routes.network.getLinks);
+  app.get('/v2/network/validators', routes.network.getValidators);
+  app.get('/v2/network/validators/:pubkey', routes.network.getValidators);
+  app.get('/v2/network/validators/:pubkey/validations', routes.network.getValidations);
+  app.get('/v2/network/validators/:pubkey/reports', routes.network.getValidatorReports);
+  app.get('/v2/network/validator_reports', routes.network.getValidatorReports);
+  app.get('/v2/network/validations', routes.network.getValidations);
+  app.get('/v2/last_validated', routes.getLastValidated);
+  app.get('/v2/transactions/', routes.getTransactions);
+  app.get('/v2/transactions/:tx_hash', routes.getTransactions);
+  app.get('/v2/ledgers/:ledger_param?', routes.getLedger);
+  app.get('/v2/ledgers/:ledger_hash/validations', routes.network.getLedgerValidations);
+  app.get('/v2/ledgers/:ledger_hash/validations/:validation_pubkey', routes.network.getLedgerValidations);
+  app.get('/v2/accounts', routes.accounts);
+  app.get('/v2/accounts/:address', routes.getAccount);
+  app.get('/v2/accounts/:address/transactions/:sequence', routes.accountTxSeq);
+  app.get('/v2/accounts/:address/transactions', routes.accountTransactions);
+  app.get('/v2/accounts/:address/balances', routes.accountBalances);
+  app.get('/v2/accounts/:address/payments/:date?', routes.accountPayments);
+  app.get('/v2/accounts/:address/reports/:date?', routes.accountReports);
+  app.get('/v2/accounts/:address/balance_changes', routes.getChanges);
+  app.get('/v2/accounts/:address/exchanges', routes.accountExchanges);
+  app.get('/v2/accounts/:address/exchanges/:base', routes.accountExchanges);
+  app.get('/v2/accounts/:address/exchanges/:base/:counter', routes.accountExchanges);
+  app.get('/v2/accounts/:address/orders', routes.accountOrders);
+  app.get('/v2/accounts/:address/stats/:family', routes.accountStats);
+  app.get('/v2/accounts', routes.accounts);
+  app.get('/v2/payments/:currency?', routes.getPayments);
+  app.get('/v2/exchanges/:base/:counter', routes.getExchanges);
+  app.get('/v2/exchange_rates/:base/:counter', routes.getExchangeRate);
+  app.get('/v2/normalize', routes.normalize);
+  app.get('/v2/reports/:date?', routes.reports);
+  app.get('/v2/stats', routes.stats);
+  app.get('/v2/stats/:family', routes.stats);
+  app.get('/v2/stats/:family/:metric', routes.stats);
+  app.get('/v2/maintenance/:domain', routes.maintenance);
 
-  // v2 routes (requires hbase)
-  if (options.hbase) {
-    hbase = new Hbase(options.hbase);
-    routesV2 = RoutesV2(hbase, rippleAPI);
+  // index page
+  app.get('/', map.generate);
+  app.get('/v2', map.generate);
 
-    app.get('/v2/health/:aspect?', routesV2.checkHealth);
-    app.get('/v2/gateways/:gateway?', routesV2.gateways.Gateways);
-    app.get('/v2/gateways/:gateway/assets/:filename?', routesV2.gateways.Assets);
-    app.get('/v2/currencies/:currencyAsset?', routesV2.gateways.Currencies);
-    app.get('/v2/capitalization/:currency', routesV2.capitalization);
-    app.get('/v2/active_accounts/:base/:counter', routesV2.activeAccounts);
-    app.get('/v2/network/exchange_volume', routesV2.network.exchangeVolume);
-    app.get('/v2/network/payment_volume', routesV2.network.paymentVolume);
-    app.get('/v2/network/issued_value', routesV2.network.issuedValue);
-    app.get('/v2/network/xrp_distribution', routesV2.network.xrpDistribution);
-    app.get('/v2/network/top_markets/:date?', routesV2.network.topMarkets);
-    app.get('/v2/network/top_currencies/:date?', routesV2.network.topCurrencies);
-    app.get('/v2/network/fees', routesV2.network.getFees);
-    app.get('/v2/network/topology', routesV2.network.getTopology);
-    app.get('/v2/network/topology/nodes', routesV2.network.getNodes);
-    app.get('/v2/network/topology/nodes/:pubkey', routesV2.network.getNodes);
-    app.get('/v2/network/topology/links', routesV2.network.getLinks);
-    app.get('/v2/network/validators', routesV2.network.getValidators);
-    app.get('/v2/network/validators/:pubkey', routesV2.network.getValidators);
-    app.get('/v2/network/validators/:pubkey/validations', routesV2.network.getValidations);
-    app.get('/v2/network/validators/:pubkey/reports', routesV2.network.getValidatorReports);
-    app.get('/v2/network/validator_reports', routesV2.network.getValidatorReports);
-    app.get('/v2/network/validations', routesV2.network.getValidations);
-    app.get('/v2/last_validated', routesV2.getLastValidated);
-    app.get('/v2/transactions/', routesV2.getTransactions);
-    app.get('/v2/transactions/:tx_hash', routesV2.getTransactions);
-    app.get('/v2/ledgers/:ledger_param?', routesV2.getLedger);
-    app.get('/v2/ledgers/:ledger_hash/validations', routesV2.network.getLedgerValidations);
-    app.get('/v2/ledgers/:ledger_hash/validations/:validation_pubkey', routesV2.network.getLedgerValidations);
-    app.get('/v2/accounts', routesV2.accounts);
-    app.get('/v2/accounts/:address', routesV2.getAccount);
-    app.get('/v2/accounts/:address/transactions/:sequence', routesV2.accountTxSeq);
-    app.get('/v2/accounts/:address/transactions', routesV2.accountTransactions);
-    app.get('/v2/accounts/:address/balances', routesV2.accountBalances);
-    app.get('/v2/accounts/:address/payments/:date?', routesV2.accountPayments);
-    app.get('/v2/accounts/:address/reports/:date?', routesV2.accountReports);
-    app.get('/v2/accounts/:address/balance_changes', routesV2.getChanges);
-    app.get('/v2/accounts/:address/exchanges', routesV2.accountExchanges);
-    app.get('/v2/accounts/:address/exchanges/:base', routesV2.accountExchanges);
-    app.get('/v2/accounts/:address/exchanges/:base/:counter', routesV2.accountExchanges);
-    app.get('/v2/accounts/:address/orders', routesV2.accountOrders);
-    app.get('/v2/accounts/:address/stats/:family', routesV2.accountStats);
-    app.get('/v2/accounts', routesV2.accounts);
-    app.get('/v2/payments/:currency?', routesV2.getPayments);
-    app.get('/v2/exchanges/:base/:counter', routesV2.getExchanges);
-    app.get('/v2/exchange_rates/:base/:counter', routesV2.getExchangeRate);
-    app.get('/v2/normalize', routesV2.normalize);
-    app.get('/v2/reports/:date?', routesV2.reports);
-    app.get('/v2/stats', routesV2.stats);
-    app.get('/v2/stats/:family', routesV2.stats);
-    app.get('/v2/stats/:family/:metric', routesV2.stats);
-    app.get('/v2/maintenance/:domain', routesV2.maintenance);
+  //404
+  app.get('*', map.generate404);
+  app.post('*', map.generate404);
 
-    // index page
-    app.get('/', map.generate);
-    app.get('/v2', map.generate);
-
-    //404
-    app.get('*', map.generate404);
-    app.post('*', map.generate404);
-  }
 
   // start the server
   server = app.listen(options.port);

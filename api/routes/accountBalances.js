@@ -3,90 +3,129 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account balances'});
 var request = require('request');
-var response = require('response');
-var moment = require('moment');
-var postgres;
+var smoment = require('../../lib/smoment');
+var rippleAPI;
+var hbase;
 
 var accountBalances = function (req, res, next) {
 
-  var options = prepareOptions();
+  var options = {
+    ledger_index: req.query.ledger_index || req.query.ledger,
+    ledger_hash: req.query.ledger_hash,
+    closeTime: req.query.close_time || req.query.date,
+    account: req.params.address,
+    format: (req.query.format || 'json').toLowerCase(),
+    limit: req.query.limit || 200
+  };
 
   if (!options.account) {
-    errorResponse({error: 'Must provide account.', code: 400});
+    errorResponse({
+      error: 'account is required.',
+      code: 400
+    });
     return;
   }
 
-  log.info('ACCOUNT BALANCES:', options.account);
+  // validate and fomat close time
+  if (options.closeTime) {
+    options.closeTime = smoment(options.closeTime);
+    if (options.closeTime) {
+      options.closeTime = options.closeTime.format();
+    } else {
+      errorResponse({
+        error: 'invalid date format',
+        code: 400
+      });
+      return;
+    }
+  }
 
-  postgres.getLedger(options, function(err, ledger) {
+  // validate and format limit
+  if (options.limit && options.limit === 'all') {
+    options.limit = undefined;
+
+  } else {
+    options.limit = Number(options.limit);
+    if (isNaN(options.limit)) {
+      errorResponse({
+        error: 'invalid limit',
+        code: 400
+      });
+      return;
+
+    // max limit of 400
+    } else if (options.limit > 400) {
+      options.limit = 400
+    }
+  }
+
+
+  log.info(options.account);
+
+  hbase.getLedger(options, function(err, ledger) {
     if (err) {
       errorResponse(err);
+      return;
+
+    } else if (ledger) {
+      options.ledger_index = ledger.ledger_index;
+      options.closeTime = smoment(ledger.close_time).format();
+      options.currency = req.query.currency;
+      options.counterparty = req.query.counterparty || req.query.issuer;
+      options.limit = options.limit;
+      getBalances(options);
+
     } else {
-      getBalances(ledger, options.account);
+      errorResponse('ledger not found');
     }
   });
 
   /**
-  * prepareOptions
-  * parse request parameters to determine query options
-  */
-
-  function prepareOptions() {
-    var options = {
-      ledger_index : req.query.ledger_index || req.query.ledger,
-      ledger_hash  : req.query.ledger_hash,
-      date         : req.query.date,
-      currency     : req.query.currency,
-      counterparty : req.query.counterparty,
-      limit        : req.query.limit,
-      marker       : req.query.marker,
-      tx_return    : 'none',
-      account      : req.params.address,
-      format       : (req.query.format || 'json').toLowerCase()
-    };
-
-    return options;
-  }
-
-  /**
   * getBalances
   * use ledger_index from getLedger api call
-  * to get balances using ripple REST
+  * to get balances using rippleAPI
   */
 
-  function getBalances(ledger, account) {
-    if (!ledger) {
-      ledger = {};
+  function getBalances(opts) {
+    var params = {
+      ledgerVersion: opts.ledger_index,
+      currency: opts.currency,
+      counterparty: opts.counterparty,
+      limit: opts.limit ? Number(opts.limit) : undefined
+    };
+
+    if (!rippleAPI.isConnected()) {
+      errorResponse({
+        code: 500,
+        error: 'rippled connection error.'
+      });
+      rippleAPI.disconnect()
+      .then(function() {
+        return rippleAPI.connect();
+      }).catch(function(e) {
+        log.error(e);
+      });
+      return;
     }
 
-    var ledger_index = ledger.ledger_index;
-    var url = 'https://api.ripple.com/v1/accounts/' + account + '/balances';
-    var balances = { };
+    rippleAPI.getBalances(opts.account, params)
+    .then(function(balances) {
+      var results = {
+        result: 'success'
+      };
 
-    balances.date = ledger.close_time_human;
+      results.ledger_index = opts.ledger_index;
+      results.close_time = opts.closeTime;
+      results.limit = opts.limit;
+      results.balances = balances;
 
-    request({
-      url: url,
-      json: true,
-      qs: {
-        currency: options.currency,
-        counterparty: options.counterparty,
-        limit: options.limit,
-        marker: options.marker,
-        ledger: ledger_index
+      successResponse(results, opts);
+    }).catch(function(e) {
+      if (e.message === 'Account not found.') {
+        errorResponse({code:404, error: e.message});
+      } else {
+        errorResponse(e.toString());
       }
-    }, function(err, resp, body) {
-
-      if (err) {
-        errorResponse(err);
-        return;
-      }
-
-      for (var attr in body) {
-        balances[attr] = body[attr];
-      }
-
-      successResponse(balances);
     });
   }
 
@@ -97,14 +136,14 @@ var accountBalances = function (req, res, next) {
   */
 
   function errorResponse(err) {
+    var code = err.code || 500;
+    var message = err.error || 'unable to retrieve balances';
+
     log.error(err.error || err);
-    if (err.code && err.code.toString()[0] === '4') {
-      response.json({result: 'error', message: err.error})
-        .status(err.code).pipe(res);
-    } else {
-      response.json({result: 'error', message: 'unable to retrieve ledger'})
-        .status(500).pipe(res);
-    }
+    res.status(code).json({
+      result: 'error',
+      message: message
+    });
   }
 
  /**
@@ -113,23 +152,18 @@ var accountBalances = function (req, res, next) {
   * @param {Object} balances
   */
 
-  function successResponse(balances) {
+  function successResponse(balances, opts) {
 
-    if (balances.balances) {
-      log.info('ACCOUNT BALANCES: Balances Found:', balances.balances.length);
+    if (opts.format === 'csv') {
+      res.csv(balances.balances, opts.account + ' - balances.csv');
     } else {
-      log.info('ACCOUNT BALANCES: Balances Found: 0');
-    }
-
-    if (options.format === 'csv') {
-      res.csv(balances.balances, options.account + ' - balances.csv');
-    } else {
-      response.json(balances).pipe(res);
+      res.json(balances);
     }
   }
 };
 
-module.exports = function(db) {
-  postgres = db;
+module.exports = function(db, r) {
+  hbase = db;
+  rippleAPI = r;
   return accountBalances;
 };

@@ -1,6 +1,6 @@
-var config = require('../../config/import.config');
-var Hbase  = require('../../lib/hbase/hbase-client');
-var Parser = require('../../lib/ledgerParser');
+var config = require('../config/import.config');
+var Hbase  = require('../lib/hbase/hbase-client');
+var Parser = require('../lib/ledgerParser');
 
 var hbase = new Hbase(config.get('hbase'));
 var hash  = config.get('hash');

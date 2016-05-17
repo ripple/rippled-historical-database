@@ -1,37 +1,32 @@
-var Logger   = require('../../lib/logger');
-var log      = new Logger({scope : 'account tx sequence'});
-var response = require('response');
-var postgres;
+var Logger = require('../../lib/logger');
+var log = new Logger({scope : 'account tx by sequence'});
+var intMatch = /^\d+$/;
+var hbase;
 
 var accountTxSeq = function (req, res, next) {
 
-  var options = prepareOptions();
+  var options = {
+    account: req.params.address,
+    sequence: req.params.sequence,
+    binary: (/true/i).test(req.query.binary) ? true : false
+  };
 
-  log.info('ACCOUNT TX:', options.account);
+  if (!intMatch.test(options.sequence)) {
+    errorResponse({error: 'invalid sequence number', code: 400});
+    return;
+  }
 
-  postgres.getAccountTxSeq(options, function(err, transactions) {
+  log.info('ACCOUNT TX SEQ:', options.account, options.sequence);
+
+  hbase.getAccountTransaction(options, function(err, tx) {
     if (err) {
       errorResponse(err);
-    } else if (transactions.length === 0) {
-      errorResponse({error: "transaction not found", code:404})
+    } else if (!tx) {
+      errorResponse({error: 'transaction not found', code: 404})
     } else {
-      successResponse(transactions[0]);
+      successResponse(tx);
     }
   });
-
- /**
-  * prepareOptions
-  * parse request parameters to determine query options
-  */
-  function prepareOptions () {
-    var options = {
-      account  : req.params.address,
-      sequence : req.params.sequence,
-      binary   : !req.query.binary || (/false/i).test(req.query.binary) ? false : true
-    };
-
-    return options;
-  };
 
  /**
   * errorResponse
@@ -39,11 +34,17 @@ var accountTxSeq = function (req, res, next) {
   * @param {Object} err
   */
   function errorResponse (err) {
-    if (err.code.toString()[0] === '4') {
-      log.error(err.error || err);
-      response.json({result:'error', message:err.error}).status(err.code).pipe(res);
+    log.error(err.error || err);
+    if (err.code && err.code.toString()[0] === '4') {
+      res.status(err.code).json({
+        result: 'error',
+        message: err.error
+      });
     } else {
-      response.json({result:'error', message:'unable to retrieve transaction'}).status(500).pipe(res);
+      res.status(500).json({
+        result: 'error',
+        message: 'unable to retrieve transaction'
+      });
     }
   }
 
@@ -53,17 +54,15 @@ var accountTxSeq = function (req, res, next) {
   * @param {Object} transactions
   */
   function successResponse (tx) {
-    var result = {
-      result      : 'success',
+    log.info('Transaction Found:', tx.hash);
+    res.json({
+      result: 'success',
       transaction : tx
-    };
-
-    log.info('ACCOUNT TX: Transaction Found');
-    response.json(result).pipe(res);
+    });
   };
 }
 
 module.exports = function(db) {
-  postgres = db;
+  hbase = db;
   return accountTxSeq;
 };
