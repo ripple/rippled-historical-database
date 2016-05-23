@@ -28,6 +28,6 @@ module.exports = function(db, rippleAPI) {
   Routes.activeAccounts = require('./activeAccounts')(db);
   Routes.maintenance = require('./maintenance')(db);
   Routes.network = require('./network')(db);
-  Routes.gateways = require('./gateways');
+  Routes.gateways = require('./gateways')(db);
   return Routes;
 };

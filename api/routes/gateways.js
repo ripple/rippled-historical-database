@@ -5,7 +5,6 @@ var smoment = require('../../lib/smoment');
 var validator = require('ripple-address-codec');
 var assetPath = path.resolve(__dirname + '/../gateways/gatewayAssets/');
 var currencies = path.resolve(__dirname + '/../gateways/currencyAssets/');
-var gatewayList = require('../gateways/gateways.json');
 var fs = require('fs');
 var files = fs.readdirSync(assetPath);
 var assets = { };
@@ -24,24 +23,6 @@ files.forEach(function(file) {
   }
 });
 
-// add assets to gateway list
-gatewayList.forEach(function(gateway) {
-  gateway.normalized = normalize(gateway.name);
-  gateway.assets = assets[gateway.normalized] || [];
-  if (gateway.start_date) {
-    gateway.start_date = smoment(gateway.start_date).format();
-  }
-});
-
-// cached in memory since
-// they will not change until restart
-var gatewaysByCurrency = getGatewaysByCurrency();
-
-// sort issuers for each currency
-for (var key in gatewaysByCurrency) {
-  gatewaysByCurrency[key].sort(sortIssuers);
-}
-
 /**
  * sortIssuers
  * sort by asset:featured:name
@@ -54,37 +35,6 @@ function sortIssuers(a, b) {
 }
 
 /**
- * getGatewaysByCurrency
- */
-
-function getGatewaysByCurrency() {
-  var results = { };
-  gatewayList.forEach(function(gateway) {
-
-    gateway.accounts.forEach(function(acct) {
-      for (var currency in acct.currencies) {
-        if (!results[currency]) {
-          results[currency] = [ ];
-        }
-
-        var g = {
-          name: gateway.name,
-          account: acct.address,
-          featured: acct.currencies[currency].featured,
-          label: acct.currencies[currency].label,
-          assets: gateway.assets,
-          start_date: gateway.start_date
-        };
-
-        results[currency].push(g);
-      }
-    });
-  });
-
-  return results;
-}
-
-/**
  * normalize
  */
 
@@ -93,39 +43,11 @@ function normalize(name) {
 }
 
 /**
- * getGateway
- * get gateway details
- * from an issuer address
+ * isRippleAddress
  */
 
-function getGateway(identifier) {
-  var gateway;
-  var name;
-  var address;
-  var normalized;
-
-  if (validator.isValidAddress(identifier)) {
-    address = identifier;
-  } else {
-    name = normalize(identifier);
-  }
-
-  for (var i = 0; i < gatewayList.length; i++) {
-    gateway = gatewayList[i];
-
-    for (var j = 0; j < gateway.accounts.length; j++) {
-      if (address && gateway.accounts[j].address === address) {
-        return gateway;
-
-      } else if (name) {
-        normalized = normalize(gateway.name);
-
-        if (name === normalized) {
-          return gateway;
-        }
-      }
-    }
-  }
+function isRippleAddress(d) {
+  return /^r[1-9A-HJ-NP-Za-km-z]{25,34}$/.test(d);
 }
 
 /**
@@ -135,30 +57,105 @@ function getGateway(identifier) {
  */
 
 var Gateways = function(req, res) {
-  var address = req.params.gateway;
-  var gateway;
+  var options;
 
   // cache for 1 hour
   res.setHeader('Cache-Control', 'max-age=3600');
 
   // single gateway
-  if (address) {
-    gateway = getGateway(address);
-    log.info('gateway:', gateway ? gateway.name : address);
-    if (gateway) {
-      res.send(JSON.stringify(gateway, null));
+  if (req.params.gateway) {
+    log.info('gateway:', req.params.gateway);
+
+    if (isRippleAddress(req.params.gateway)) {
+      options = {
+        issuer: req.params.gateway
+      }
     } else {
-      res.status(404)
+      options = {
+        normalized_name: normalize(req.params.gateway)
+      }
+    }
+
+
+    hbase.getGateways(options)
+    .then(function(d) {
+      if (d) {
+        res.json(d);
+      } else {
+        res.status(404)
+        .json({
+          result: 'error',
+          message: 'gateway not found.'
+        });
+      }
+    })
+    .catch(function(e) {
+      log.error(e);
+      res.status(500)
       .send({
         result: 'error',
-        message: 'gateway not found.'
+        message: 'unable to retrieve gateway'
       });
-    }
+    })
 
   // entire list
   } else {
     log.info('gateway list');
-    res.send(JSON.stringify(gatewaysByCurrency, null));
+
+    hbase.getGateways()
+    .then(filterIssuers)
+    .then(addAssets)
+    .then(sortByCurrency)
+    .then(function(data) {
+      res.json(data);
+    })
+    .catch(function(e) {
+      log.error(e);
+      console.log(e.stack);
+      res.status(500)
+      .send({
+        result: 'error',
+        message: 'unable to retrieve gateways'
+      });
+    })
+  }
+
+  function filterIssuers(rows) {
+    return rows.filter(function(r) {
+      return r.type === 'issuer';
+    });
+  }
+
+  function addAssets(rows) {
+    rows.forEach(function(r) {
+      r.assets = assets[r.normalized_name] || [];
+    });
+
+    return rows;
+  }
+
+  function sortByCurrency(rows) {
+    var data = {};
+
+    rows.forEach(function(r) {
+      if (!data[r.currency]) {
+        data[r.currency] = [];
+      }
+
+      data[r.currency].push({
+        name: r.name,
+        account: r.address,
+        featured: r.featured,
+        start_date: r.start_date,
+        assets: r.assets
+      });
+    });
+
+    for (var key in data) {
+      data[key] = data[key].sort(sortIssuers);
+    }
+
+    return data;
   }
 };
 
@@ -168,29 +165,43 @@ var Gateways = function(req, res) {
  */
 
 var Assets = function(req, res) {
-  var address = req.params.gateway;
   var filename = req.params.filename || 'logo.svg';
-  var gateway = getGateway(address);
+  var options = {};
   var name;
 
-  log.info('asset:', gateway ? gateway.name : address, filename);
-  if (!gateway) {
-    res.status(400).send({
-      result: 'error',
-      message: 'gateway not found.'
-    });
-    return;
+  log.info('asset:', req.params.gateway, filename);
+
+  if (isRippleAddress(req.params.gateway)) {
+    options = {
+      issuer: req.params.gateway
+    }
+  } else {
+    options = {
+      normalized_name: normalize(req.params.gateway)
+    }
   }
 
-  name = normalize(gateway.name);
-  res.setHeader('Cache-Control', 'max-age=3600');
-  res.sendFile(assetPath + '/' + name + '.' + filename, null, function(err) {
-    if (err) {
-      log.error(err);
-      res.status(err.status || 500)
-      .send({
+  hbase.getGateways(options)
+  .then(function(gateway) {
+    if (!gateway) {
+      res.status(404)
+      .json({
         result: 'error',
-        message: 'asset not found.'
+        message: 'gateway not found.'
+      });
+
+    } else {
+      var name = normalize(gateway.name);
+      res.setHeader('Cache-Control', 'max-age=3600');
+      res.sendFile(assetPath + '/' + name + '.' + filename, null, function(err) {
+        if (err) {
+          log.error(err);
+          res.status(err.status || 500)
+          .json({
+            result: 'error',
+            message: 'asset not found.'
+          });
+        }
       });
     }
   });
@@ -230,6 +241,13 @@ var Currencies = function (req, res, next) {
 };
 
 
-module.exports.Assets = Assets;
-module.exports.Gateways = Gateways;
-module.exports.Currencies = Currencies;
+module.exports = function(db) {
+  hbase = db;
+
+  return {
+    Gateways: Gateways,
+    Assets: Assets,
+    Currencies: Currencies
+  }
+}
+
