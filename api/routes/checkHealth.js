@@ -211,6 +211,7 @@ var checkHealth = function(req, res) {
           result: 'error',
           message: 'hbase response error'
         });
+        return;
 
       } else if (responseTime < 0 || isNaN(responseTime)) {
         score = 3;
