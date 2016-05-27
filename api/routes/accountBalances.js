@@ -4,6 +4,7 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account balances'});
 var request = require('request');
 var smoment = require('../../lib/smoment');
+var rippleAddress = require('ripple-address-codec');
 var rippleAPI;
 var hbase;
 
@@ -21,6 +22,13 @@ var accountBalances = function (req, res, next) {
   if (!options.account) {
     errorResponse({
       error: 'account is required.',
+      code: 400
+    });
+    return;
+
+  } else if (!rippleAddress.isValidAddress(options.account)) {
+    errorResponse({
+      error: 'invalid ripple address',
       code: 400
     });
     return;
