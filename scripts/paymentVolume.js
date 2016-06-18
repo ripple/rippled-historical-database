@@ -10,9 +10,16 @@ var hbaseOptions = config.get('hbase');
 var hbase;
 
 var intervals = [
+  'hour',
   'day',
   'week',
   'month'
+];
+
+var periods = [
+  'minute',
+  'hour',
+  'day'
 ];
 
 var options = {
@@ -20,7 +27,8 @@ var options = {
   start: config.get('start'),
   end: config.get('end'),
   save: config.get('save'),
-  top: config.get('top')
+  top: config.get('top'),
+  live: config.get('live')
 };
 
 if (!options.save) {
@@ -88,6 +96,10 @@ function aggregatePayments(params) {
     params = {};
   }
 
+  if (params.live === true) {
+    params.live = 'day';
+  }
+
   interval = (params.interval || '').toLowerCase();
   start = smoment(params.start);
   end = smoment(params.end);
@@ -124,6 +136,21 @@ function aggregatePayments(params) {
       start: start
     });
 
+  // invalid live period
+  } else if (params.live && periods.indexOf(params.live) === -1) {
+    console.log('invalid live period:', params.live);
+    process.exit(1);
+
+  // live hourly
+  } else if (params.live) {
+    start = smoment();
+    start.moment.subtract(1, params.live);
+    list.push({
+      start: start,
+      end: smoment(),
+      live: params.live
+    });
+
   // live (24hrs)
   } else {
     start = smoment();
@@ -131,7 +158,7 @@ function aggregatePayments(params) {
     list.push({
       start: start,
       end: smoment(),
-      live: true
+      live: 'day',
     });
   }
 
@@ -351,9 +378,17 @@ function handleAggregation(params, done) {
       if (options.save) {
 
         var table = 'agg_metrics';
-        var rowkey = 'payment_volume|' + (params.live ?
-          'live' : options.interval + '|' + smoment(result.startTime).hbaseFormatStartRow());
+        var rowkey = 'payment_volume|';
 
+        if (params.live === 'day') {
+          rowkey += 'live';
+        } else if (params.live) {
+          rowkey += 'live|' + params.live;
+        } else {
+          rowkey += options.interval + '|' + smoment(result.startTime).hbaseFormatStartRow();
+        }
+
+        console.log('saving:', table, rowkey);
         hbase.putRow({
           table: table,
           rowkey: rowkey,

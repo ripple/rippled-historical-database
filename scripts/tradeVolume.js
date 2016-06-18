@@ -7,9 +7,16 @@ var hbaseOptions = config.get('hbase');
 var hbase;
 
 var intervals = [
+  'hour',
   'day',
   'week',
   'month'
+];
+
+var periods = [
+  'minute',
+  'hour',
+  'day'
 ];
 
 var options = {
@@ -17,7 +24,8 @@ var options = {
   start: config.get('start'),
   end: config.get('end'),
   save: config.get('save'),
-  top: config.get('top')
+  top: config.get('top'),
+  live: config.get('live')
 };
 
 var marketPairs = [
@@ -192,6 +200,10 @@ function aggregateTradeVolume(params) {
   end = smoment(params.end);
   start.granularity = 'second';
 
+  if (params.live === true) {
+    params.live = 'day';
+  }
+
   // invalid start date
   // or end date
   if (!start || !end) {
@@ -224,6 +236,21 @@ function aggregateTradeVolume(params) {
       start: start
     });
 
+  // invalid live period
+  } else if (params.live && periods.indexOf(params.live) === -1) {
+    console.log('invalid live period:', params.live);
+    process.exit(1);
+
+  // live hourly
+  } else if (params.live) {
+    start = smoment();
+    start.moment.subtract(1, params.live);
+    list.push({
+      start: start,
+      end: smoment(),
+      live: params.live
+    });
+
   // live (24hrs)
   } else {
     start = smoment();
@@ -231,7 +258,7 @@ function aggregateTradeVolume(params) {
     list.push({
       start: start,
       end: smoment(),
-      live: true
+      live: 'day',
     });
   }
 
@@ -473,7 +500,14 @@ function handleAggregation (params, done) {
       var rowkey = 'trade_volume|';
 
       if (options.save) {
-        rowkey += params.live ? 'live' : params.interval + '|' + params.start.hbaseFormatStartRow();
+
+        if (params.live === 'day') {
+          rowkey += 'live';
+        } else if (params.live) {
+          rowkey += 'live|' + params.live;
+        } else {
+          rowkey += params.interval + '|' + params.start.hbaseFormatStartRow();
+        }
 
         console.log('saving:', table, rowkey);
         return hbase.putRow({
