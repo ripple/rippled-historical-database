@@ -113,8 +113,6 @@ function getMetric(metric, req, res) {
     options.live = 'day';
   }
 
-  console.log(options);
-
   hbase.getMetric(options, function(err, resp) {
     if (err) {
       errorResponse(err);
