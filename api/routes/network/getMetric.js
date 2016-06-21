@@ -14,6 +14,7 @@ var intervals = [
 ];
 
 var livePeriods = [
+  'minute',
   'hour',
   'day'
 ];

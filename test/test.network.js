@@ -589,6 +589,24 @@ describe('network - exchange volume', function() {
       done();
     });
   });
+
+  it('should error on invalid live period', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/exchange_volume?live=week';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid period - use: minute, hour, day');
+      done();
+    });
+  });
 });
 
 /**
