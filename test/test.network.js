@@ -3,6 +3,7 @@ var request = require('request');
 var Promise = require('bluebird');
 var assert = require('assert');
 var moment = require('moment');
+var smoment = require('../lib/smoment');
 var utils = require('./utils');
 var exec = require('child_process').exec;
 
@@ -173,9 +174,8 @@ describe('rippled versions', function() {
   it('should get current rippled versions', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/network/rippled_versions';
-    var date = moment.utc()
-    .startOf('day')
-    .format();
+    var date = smoment();
+    date.moment.startOf('day');
 
     request({
       url: url,
@@ -188,7 +188,7 @@ describe('rippled versions', function() {
       assert.strictEqual(body.result, 'success');
       assert(body.rows.length > 0);
       body.rows.forEach(function(d) {
-        assert.strictEqual(date, d.date);
+        assert.strictEqual(date.format(), d.date);
         assert.strictEqual(typeof d.repo, 'string');
         assert.strictEqual(typeof d.version, 'string');
       });
