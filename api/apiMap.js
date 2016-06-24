@@ -150,6 +150,10 @@ var generateMap = function(url) {
         route: '/v2/network/validations',
         example: url + '/network/validations',
       }, {
+        action: 'Get Rippled Versions',
+        route: '/v2/network/rippled_versions',
+        example: url + '/network/rippled_versions',
+      }, {
         action: 'Get Exchange Rate',
         route: '/v2/exchange_rates/{:base}/{:counter}',
         example: url + '/exchange_rates/XRP/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'

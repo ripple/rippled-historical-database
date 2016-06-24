@@ -88,6 +88,7 @@ Validation Network Methods:
 * [Get Validator Validations - `GET /v2/network/validators/{:pubkey}/validations`](#get-validator-validations)
 * [Get Single Validator Reports - `GET /v2/network/validators/{:pubkey}/reports`](#get-single-validator-reports)
 * [Get Daily Validator Reports - `GET /v2/network/validator_reports`](#get-daily-validator-reports)
+* [Get Rippled Versions - `GET /v2/network/rippled_versions`](#get-rippled-versions)
 
 Health Checks:
 
@@ -1583,6 +1584,7 @@ Optionally, you can provide the following query parameters:
 | `start` | String - [Timestamp][]  | Start time of query range. Defaults to the start of the most recent interval. |
 | `end` | String - [Timestamp][]  | End time of query range. Defaults to the end of the most recent interval. |
 | `interval` | String  | Aggregation interval - valid intervals are `day`, `week`, or `month`. Defaults to `day`. |
+| `live` | String - 'day', 'hour', 'minute' | Period for live updating spot data.  Defaults to 'day', ignored if `interval` is specified |
 | `exchange_currency` | String - [Currency Code][] | Normalize all amounts to use this as a display currency. If not XRP, `exchange_issuer` is also required. Defaults to XRP. |
 | `exchange_issuer` | String - [Address][] | Normalize results to the specified `currency` issued by this issuer. |
 | `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
@@ -1732,6 +1734,7 @@ Optionally, you can provide the following query parameters:
 | `start` | String - [Timestamp][]  | Start time of query range. Defaults to the start of the most recent interval. |
 | `end` | String - [Timestamp][]  | End time of query range. Defaults to the end of the most recent interval. |
 | `interval` | String  | Aggregation interval - valid intervals are `day`, `week`, or `month`. Defaults to `day`. |
+| `live` | String - 'day', 'hour', 'minute' | Period for live updating spot data.  Defaults to 'day', ignored if `interval` is specified |
 | `exchange_currency` | String - [Currency Code][] | Normalize all amounts to use this as a display currency. If not XRP, `exchange_issuer` is also required. Defaults to XRP. |
 | `exchange_issuer` | String - [Address][] | Normalize results to the specified `currency` issued by this issuer. |
 | `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
@@ -3171,6 +3174,81 @@ Response:
     },
 
     ...
+  ]
+}
+```
+
+
+
+## Get Rippled Versions ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getVersions.js "Source")
+
+Get current Rippled versions
+
+#### Request Format ####
+
+<!-- MULTICODE_BLOCK_START -->
+
+*REST*
+
+```
+GET /v2/network/rippled_versions
+```
+
+<!-- MULTICODE_BLOCK_END -->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-rippled-versions)
+
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| `result` | String | The value `success` indicates that the body represents a successful response. |
+| `count`  | Integer | Number of reports returned. |
+| `rows` | Array of Rippled Versions Objects | Date, Repo, and corresponding version number. |
+
+Rippled Versions Object fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| `date` | String - [Timestamp][] | Date of record for the specific repo. |
+| `repo` | String | Name of the repo. |
+| `version` | String | Version string of the repo. |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/rippled_versions
+```
+
+Response:
+
+```
+200 OK
+{
+  result: "success",
+  count: 3,
+  rows: [
+    {
+      date: "2016-06-24T00:00:00Z",
+      repo: "nightly",
+      version: "0.32.0-rc2"
+    },
+    {
+      date: "2016-06-24T00:00:00Z",
+      repo: "stable",
+      version: "0.32.0"
+    },
+    {
+      date: "2016-06-24T00:00:00Z",
+      repo: "unstable",
+      version: "0.32.0-rc1"
+    }
   ]
 }
 ```
@@ -4683,9 +4761,9 @@ Response:
 ```
 200 OK
 {
-	"score": 0,
-	"response_time": "0.014s",
-	"response_time_threshold": "5s"
+  "score": 0,
+  "response_time": "0.014s",
+  "response_time_threshold": "5s"
 }
 ```
 

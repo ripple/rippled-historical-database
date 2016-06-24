@@ -3,7 +3,7 @@ set -e
 
 if hash rpm 2>/dev/null;
 then
-  rpm -Uvh https://mirrors.ripple.com/ripple-repo-el7.rpm >/dev/null
+  sudo rpm -Uvh https://mirrors.ripple.com/ripple-repo-el7.rpm >/dev/null
 
   RIPPLE_REPO="nightly"
   yum --disablerepo=* --enablerepo=ripple-$RIPPLE_REPO clean expire-cache >/dev/null
