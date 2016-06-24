@@ -193,7 +193,7 @@ function activeAccounts(req, res) {
         message: err.error
       });
     } else {
-      response.status(500).json({
+      res.status(500).json({
         result: 'error',
         message: 'unable to retrieve exchanges'
       });

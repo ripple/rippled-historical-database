@@ -4,10 +4,11 @@ var Promise = require('bluebird');
 var assert = require('assert');
 var moment = require('moment');
 var utils = require('./utils');
+var exec = require('child_process').exec;
 
 var HBase = require('../lib/hbase/hbase-client');
 var Geolocation = require('../lib/validations/geolocation');
-
+var saveVersions = require('../scripts/saveVersions');
 var mockExchangeVolume = require('./mock/exchange-volume.json');
 var mockExchangeVolumeHour = require('./mock/exchange-volume-live-hour.json');
 var mockPaymentVolume = require('./mock/payment-volume.json');
@@ -157,8 +158,44 @@ describe('setup mock data', function() {
       done();
     });
   });
+
+  it('import rippled versions', function() {
+    this.timeout(60000);
+    return saveVersions(hbase);
+  });
 });
 
+/**
+ * network fees
+ */
+
+describe('rippled versions', function() {
+  it('should get current rippled versions', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/rippled_versions';
+    var date = moment.utc()
+    .startOf('day')
+    .format();
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert(body.rows.length > 0);
+      body.rows.forEach(function(d) {
+        assert.strictEqual(date, d.date);
+        assert.strictEqual(typeof d.repo, 'string');
+        assert.strictEqual(typeof d.version, 'string');
+      });
+      done();
+    });
+  });
+});
 /**
  * network fees
  */

@@ -14,6 +14,7 @@ module.exports = function(db) {
     getValidatorReports: require('./getValidatorReports')(db),
     getLedgerValidations: require('./getLedgerValidations')(db),
     getValidators: require('./getValidators')(db),
-    getValidations: require('./getValidations')(db)
+    getValidations: require('./getValidations')(db),
+    getVersions: require('./getVersions')(db)
   }
 };
