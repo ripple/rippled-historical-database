@@ -3,13 +3,17 @@ var request = require('request');
 var Promise = require('bluebird');
 var assert = require('assert');
 var moment = require('moment');
+var smoment = require('../lib/smoment');
 var utils = require('./utils');
+var exec = require('child_process').exec;
 
 var HBase = require('../lib/hbase/hbase-client');
 var Geolocation = require('../lib/validations/geolocation');
-
+var saveVersions = require('../scripts/saveVersions');
 var mockExchangeVolume = require('./mock/exchange-volume.json');
+var mockExchangeVolumeHour = require('./mock/exchange-volume-live-hour.json');
 var mockPaymentVolume = require('./mock/payment-volume.json');
+var mockPaymentVolumeHour = require('./mock/payment-volume-live-hour.json');
 var mockIssuedValue = require('./mock/issued-value.json');
 var mockXrpDistribution = require('./mock/xrp-distribution.json');
 var mockTopCurrencies = require('./mock/top-currencies.json');
@@ -50,8 +54,18 @@ describe('setup mock data', function() {
       }),
       hbase.putRow({
         table: table,
+        rowkey: 'trade_volume|live|hour',
+        columns: mockExchangeVolumeHour
+      }),
+      hbase.putRow({
+        table: table,
         rowkey: 'payment_volume|live',
         columns: mockPaymentVolume
+      }),
+      hbase.putRow({
+        table: table,
+        rowkey: 'payment_volume|live|hour',
+        columns: mockPaymentVolumeHour
       }),
       hbase.putRow({
         table: table,
@@ -145,8 +159,43 @@ describe('setup mock data', function() {
       done();
     });
   });
+
+  it('import rippled versions', function() {
+    this.timeout(60000);
+    return saveVersions(hbase);
+  });
 });
 
+/**
+ * network fees
+ */
+
+describe('rippled versions', function() {
+  it('should get current rippled versions', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/rippled_versions';
+    var date = smoment();
+    date.moment.startOf('day');
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert(body.rows.length > 0);
+      body.rows.forEach(function(d) {
+        assert.strictEqual(date.format(), d.date);
+        assert.strictEqual(typeof d.repo, 'string');
+        assert.strictEqual(typeof d.version, 'string');
+      });
+      done();
+    });
+  });
+});
 /**
  * network fees
  */
@@ -404,6 +453,25 @@ describe('network - exchange volume', function() {
     });
   });
 
+  it('get live exchange volume (hour)', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/exchange_volume?live=hour';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 1);
+      assert.strictEqual(body.rows[0].count, 12345);
+      done();
+    });
+  });
+
   it('get historical exchange volume', function(done) {
     var start = '2015-01-14T00:00';
     var end = '2015-01-14T00:00';
@@ -558,6 +626,24 @@ describe('network - exchange volume', function() {
       done();
     });
   });
+
+  it('should error on invalid live period', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/exchange_volume?live=week';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid period - use: minute, hour, day');
+      done();
+    });
+  });
 });
 
 /**
@@ -580,6 +666,25 @@ describe('network - payment volume', function() {
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.count, 1);
       assert.strictEqual(body.rows[0].count, 9716);
+      done();
+    });
+  });
+
+  it('get live payments volume (hour)', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/payment_volume?live=hour';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 1);
+      assert.strictEqual(body.rows[0].count, 1234);
       done();
     });
   });

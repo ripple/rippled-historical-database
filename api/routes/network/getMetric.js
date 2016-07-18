@@ -13,6 +13,12 @@ var intervals = [
   'month'
 ];
 
+var livePeriods = [
+  'minute',
+  'hour',
+  'day'
+];
+
 function getMetric(metric, req, res) {
   var exchange = {
     currency : (req.query.exchange_currency || 'XRP').toUpperCase(),
@@ -22,6 +28,7 @@ function getMetric(metric, req, res) {
   var options = {
     metric: metric,
     interval: req.query.interval,
+    live: req.query.live,
     start: req.query.start ? smoment(req.query.start) : null,
     end: req.query.end ? smoment(req.query.end) : null,
     marker: req.query.marker,
@@ -93,9 +100,18 @@ function getMetric(metric, req, res) {
     }
 
 
+  } else if (options.live &&
+             livePeriods.indexOf(options.live) === -1) {
+
+    errorResponse({
+      error: 'invalid period - use: ' + livePeriods.join(', '),
+      code: 400
+    });
+    return;
+
   // rolling 24 hr
-  } else {
-    options.live = true;
+  } else if (!options.live) {
+    options.live = 'day';
   }
 
   hbase.getMetric(options, function(err, resp) {
