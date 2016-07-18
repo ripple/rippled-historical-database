@@ -23,6 +23,7 @@ describe('transactions API endpoint', function() {
       assert.strictEqual(body.transaction.hash, hash);
       assert.strictEqual(typeof body.transaction.tx, 'object');
       assert.strictEqual(typeof body.transaction.meta, 'object');
+      assert.strictEqual(body.transaction.meta.delivered_amount, '300000000');
       done();
     });
   });
