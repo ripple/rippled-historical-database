@@ -2,6 +2,7 @@ var config = require('./config');
 var assert = require('assert');
 var request = require('request');
 var Promise = require('bluebird');
+const Hbase = require('../lib/hbase/hbase-client');
 var smoment = require('../lib/smoment');
 var moment = require('moment');
 var utils = require('./utils');
@@ -16,15 +17,250 @@ var prefix = config.get('prefix');
 hbaseConfig.prefix = prefix;
 validations = new Validations(hbaseConfig);
 
+const hbase = new Hbase(hbaseConfig);
+
+describe('handleValidation', function(done) {
+  var tmp_validations
+
+  beforeEach(function(done) {
+    tmp_validations = new Validations(hbaseConfig);
+    hbase.deleteAllRows({
+      table: 'validations_by_ledger'
+    }).then(() => {
+      return hbase.deleteAllRows({
+        table: 'validations_by_validator'
+      })
+    }).then(() => {
+      return hbase.deleteAllRows({
+        table: 'validations_by_date'
+      })
+    }).then(() => {
+      return hbase.deleteAllRows({
+        table: 'validators'
+      })
+    }).then(() => { done(); })
+  });
+
+  after(function(done) {
+    hbase.deleteAllRows({
+      table: 'validations_by_ledger'
+    }).then(() => {
+      return hbase.deleteAllRows({
+        table: 'validations_by_validator'
+      })
+    }).then(() => {
+      return hbase.deleteAllRows({
+        table: 'validations_by_date'
+      })
+    }).then(() => {
+      return hbase.deleteAllRows({
+        table: 'validators'
+      })
+    }).then(() => { done(); })
+  });
+
+  it('should save validations into hbase', function(done) {
+    const validation = {
+      amendments:[
+        "42426C4D4F1009EE67080A9B7965B44656D7714D104A72F9B4369F97ABF044EE",
+        "4C97EBA926031A7CF7D7B36FDE3ED66DDA5421192D63DE53FFB46E43B9DC8373",
+        "6781F8368C4771B83E8B821D88F580202BCB4228075297B19E4FDC5233F1EFDC",
+        "C1B8D934087225F509BEB5A8EC24447854713EE447D277F69545ABFA0E0FD490",
+        "DA1BD556B42D85EA9C84066D028D355B52416734D3283F85E216EA5DA6DB7E13"
+      ],
+      base_fee:4503599627370495,
+      flags:2147483648,
+      full:true,
+      ledger_hash:"EC02890710AAA2B71221B0D560CFB22D64317C07B7406B02959AD84BAD33E602",
+      ledger_index:6,
+      load_fee:256000,
+      reserve_base:20000000,
+      reserve_inc:5000000,
+      signature:"3045022100E199B55643F66BC6B37DBC5E185321CF952FD35D13D9E8001EB2564FFB94A07602201746C9A4F7A93647131A2DEB03B76F05E426EC67A5A27D77F4FF2603B9A528E6",
+      signing_time:515115322,
+      validation_public_key:"n94Gnc6svmaPPRHUAyyib1gQUov8sYbjLoEwUBYPH39qHZXuo8ZT"
+    }
+    tmp_validations.handleValidation(validation)
+    .then(() => {
+      return hbase.getAllRows({
+        table: 'validations_by_ledger'
+      });
+    }).then((rows) => {
+      assert.strictEqual(rows.length, 1);
+      assert.strictEqual(rows[0].validation_public_key, validation.validation_public_key);
+      assert.strictEqual(rows[0].ledger_hash, validation.ledger_hash);
+      var row_amendments = JSON.parse(rows[0].amendments)
+      assert.strictEqual(row_amendments.length, validation.amendments.length);
+      for (var i=0; i<validation.amendments.length; i++) {
+        assert.strictEqual(row_amendments[i], validation.amendments[i]);
+      }
+      assert.strictEqual(rows[0].base_fee, validation.base_fee.toString());
+      assert.strictEqual(rows[0].flags, validation.flags.toString());
+      assert.strictEqual(rows[0].full, validation.full.toString());
+      assert.strictEqual(rows[0].ledger_index, validation.ledger_index.toString());
+      assert.strictEqual(rows[0].load_fee, validation.load_fee.toString());
+      assert.strictEqual(rows[0].reserve_base, validation.reserve_base.toString());
+      assert.strictEqual(rows[0].reserve_inc, validation.reserve_inc.toString());
+      assert.strictEqual(rows[0].signature, validation.signature);
+      assert.strictEqual(rows[0].signing_time, validation.signing_time.toString());
+      return hbase.getAllRows({
+        table: 'validations_by_validator'
+      })
+    }).then((rows) => {
+      assert.strictEqual(rows.length, 1);
+      assert.strictEqual(rows[0].validation_public_key, validation.validation_public_key);
+      assert.strictEqual(rows[0].ledger_hash, validation.ledger_hash);
+      return hbase.getAllRows({
+        table: 'validations_by_date'
+      })
+    }).then((rows) => {
+      assert.strictEqual(rows.length, 1);
+      assert.strictEqual(rows[0].validation_public_key, validation.validation_public_key);
+      assert.strictEqual(rows[0].ledger_hash, validation.ledger_hash);
+      return hbase.getAllRows({
+        table: 'validators'
+      })
+    }).then((rows) => {
+      assert.strictEqual(rows.length, 1);
+      assert.strictEqual(rows[0].validation_public_key, validation.validation_public_key);
+      done();
+    });
+  });
+
+  it('should allow missing optional fields', function(done) {
+    const validation = {
+      flags: 2147483648,
+      ledger_hash: "41EE7EFCAFB912715D7D92D8C328747996ABFDF95A111667D1032F9334AFD45E",
+      ledger_index: 5788323,
+      load_fee: 256000,
+      signature:"30440220767031547C30519D5207540B70AC4DA39807CE99ADCF8FECF3342E7E7AC9209B02202CA6D25A3FFC233A553CE07DAA9AE152B986F6023FB96BA9E42BBCE744656DDC",
+      signing_time: 514683328,
+      validation_public_key: "n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr"
+    }
+    tmp_validations.handleValidation(validation)
+    .then(() => {
+      return hbase.getAllRows({
+        table: 'validations_by_ledger'
+      });
+    }).then((rows) => {
+      assert.strictEqual(rows.length, 1);
+      assert.strictEqual(rows[0].validation_public_key, validation.validation_public_key);
+      assert.strictEqual(rows[0].ledger_hash, validation.ledger_hash);
+      assert.strictEqual(rows[0].amendments, undefined);
+      assert.strictEqual(rows[0].base_fee, undefined);
+      assert.strictEqual(rows[0].flags, validation.flags.toString());
+      assert.strictEqual(rows[0].full, undefined);
+      assert.strictEqual(rows[0].ledger_index, validation.ledger_index.toString());
+      assert.strictEqual(rows[0].load_fee, validation.load_fee.toString());
+      assert.strictEqual(rows[0].reserve_base, undefined);
+      assert.strictEqual(rows[0].reserve_inc, undefined);
+      assert.strictEqual(rows[0].signature, validation.signature);
+      assert.strictEqual(rows[0].signing_time, validation.signing_time.toString());
+      done();
+    });
+  });
+
+  it('should require a validation public key', function(done) {
+    tmp_validations.handleValidation({
+      flags: 2147483648,
+      ledger_hash: "41EE7EFCAFB912715D7D92D8C328747996ABFDF95A111667D1032F9334AFD45E",
+      ledger_index: 5788323,
+      load_fee: 256000,
+      signature:"30440220767031547C30519D5207540B70AC4DA39807CE99ADCF8FECF3342E7E7AC9209B02202CA6D25A3FFC233A553CE07DAA9AE152B986F6023FB96BA9E42BBCE744656DDC",
+      signing_time: 514683328
+    }).catch((err) => {
+      assert.strictEqual(err, 'validation_public_key cannot be null');
+      done();
+    });
+  });
+
+  it('should require a ledger hash', function(done) {
+    tmp_validations.handleValidation({
+      flags: 2147483648,
+      ledger_index: 5788323,
+      load_fee: 256000,
+      signature:"30440220767031547C30519D5207540B70AC4DA39807CE99ADCF8FECF3342E7E7AC9209B02202CA6D25A3FFC233A553CE07DAA9AE152B986F6023FB96BA9E42BBCE744656DDC",
+      signing_time: 514683328,
+      validation_public_key: "n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr"
+    }).catch((err) => {
+      assert.strictEqual(err, 'ledger_hash cannot be null');
+      done();
+    });
+  });
+
+  it('should require flags', function(done) {
+    tmp_validations.handleValidation({
+      ledger_hash: "41EE7EFCAFB912715D7D92D8C328747996ABFDF95A111667D1032F9334AFD45E",
+      ledger_index: 5788323,
+      load_fee: 256000,
+      signature:"30440220767031547C30519D5207540B70AC4DA39807CE99ADCF8FECF3342E7E7AC9209B02202CA6D25A3FFC233A553CE07DAA9AE152B986F6023FB96BA9E42BBCE744656DDC",
+      signing_time: 514683328,
+      validation_public_key: "n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr"
+    }).catch((err) => {
+      assert.strictEqual(err, 'flags cannot be null');
+      done();
+    });
+  });
+
+  it('should require a signature', function(done) {
+    tmp_validations.handleValidation({
+      flags: 2147483648,
+      ledger_hash: "41EE7EFCAFB912715D7D92D8C328747996ABFDF95A111667D1032F9334AFD45E",
+      ledger_index: 5788323,
+      load_fee: 256000,
+      signing_time: 514683328,
+      validation_public_key: "n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr"
+    }).catch((err) => {
+      assert.strictEqual(err, 'signature cannot be null');
+      done();
+    });
+  });
+
+  it('should require a signing time', function(done) {
+    tmp_validations.handleValidation({
+      flags: 2147483648,
+      ledger_hash: "41EE7EFCAFB912715D7D92D8C328747996ABFDF95A111667D1032F9334AFD45E",
+      ledger_index: 5788323,
+      load_fee: 256000,
+      signature:"30440220767031547C30519D5207540B70AC4DA39807CE99ADCF8FECF3342E7E7AC9209B02202CA6D25A3FFC233A553CE07DAA9AE152B986F6023FB96BA9E42BBCE744656DDC",
+      validation_public_key: "n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr"
+    }).catch((err) => {
+      assert.strictEqual(err, 'signing_time cannot be null');
+      done();
+    });
+  });
+
+  it('should require a valid signature', function(done) {
+    tmp_validations.handleValidation({
+      flags: 2147483648,
+      ledger_hash: "41EE7EFCAFB912715D7D92D8C328747996ABFDF95A111667D1032F9334AFD45E",
+      ledger_index: 5788323,
+      load_fee: 256000,
+      signature:"30450221009D9D65ADBD77D7D37DC7F40C7EE3249EBCF3033CE99B502EF376B9ECEB536DC80220564ACF514AA546ECF1CB04A4548CDBB24F6C2940A1DF36BDB0556DD9B64BBDE8",
+      signing_time: 514683328,
+      validation_public_key: "n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr"
+    }).catch((err) => {
+      assert.strictEqual(err, 'invalid signature');
+      return Promise.delay(500)
+    }).then(() => {
+      return hbase.getAllRows({
+        table: 'validations_by_ledger'
+      });
+    }).then((rows) => {
+      assert.strictEqual(rows.length, 0);
+      done();
+    });
+  });
+})
+
 describe('validations import', function() {
   it('should save validations into hbase', function(done) {
     Promise.map(mockValidations, function(v) {
       return validations.handleValidation(v);
     }).then(function(resp) {
-      assert.strictEqual(resp[0], '52E10A015D440A9D35EA0430D78437A2A2416FB3B73E6C56E869FBAF7EE10E47|n9LiNzfbTN5wEc9j2CM9ps7gQqAusVz8amg4gnsfHZ3DWHr2kkG1');
-      assert.strictEqual(resp[1], 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5|n9KDJnMxfjH5Ez8DeWzWoE9ath3PnsmkUy3GAHiVjE7tn7Q7KhQ2');
-      assert.strictEqual(resp[2], undefined);
-      assert.strictEqual(resp[5], undefined);
+      assert.strictEqual(resp.length, mockValidations.length)
+      assert.strictEqual(resp[0], '27D2720FDA393A076B62332A0535A734A42900B0DC47CC823CAE8F0B08298D97|n9KcuH7Y4q4SD3KoS5uXLhcDVvexpnYkwciCbcX131ehM5ek2BB6');
+      assert.strictEqual(resp[1], '27D2720FDA393A076B62332A0535A734A42900B0DC47CC823CAE8F0B08298D97|n9LYyd8eUVd54NQQWPAJRFPM1bghJjaf1rkdji2haF4zVjeAPjT2');
       done();
 
     }).catch(function(e) {
@@ -68,7 +304,7 @@ describe('validator reports', function() {
     function (err, res, body) {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(body.reports.length, 6);
+      assert.strictEqual(body.reports.length, 5);
       body.reports.forEach(function(r) {
         assert.strictEqual(r.date, date.format());
       });
@@ -114,7 +350,7 @@ describe('validator reports', function() {
   });
 
   it ('should get reports by validator', function(done) {
-    var pubkey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7';
+    var pubkey = 'n9MnXUt5Qcx3BuBYKJfS4fqSohgkT79NGjXnZeD9joKvP3A5RNGm';
     var url = 'http://localhost:' + port +
         '/v2/network/validators/' + pubkey + '/reports';
 
@@ -131,7 +367,7 @@ describe('validator reports', function() {
   });
 
   it('should error on invalid start date', function(done) {
-    var pubkey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7';
+    var pubkey = 'n9MnXUt5Qcx3BuBYKJfS4fqSohgkT79NGjXnZeD9joKvP3A5RNGm';
     var start = 'zzz';
     var url = 'http://localhost:' + port +
         '/v2/network/validators/' + pubkey + '/reports?start=' + start;
@@ -189,7 +425,7 @@ describe('validator reports', function() {
 
 describe('ledger validations', function() {
   it('should get ledger validations', function(done) {
-    var hash = 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5';
+    var hash = '06851EAFACC3EAC2FE4AF6093215F63FFD8D3EF9709BED405057F84E1AB73FF6';
     var url = 'http://localhost:' + port +
         '/v2/ledgers/' + hash + '/validations';
 
@@ -201,7 +437,7 @@ describe('ledger validations', function() {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(body.ledger_hash, hash);
-      assert.strictEqual(body.validations.length, 4);
+      assert.strictEqual(body.validations.length, 5);
       body.validations.forEach(function(d) {
         assert.strictEqual(d.ledger_hash, hash);
       });
@@ -210,7 +446,7 @@ describe('ledger validations', function() {
   });
 
   it('should handle /ledgers/:hash/validations pagination correctly', function(done) {
-    var hash = 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5';
+    var hash = '06851EAFACC3EAC2FE4AF6093215F63FFD8D3EF9709BED405057F84E1AB73FF6';
     var url = 'http://localhost:' + port +
         '/v2/ledgers/' + hash + '/validations?';
 
@@ -221,11 +457,11 @@ describe('ledger validations', function() {
   });
 
   it('should include a link header when marker is present', function(done) {
-    var hash = 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5';
+    var hash = '06851EAFACC3EAC2FE4AF6093215F63FFD8D3EF9709BED405057F84E1AB73FF6';
     var url = 'http://localhost:' + port +
         '/v2/ledgers/' + hash + '/validations?limit=1';
     var linkHeader = '<' + url +
-      '&marker=EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5|n9KDJnMxfjH5Ez8DeWzWoE9ath3PnsmkUy3GAHiVjE7tn7Q7KhQ2|';
+      '&marker=06851EAFACC3EAC2FE4AF6093215F63FFD8D3EF9709BED405057F84E1AB73FF6|n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr|';
 
     request({
       url: url,
@@ -241,7 +477,7 @@ describe('ledger validations', function() {
 
 
   it('should get ledger validations in CSV format', function(done) {
-    var hash = 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5';
+    var hash = '06851EAFACC3EAC2FE4AF6093215F63FFD8D3EF9709BED405057F84E1AB73FF6';
     var url = 'http://localhost:' + port +
         '/v2/ledgers/' + hash + '/validations?format=csv';
 
@@ -258,8 +494,8 @@ describe('ledger validations', function() {
   });
 
   it('should get a specific ledger validation', function(done) {
-    var hash = 'EB26614C5E171C5A141734BAFFA63A080955811BB7AAE00D76D26FDBE9BC07A5';
-    var pubkey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7';
+    var hash = '06851EAFACC3EAC2FE4AF6093215F63FFD8D3EF9709BED405057F84E1AB73FF6';
+    var pubkey = 'n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr';
     var url = 'http://localhost:' + port +
         '/v2/ledgers/' + hash + '/validations/' + pubkey;
 
@@ -329,13 +565,13 @@ describe('validators', function() {
     function (err, res, body) {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(body.validators.length, 6);
+      assert.strictEqual(body.validators.length, 5);
       done();
     });
   });
 
   it('should get a single validator', function(done) {
-    var pubkey = 'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7';
+    var pubkey = 'n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr';
     var url = 'http://localhost:' + port +
         '/v2/network/validators/' + pubkey;
 
@@ -396,7 +632,7 @@ describe('validations', function() {
     function (err, res, body) {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(body.validations.length, 6);
+      assert.strictEqual(body.validations.length, mockValidations.length);
       done();
     });
   });
@@ -436,7 +672,7 @@ describe('validations', function() {
   });
 
   it('should get validations by validator public key', function(done) {
-    var pubkey = 'n9KDJnMxfjH5Ez8DeWzWoE9ath3PnsmkUy3GAHiVjE7tn7Q7KhQ2';
+    var pubkey = 'n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr';
     var url = 'http://localhost:' + port +
         '/v2/network/validators/' + pubkey + '/validations';
 
@@ -447,7 +683,7 @@ describe('validations', function() {
     function (err, res, body) {
       assert.ifError(err);
       assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(body.validations.length, 1);
+      assert.strictEqual(body.validations.length, 6);
       done();
     });
   });
