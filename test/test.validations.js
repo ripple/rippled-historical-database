@@ -241,6 +241,13 @@ describe('handleValidation', function(done) {
       validation_public_key: "n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr"
     }).catch((err) => {
       assert.strictEqual(err, 'invalid signature');
+      return Promise.delay(500)
+    }).then(() => {
+      return hbase.getAllRows({
+        table: 'validations_by_ledger'
+      });
+    }).then((rows) => {
+      assert.strictEqual(rows.length, 0);
       done();
     });
   });
