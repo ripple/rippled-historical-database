@@ -125,7 +125,7 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
       if (!row.ledger.transactions.length) {
         stream.hbase.saveLedger(row.ledger, function(err, resp) {
           if (err) {
-            self.log.error(err);
+            self.log(err);
             self.log('unable to save ledger: ' + row.ledger.ledger_index);
 
           } else {
