@@ -58,6 +58,15 @@ function accountOrders(req, res) {
     }
   }
 
+  // if requesting latest ledger,
+  // add leeway to rippled request
+  // since it may not be perfectly
+  // in sync
+  if (!options.ledger_index &&
+      !options.ledger_hash &&
+      !options.closeTime) {
+    options.pad = 5;
+  }
 
   log.info(options.account);
 

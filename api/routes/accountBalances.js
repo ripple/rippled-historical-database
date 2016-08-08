@@ -67,15 +67,26 @@ var accountBalances = function (req, res, next) {
     }
   }
 
+  // if requesting latest ledger,
+  // add leeway to rippled request
+  // since it may not be perfectly
+  // in sync
+  if (!options.ledger_index &&
+      !options.ledger_hash &&
+      !options.closeTime) {
+    options.pad = 5;
+  }
 
   log.info(options.account);
 
   hbase.getLedger(options, function(err, ledger) {
+
     if (err) {
       errorResponse(err);
       return;
 
     } else if (ledger) {
+
       options.ledger_index = ledger.ledger_index;
       options.closeTime = smoment(ledger.close_time).format();
       options.currency = req.query.currency;
