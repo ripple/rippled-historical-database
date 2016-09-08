@@ -52,6 +52,7 @@ var Server = function (options) {
   app.get('/v2/network/top_markets/:date?', routes.network.topMarkets);
   app.get('/v2/network/top_currencies/:date?', routes.network.topCurrencies);
   app.get('/v2/network/fees', routes.network.getFees);
+  app.get('/v2/network/fee_stats', routes.network.getFeeStats);
   app.get('/v2/network/topology', routes.network.getTopology);
   app.get('/v2/network/topology/nodes', routes.network.getNodes);
   app.get('/v2/network/topology/nodes/:pubkey', routes.network.getNodes);

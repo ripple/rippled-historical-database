@@ -76,6 +76,7 @@ Gateway Information Methods:
 Validation Network Methods:
 
 * [Get Transaction Costs - `GET /v2/network/fees`](#get-transaction-costs)
+* [Get Fee Stats - `GET /v2/network/fee_stats`](#get-fee-stats)
 * [Get Ledger Validations - `GET /v2/ledger/{:hash}/validations`](#get-ledger-validations)
 * [Get Ledger Validation - `GET /v2/ledger/{:hash}/validations/{:pubkey}`](#get-ledger-validation)
 * [Get Topology - `GET /v2/network/topology`](#get-topology)
@@ -2330,6 +2331,107 @@ Response:
   ]
 }
 ```
+
+
+
+
+## Get Fee Stats ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getFeeStats.js "Source")
+
+Returns snapshots of the metrics derived from rippled's fee command. _(New in [v2.4.0][])_
+
+#### Request Format ####
+
+<!-- MULTICODE_BLOCK_START -->
+
+*REST*
+
+```
+GET /v2/network/fee_stats
+```
+
+<!-- MULTICODE_BLOCK_END -->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-fee-stats)
+
+Optionally, you can provide the following query parameters:
+
+| Field  | Value   | Description |
+|--------|---------|-------------|
+| `start`    | String - [Timestamp][]  | Start time of query range. Defaults to the earliest data available. |
+| `end`      | String - [Timestamp][]  | End time of query range. Defaults to the latest data available. |
+| `interval` | String  | Snapshot Interval - valid intervals are `minute`, `hour`, or `day`. Default interval is 5 seconds. |
+| `descending` | Boolean | If true, sort results with most recent first. By default, sort results with oldest first. |
+| `limit`    | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
+| `marker`   | String  | [Pagination](#pagination) key from previously returned response. |
+| `format`   | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format ####
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| `result` | String | The value `success` indicates that this is a successful response. |
+| `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
+| `count`  | Integer | Number of results in the `markets` field. |
+| `rows` | Array of Fee Summary Objects | Transaction cost statistics for each interval. |
+
+Each Fee Summary object has the following fields:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| `date` | String - [Timestamp][] | The date-time this snapshot was taken. |
+| `current_ledger_size` | Number | Number of transactions in the current ledger at the specified time. |
+| `expected_ledger_size` | Number | Number of transactions expected in the next ledger at the specified time. |
+| `current_queue_size` | Number | Number of transactions queued for inclusion in future ledgers. |
+| `pct_max_queue_size` | Number | current queue size in terms of percentage of maximum queue size. |
+| `median_fee` | Number | Median fee of transactions in the current ledger. |
+| `minimum_fee` | Number | Minimum fee for inclusion in any ledger. |
+| `open_ledger_fee` | Cost threshold for inclusion in the ledger open at the time of the snapshot |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/fee_stats
+```
+
+Response:
+
+```
+200 OK
+{
+  result: "success",
+  marker: "raw|20160701032100",
+  count: 200,
+  rows: [
+    {
+      current_ledger_size: 39,
+      current_queue_size: 0,
+      date: "2016-07-01T00:00:00Z",
+      expected_ledger_size: 59,
+      median_fee: 0.005,
+      minimum_fee: 0.00001,
+      open_ledger_fee: 0.00001,
+      pct_max_queue_size: 0
+    },
+    {
+      current_ledger_size: 33,
+      current_queue_size: 0,
+      date: "2016-07-01T00:01:00Z",
+      expected_ledger_size: 59,
+      median_fee: 0.00543,
+      minimum_fee: 0.00001,
+      open_ledger_fee: 0.00001,
+      pct_max_queue_size: 0
+    },
+    ...
+  ]
+}
+```
+
 
 
 

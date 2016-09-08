@@ -21,6 +21,7 @@ var mockTopMarkets = require('./mock/top-markets.json');
 var mockTopologyNodes = require('./mock/topology-nodes.json');
 var mockTopologyLinks = require('./mock/topology-links.json');
 var mockTopologyInfo = require('./mock/topology-info.json');
+var mockFeeStats = require('./mock/fee-stats.json');
 
 var port = config.get('port') || 7111;
 var prefix = config.get('prefix');
@@ -154,6 +155,14 @@ describe('setup mock data', function() {
       }));
     });
 
+    mockFeeStats.forEach(function(r) {
+      rows.push(hbase.putRow({
+        table: 'fee_stats',
+        rowkey: r.rowkey,
+        columns: r
+      }));
+    });
+
     Promise.all(rows).nodeify(function(err, resp) {
       assert.ifError(err);
       done();
@@ -167,7 +176,7 @@ describe('setup mock data', function() {
 });
 
 /**
- * network fees
+ * rippled versions
  */
 
 describe('rippled versions', function() {
@@ -196,6 +205,7 @@ describe('rippled versions', function() {
     });
   });
 });
+
 /**
  * network fees
  */
@@ -353,6 +363,211 @@ describe('network fees', function() {
     var url = 'http://localhost:' + port + '/v2/network/fees?limit=1';
     var linkHeader = '<' + url +
       '&marker=ledger|20131025102710|000002964124>; rel="next"';
+
+    request({
+      url: url,
+      json: true
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers.link, linkHeader);
+      done();
+    });
+  });
+
+  it('should error on invalid start date', function(done) {
+    var start = 'x2015-01-14T00:00';
+    var end = '2015-01-14T00:00';
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees' +
+        '?start=' + start +
+        '&end=' + end;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid start date format');
+      done();
+    });
+  });
+
+  it('should error on invalid end date', function(done) {
+    var start = '2015-01-14T00:00';
+    var end = 'x2015-01-14T00:00';
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees' +
+        '?start=' + start +
+        '&end=' + end;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid end date format');
+      done();
+    });
+  });
+
+  it('should error on invalid interval', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/fees?interval=zzz';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid interval');
+      done();
+    });
+  });
+});
+
+/**
+ * network fee stats
+ */
+
+describe('network fee stats', function() {
+  it('should get fee stats', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/fee_stats';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 20);
+      body.rows.forEach(function(r) {
+        assert.strictEqual(typeof r.current_ledger_size, 'number');
+        assert.strictEqual(typeof r.current_queue_size, 'number');
+        assert.strictEqual(typeof r.expected_ledger_size, 'number');
+        assert.strictEqual(typeof r.median_fee, 'number');
+        assert.strictEqual(typeof r.minimum_fee, 'number');
+        assert.strictEqual(typeof r.open_ledger_fee, 'number');
+        assert.strictEqual(typeof r.pct_max_queue_size, 'number');
+        assert(moment(r.date).isValid());
+      });
+      done();
+    });
+  });
+
+  it('should restrict by start and end dates', function(done) {
+    var start = '2016-08-24T00:15:15Z';
+    var end = '2016-08-24T00:15:55Z';
+    var url = 'http://localhost:' + port +
+        '/v2/network/fee_stats?' +
+        'start=' + start +
+        '&end=' + end;
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 9);
+      body.rows.forEach(function(r) {
+        var date = moment(r.date);
+        assert(date.isValid());
+        assert(date.diff(start) >= 0);
+        assert(date.diff(end) <= 0);
+      });
+      done();
+    });
+  });
+
+  it('should get fee stats in decending order', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/fee_stats?descending=true';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      var date;
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 20);
+      body.rows.forEach(function(r) {
+        if (date) {
+          assert(date.diff(r.date) >= 0)
+        }
+
+        date = moment(r.date);
+      });
+      done();
+    });
+  });
+
+  it('should get fee stats at interval', function(done) {
+    var url = 'http://localhost:' + port +
+        '/v2/network/fee_stats?interval=minute&start=2016-08-24T00:15:00Z';
+
+    request({
+      url: url,
+      json: true,
+    },
+    function (err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'success');
+      assert.strictEqual(body.count, 2);
+      body.rows.forEach(function(r) {
+        assert.strictEqual(typeof r.current_ledger_size, 'number');
+        assert.strictEqual(typeof r.current_queue_size, 'number');
+        assert.strictEqual(typeof r.expected_ledger_size, 'number');
+        assert.strictEqual(typeof r.median_fee, 'number');
+        assert.strictEqual(typeof r.minimum_fee, 'number');
+        assert.strictEqual(typeof r.open_ledger_fee, 'number');
+        assert.strictEqual(typeof r.pct_max_queue_size, 'number');
+        assert(moment(r.date).isValid());
+      });
+      done();
+    });
+  });
+
+  it('should handle pagination correctly', function(done) {
+    var url = 'http://localhost:' + port +
+      '/v2/network/fee_stats?';
+
+    utils.checkPagination(url, undefined, function(ref, i, body) {
+      assert.strictEqual(body.rows.length, 1);
+      assert.deepEqual(body.rows[0], ref.rows[i]);
+    }, done);
+  });
+
+  it('should include a link header when marker is present', function(done) {
+    var url = 'http://localhost:' + port + '/v2/network/fee_stats?limit=1';
+    var linkHeader = '<' + url +
+      '&marker=raw|20160824001505>; rel="next"';
 
     request({
       url: url,
