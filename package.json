@@ -10,6 +10,7 @@
     "postinstall": "node install.js",
     "pretest": "node_modules/.bin/mocha --ui tdd -R spec test/setup.removeTables.js test/setup.createTables.js test/setup.importLedgers.js --logLevel 3",
     "test": "node_modules/.bin/mocha --ui tdd -R spec test/setup.api.js test/test.*.js --logLevel 0",
+    "lint": "if ! [ -f eslintrc ]; then curl -o eslintrc 'https://raw.githubusercontent.com/ripple/javascript-style-guide/es6/eslintrc' >> eslintrc; fi; eslint -c eslintrc --rule {no-var:0} $(git --no-pager diff --name-only -M100% --diff-filter=AM --relative origin/HEAD | grep \".js$\")",
     "start": "nodemon api/index.js"
   },
   "author": "",
@@ -25,6 +26,7 @@
     "cors": "^2.5.0",
     "cron": "^1.1.0",
     "elliptic": "^6.2.3",
+    "eslint": "2.9.0",
     "express": "^4.9.3",
     "hash.js": "^1.0.3",
     "hbase": "^0.1.7",
