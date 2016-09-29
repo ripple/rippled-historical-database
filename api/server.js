@@ -1,8 +1,9 @@
+/* eslint no-unused-vars: ["error", { "args": "after-used" }] */
 'use strict';
 
 var express = require('express');
 var bodyParser = require('body-parser');
-var compression = require('compression')
+var compression = require('compression');
 var Hbase = require('../lib/hbase/hbase-client');
 var cors = require('cors');
 var Routes = require('./routes');
@@ -11,11 +12,41 @@ var json2csv = require('nice-json2csv');
 var favicon = require('serve-favicon');
 var ripple = require('ripple-lib');
 
-var Server = function (options) {
+/**
+ * cacheControl
+ */
+
+function cacheControl(req, res, next) {
+  res.setHeader('Cache-Control', 'max-age=1');
+  next();
+}
+
+/**
+ * filterDuplicateQueryParams
+ * NOTE: this only works if we dont pass
+ * an array as a query param intentionally
+ */
+
+function filterDuplicateQueryParams(req, res, next) {
+
+  for (var key in req.query) {
+    if (Array.isArray(req.query[key])) {
+      req.query[key] = req.query[key][0];
+    }
+  }
+
+  next();
+}
+
+/**
+ * Server
+ */
+
+function Server(options) {
   var rippleAPI = new ripple.RippleAPI(options.ripple);
   var app = express();
   var hbase = new Hbase(options.hbase);
-  var routes = Routes(hbase, rippleAPI);
+  var routes = new Routes(hbase, rippleAPI);
   var server;
 
   rippleAPI.connect()
@@ -31,7 +62,7 @@ var Server = function (options) {
   });
 
   app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({extended:true}));
+  app.use(bodyParser.urlencoded({extended: true}));
   app.use(json2csv.expressDecorator);
   app.use(cors());
   app.use(filterDuplicateQueryParams);
@@ -59,8 +90,10 @@ var Server = function (options) {
   app.get('/v2/network/topology/links', routes.network.getLinks);
   app.get('/v2/network/validators', routes.network.getValidators);
   app.get('/v2/network/validators/:pubkey', routes.network.getValidators);
-  app.get('/v2/network/validators/:pubkey/validations', routes.network.getValidations);
-  app.get('/v2/network/validators/:pubkey/reports', routes.network.getValidatorReports);
+  app.get('/v2/network/validators/:pubkey/validations',
+          routes.network.getValidations);
+  app.get('/v2/network/validators/:pubkey/reports',
+          routes.network.getValidatorReports);
   app.get('/v2/network/validator_reports', routes.network.getValidatorReports);
   app.get('/v2/network/validations', routes.network.getValidations);
   app.get('/v2/network/rippled_versions', routes.network.getVersions);
@@ -68,8 +101,10 @@ var Server = function (options) {
   app.get('/v2/transactions/', routes.getTransactions);
   app.get('/v2/transactions/:tx_hash', routes.getTransactions);
   app.get('/v2/ledgers/:ledger_param?', routes.getLedger);
-  app.get('/v2/ledgers/:ledger_hash/validations', routes.network.getLedgerValidations);
-  app.get('/v2/ledgers/:ledger_hash/validations/:validation_pubkey', routes.network.getLedgerValidations);
+  app.get('/v2/ledgers/:ledger_hash/validations',
+          routes.network.getLedgerValidations);
+  app.get('/v2/ledgers/:ledger_hash/validations/:validation_pubkey',
+          routes.network.getLedgerValidations);
   app.get('/v2/accounts', routes.accounts);
   app.get('/v2/accounts/:address', routes.getAccount);
   app.get('/v2/accounts/:address/transactions/:sequence', routes.accountTxSeq);
@@ -80,7 +115,8 @@ var Server = function (options) {
   app.get('/v2/accounts/:address/balance_changes', routes.getChanges);
   app.get('/v2/accounts/:address/exchanges', routes.accountExchanges);
   app.get('/v2/accounts/:address/exchanges/:base', routes.accountExchanges);
-  app.get('/v2/accounts/:address/exchanges/:base/:counter', routes.accountExchanges);
+  app.get('/v2/accounts/:address/exchanges/:base/:counter',
+          routes.accountExchanges);
   app.get('/v2/accounts/:address/orders', routes.accountOrders);
   app.get('/v2/accounts/:address/stats/:family', routes.accountStats);
   app.get('/v2/accounts', routes.accounts);
@@ -98,7 +134,7 @@ var Server = function (options) {
   app.get('/', map.generate);
   app.get('/v2', map.generate);
 
-  //404
+  // 404
   app.get('*', map.generate404);
   app.post('*', map.generate404);
 
@@ -113,43 +149,16 @@ var Server = function (options) {
   });
 
   // log close
-  server.on('close', function () {
+  server.on('close', function() {
     console.log('server on port: ' + options.port + ' closed');
   });
 
-  this.close = function () {
+  this.close = function() {
     if (server) {
       server.close();
       console.log('closing API on port: ' + options.port);
     }
   };
-};
-
-
-/**
- * cacheControl
- */
-function cacheControl(req, res, next) {
-  res.setHeader('Cache-Control', 'max-age=1');
-  next();
-}
-
-/**
- * filterDuplicateQueryParams
- * NOTE: this only works if we dont pass
- * an array as a query param intentionally
- */
-
-function filterDuplicateQueryParams(req, res, next) {
-
-  for (var key in req.query) {
-    if (Array.isArray(req.query[key])) {
-      req.query[key] = req.query[key][0];
-    }
-  }
-
-  next();
 }
 
 module.exports = Server;
-
