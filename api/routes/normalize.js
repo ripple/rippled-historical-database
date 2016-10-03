@@ -7,7 +7,7 @@ var Promise = require('bluebird');
 var PRECISION = 8;
 var hbase;
 
-var normalize = function(req, res) {
+function normalize(req, res) {
 
   var options = {
     date: smoment(req.query.date),
@@ -18,55 +18,6 @@ var normalize = function(req, res) {
     exchange_issuer: req.query.exchange_issuer || '',
     strict: (/false/i).test(req.query.strict) ? false : true
   };
-
-
-  if (isNaN(options.amount)) {
-    errorResponse({error: 'invalid amount', code: 400});
-    return;
-  } else if (!options.currency) {
-    errorResponse({error: 'currency is required', code: 400});
-    return;
-  } else if (options.currency === 'XRP' && options.issuer) {
-    errorResponse({error: 'XRP cannot have an issuer', code: 400});
-    return;
-  } else if (options.currency !== 'XRP' && !options.issuer) {
-    errorResponse({error: 'issuer is required', code: 400});
-    return;
-  } else if (options.exchange_currency === 'XRP' && options.exchange_issuer) {
-    errorResponse({error: 'XRP cannot have an issuer', code: 400});
-    return;
-  } else if (options.exchange_currency !== 'XRP' && !options.exchange_issuer) {
-    errorResponse({error: 'issuer is required', code: 400});
-    return;
-  }
-
-  if (options.currency === options.exchange_currency &&
-      options.issuer === options.exchange_issuer) {
-    successResponse({
-      amount: options.amount,
-      converted: options.amount,
-      rate: 1
-    });
-    return;
-  }
-
-  Promise.all([
-    getXRPrate(),
-    getExchangeRate()
-  ])
-  .nodeify(function(err, resp) {
-    if (err) {
-      errorResponse(err);
-
-    } else {
-      var rate = resp[1] ? resp[0] / resp[1] : 0;
-      successResponse({
-        amount: options.amount,
-        converted: options.amount * rate,
-        rate: rate
-      });
-    }
-  });
 
   // conversion to XRP
   function getXRPrate() {
@@ -99,10 +50,6 @@ var normalize = function(req, res) {
       });
     }
   }
-
-
-  //get daily to XRP
-  //get last 50 to XRP in two weeks
 
   /**
   * errorResponse
@@ -139,7 +86,60 @@ var normalize = function(req, res) {
       rate: data.rate.toPrecision(PRECISION)
     });
   }
-};
+
+  if (isNaN(options.amount)) {
+    errorResponse({error: 'invalid amount', code: 400});
+    return;
+  } else if (!options.currency) {
+    errorResponse({error: 'currency is required', code: 400});
+    return;
+  } else if (options.currency === 'XRP' && options.issuer) {
+    errorResponse({error: 'XRP cannot have an issuer', code: 400});
+    return;
+  } else if (options.currency !== 'XRP' && !options.issuer) {
+    errorResponse({error: 'issuer is required', code: 400});
+    return;
+  } else if (options.exchange_currency === 'XRP' && options.exchange_issuer) {
+    errorResponse({error: 'XRP cannot have an issuer', code: 400});
+    return;
+  } else if (options.exchange_currency !== 'XRP' && !options.exchange_issuer) {
+    errorResponse({error: 'issuer is required', code: 400});
+    return;
+  }
+
+  if (options.date.moment.diff(smoment().moment) > 10) {
+    errorResponse({error: 'must not be a future date', code: 400});
+    return;
+  }
+
+  if (options.currency === options.exchange_currency &&
+      options.issuer === options.exchange_issuer) {
+    successResponse({
+      amount: options.amount,
+      converted: options.amount,
+      rate: 1
+    });
+    return;
+  }
+
+  Promise.all([
+    getXRPrate(),
+    getExchangeRate()
+  ])
+  .nodeify(function(err, resp) {
+    if (err) {
+      errorResponse(err);
+
+    } else {
+      var rate = resp[1] ? resp[0] / resp[1] : 0;
+      successResponse({
+        amount: options.amount,
+        converted: options.amount * rate,
+        rate: rate
+      });
+    }
+  });
+}
 
 
 module.exports = function(db) {
