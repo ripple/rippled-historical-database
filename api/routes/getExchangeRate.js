@@ -6,52 +6,7 @@ var smoment = require('../../lib/smoment');
 var PRECISION = 8;
 var hbase;
 
-var getExchangeRate = function(req, res) {
-
-  var options = {
-    date: smoment(req.query.date),
-    strict: (/false/i).test(req.query.strict) ? false : true,
-    base: {},
-    counter: {}
-  };
-
-  var base = req.params.base.split(/[\+|\.]/); //any of +, |, or .
-  var counter = req.params.counter.split(/[\+|\.]/);
-
-  options.base.currency = base[0] ? base[0].toUpperCase() : undefined;
-  options.base.issuer = base[1] ? base[1] : undefined;
-
-  options.counter.currency = counter[0] ? counter[0].toUpperCase() : undefined;
-  options.counter.issuer = counter[1] ? counter[1] : undefined;
-
-  if (!options.base.currency) {
-    errorResponse({error:'base currency is required', code:400});
-    return;
-  } else if (!options.counter.currency) {
-    errorResponse({error: 'counter currency is required', code: 400});
-    return;
-  } else if (options.base.currency === 'XRP' && options.base.issuer) {
-    errorResponse({error: 'XRP cannot have an issuer', code: 400});
-    return;
-  } else if (options.counter.currency === 'XRP' && options.counter.issuer) {
-    errorResponse({error: 'XRP cannot have an issuer', code: 400});
-    return;
-  } else if (options.base.currency !== 'XRP' && !options.base.issuer) {
-    errorResponse({error: 'base issuer is required', code: 400});
-    return;
-  } else if (options.counter.currency !== 'XRP' && !options.counter.issuer) {
-    errorResponse({error: 'counter issuer is required', code: 400});
-    return;
-  }
-
-  hbase.getExchangeRate(options)
-  .nodeify(function(err, rate) {
-    if (err) {
-      errorResponse(err);
-    } else {
-      successResponse(rate);
-    }
-  });
+function getExchangeRate(req, res) {
 
   /**
   * errorResponse
@@ -86,7 +41,57 @@ var getExchangeRate = function(req, res) {
       rate: rate.toPrecision(PRECISION)
     });
   }
-};
+
+  var options = {
+    date: smoment(req.query.date),
+    strict: (/false/i).test(req.query.strict) ? false : true,
+    base: {},
+    counter: {}
+  };
+
+  var base = req.params.base.split(/[\+|\.]/); // any of +, |, or .
+  var counter = req.params.counter.split(/[\+|\.]/);
+
+  options.base.currency = base[0] ? base[0].toUpperCase() : undefined;
+  options.base.issuer = base[1] ? base[1] : undefined;
+
+  options.counter.currency = counter[0] ? counter[0].toUpperCase() : undefined;
+  options.counter.issuer = counter[1] ? counter[1] : undefined;
+
+  if (!options.base.currency) {
+    errorResponse({error: 'base currency is required', code: 400});
+    return;
+  } else if (!options.counter.currency) {
+    errorResponse({error: 'counter currency is required', code: 400});
+    return;
+  } else if (options.base.currency === 'XRP' && options.base.issuer) {
+    errorResponse({error: 'XRP cannot have an issuer', code: 400});
+    return;
+  } else if (options.counter.currency === 'XRP' && options.counter.issuer) {
+    errorResponse({error: 'XRP cannot have an issuer', code: 400});
+    return;
+  } else if (options.base.currency !== 'XRP' && !options.base.issuer) {
+    errorResponse({error: 'base issuer is required', code: 400});
+    return;
+  } else if (options.counter.currency !== 'XRP' && !options.counter.issuer) {
+    errorResponse({error: 'counter issuer is required', code: 400});
+    return;
+  }
+
+  if (options.date.moment.diff(smoment().moment) > 10) {
+    errorResponse({error: 'must not be a future date', code: 400});
+    return;
+  }
+
+  hbase.getExchangeRate(options)
+  .nodeify(function(err, rate) {
+    if (err) {
+      errorResponse(err);
+    } else {
+      successResponse(rate);
+    }
+  });
+}
 
 
 module.exports = function(db) {
