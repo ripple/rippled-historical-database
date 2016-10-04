@@ -1,7 +1,8 @@
+'use strict';
+
 var Logger = require('../../lib/logger');
-var log = new Logger({scope : 'health check'});
+var log = new Logger({scope: 'health check'});
 var moment = require('moment');
-var smoment = require('../../lib/smoment');
 
 var hbase;
 
@@ -23,11 +24,41 @@ var defaults = {
 
 var aspects = Object.keys(defaults);
 
+// function for formatting duration
+function duration(ms) {
+  if (ms === Infinity) {
+    return ms.toString();
+  }
+
+  var s = Math.floor(ms / 1000);
+  var years = Math.floor(s / 31536000);
+  if (years) {
+    return (s / 31536000).toFixed(2) + 'y';
+  }
+
+  var days = Math.floor((s %= 31536000) / 86400);
+  if (days) {
+    return ((s %= 31536000) / 86400).toFixed(2) + 'd';
+  }
+
+  var hours = Math.floor((s %= 86400) / 3600);
+  if (hours) {
+    return ((s %= 86400) / 3600).toFixed(2) + 'h';
+  }
+
+  var minutes = Math.floor((s %= 3600) / 60);
+  if (minutes) {
+    return ((s %= 3600) / 60).toFixed(2) + 'm';
+  }
+
+  return ms / 1000 + 's';
+}
+
 /**
  * checkHealth
  */
 
-var checkHealth = function(req, res) {
+function checkHealth(req, res) {
 
   var aspect = (req.params.aspect || 'api').toLowerCase();
   var verbose = (/true/i).test(req.query.verbose) ? true : false;
@@ -35,47 +66,6 @@ var checkHealth = function(req, res) {
   var t2;
 
   var d = Date.now();
-
-  if (aspects.indexOf(aspect) === -1) {
-    res.status(400).json({
-      result: 'error',
-      message: 'invalid aspect type'
-    });
-    return;
-  }
-
-  t1 = Number(req.query.threshold || defaults[aspect].threshold1 || 0);
-  t2 = Number(req.query.threshold2 || defaults[aspect].threshold2 || 0);
-
-  if (isNaN(t1) || isNaN(t2)) {
-    res.status(400).json({
-      result: 'error',
-      message: 'invalid threshold'
-    });
-    return;
-  }
-
-  log.info(aspect);
-
-  if (aspect === 'nodes_etl') {
-    nodeHealthCheck();
-
-  } else if (aspect === 'validations_etl') {
-    validationHealthCheck();
-
-  } else {
-    hbase.getLedger({}, function(err, ledger) {
-      var now = Date.now();
-      var gap = ledger ? (now - ledger.close_time * 1000)/1000 : Infinity;
-      var responseTime = (Date.now() - d) / 1000;
-
-      if (aspect === 'api') {
-        apiHealthResponse(responseTime, err, verbose);
-      } else {
-        importerHealthResponse(responseTime, gap, err, verbose);
-      }
-    });
-  }
 
   /**
    * nodeHealthCheck
@@ -86,7 +76,7 @@ var checkHealth = function(req, res) {
     .then(function(info) {
 
       var parts = info ? info.rowkey.split('_') : undefined;
-      var gap = info ? (Date.now() - parts[0])/1000 : Infinity;
+      var gap = info ? (Date.now() - parts[0]) / 1000 : Infinity;
       var score = gap <= t1 ? 0 : 1;
 
       if (verbose) {
@@ -133,7 +123,7 @@ var checkHealth = function(req, res) {
       var last = resp && resp.length ?
         moment(resp[0].datetime) : null;
       var gap = last ?
-        (Date.now() - last.unix()*1000)/1000 : Infinity;
+        (Date.now() - last.unix() * 1000) / 1000 : Infinity;
       var score = gap <= t1 ? 0 : 1;
 
       if (verbose) {
@@ -154,7 +144,7 @@ var checkHealth = function(req, res) {
    * apiHealthResponse
    */
 
-  function apiHealthResponse(responseTime, err, verbose) {
+  function apiHealthResponse(responseTime, err) {
     var score;
     var message;
 
@@ -193,7 +183,7 @@ var checkHealth = function(req, res) {
    * importerHealthResponse
    */
 
-  function importerHealthResponse(responseTime, ledgerGap, err, verbose) {
+  function importerHealthResponse(responseTime, ledgerGap, e) {
 
     // get last validated ledger
     hbase.getLastValidated(function(err, resp) {
@@ -201,12 +191,12 @@ var checkHealth = function(req, res) {
       var closeTime = resp && resp.close_time ?
           moment.utc(resp.close_time) : undefined;
       var validatorGap = closeTime ?
-          (now - (closeTime.unix() * 1000))/1000 : Infinity;
+          (now - (closeTime.unix() * 1000)) / 1000 : Infinity;
       var score;
       var message;
 
-      if (err) {
-        log.error(err);
+      if (e || err) {
+        log.error(e || err);
         res.status(500).json({
           result: 'error',
           message: 'hbase response error'
@@ -227,6 +217,7 @@ var checkHealth = function(req, res) {
       }
 
       if (verbose) {
+        console.log(resp);
         res.json({
           score: score,
           response_time: duration(responseTime * 1000),
@@ -234,6 +225,7 @@ var checkHealth = function(req, res) {
           ledger_gap_threshold: duration(t1 * 1000),
           validation_gap: duration(validatorGap * 1000),
           validation_gap_threshold: duration(t2 * 1000),
+          last_validated_ledger: resp ? Number(resp.ledger_index) : undefined,
           message: message
         });
 
@@ -242,37 +234,47 @@ var checkHealth = function(req, res) {
       }
     });
   }
-};
 
-// function for formatting duration
-function duration(ms) {
+  if (aspects.indexOf(aspect) === -1) {
+    res.status(400).json({
+      result: 'error',
+      message: 'invalid aspect type'
+    });
+    return;
+  }
 
-    if (ms === Infinity) {
-      return ms.toString();
-    }
+  t1 = Number(req.query.threshold || defaults[aspect].threshold1 || 0);
+  t2 = Number(req.query.threshold2 || defaults[aspect].threshold2 || 0);
 
-    var s = Math.floor(ms / 1000);
-    var years = Math.floor(s / 31536000);
-    if (years) {
-      return (s / 31536000).toFixed(2) + 'y';
-    }
+  if (isNaN(t1) || isNaN(t2)) {
+    res.status(400).json({
+      result: 'error',
+      message: 'invalid threshold'
+    });
+    return;
+  }
 
-    var days = Math.floor((s %= 31536000) / 86400);
-    if (days) {
-      return ((s %= 31536000) / 86400).toFixed(2) + 'd';
-    }
+  log.info(aspect);
 
-    var hours = Math.floor((s %= 86400) / 3600);
-    if (hours) {
-      return ((s %= 86400) / 3600).toFixed(2) + 'h';
-    }
+  if (aspect === 'nodes_etl') {
+    nodeHealthCheck();
 
-    var minutes = Math.floor((s %= 3600) / 60);
-    if (minutes) {
-      return ((s %= 3600) / 60).toFixed(2) + 'm';
-    }
+  } else if (aspect === 'validations_etl') {
+    validationHealthCheck();
 
-    return ms/1000 + 's';
+  } else {
+    hbase.getLedger({}, function(err, ledger) {
+      var now = Date.now();
+      var gap = ledger ? (now - ledger.close_time * 1000) / 1000 : Infinity;
+      var responseTime = (Date.now() - d) / 1000;
+
+      if (aspect === 'api') {
+        apiHealthResponse(responseTime, err);
+      } else {
+        importerHealthResponse(responseTime, gap, err);
+      }
+    });
+  }
 }
 
 module.exports = function(db) {
