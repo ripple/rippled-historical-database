@@ -1,42 +1,69 @@
-var request = require('request-promise');
-var smoment = require('../lib/smoment');
-var config = require('../config/import.config');
-var Hbase = require('../lib/hbase/hbase-client');
-var hbase = new Hbase(config.get('hbase'));
+'use strict'
+
+var request = require('request-promise')
+var smoment = require('../lib/smoment')
+var config = require('../config/import.config')
+var Hbase = require('../lib/hbase/hbase-client')
+var hbase = new Hbase(config.get('hbase'))
+var table = 'agg_exchanges_external'
+
+/**
+ * round
+ * round to siginficant digits
+ */
+
+function round(n, sig) {
+  var mult = Math.pow(10,
+      sig - Math.floor(Math.log(n) / Math.LN10) - 1)
+  return Math.round(n * mult) / mult
+}
 
 /**
  * getBTC38
  */
 
 function getBTC38(currency) {
-  currency = currency.toUpperCase();
 
-  var url = 'http://www.btc38.com/trade/getTradeTimeLine.php' +
-    '?coinname=XRP&mk_type=' + currency;
+
+  // hourly: getTradeTimeLine
+  // 'http://www.btc38.com/trade/getTrade5minLine.php' +
+  // '?coinname=XRP&mk_type=' + currency
+  var url = 'http://k.sosobtc.com/data/period'
+  var symbol = 'btc38xrp' + (currency === 'BTC' ?
+      'btcbtc' : currency.toLowerCase())
 
   return request({
     url: url,
-    json: true
+    json: true,
+    qs: {
+      symbol: symbol,
+      step: 300
+    }
   }).then(function(resp) {
-    var results = [];
+    var results = []
 
     resp.forEach(function(r) {
+      if (!r[5]) {
+        return
+      }
+
       results.push({
-        date: smoment(r[0] / 1000).format(),
+        date: smoment(r[0]).format(),
         source: 'btc38.com',
-        interval: '1hour',
+        interval: '5minute',
         base_currency: 'XRP',
         counter_currency: currency,
-        base_volume: r[1],
-        open: r[2],
-        high: r[3],
-        low: r[4],
-        close: r[5]
-      });
-    });
+        base_volume: r[5],
+        open: r[1],
+        high: r[2],
+        low: r[3],
+        close: r[4]
+      })
+    })
 
-    return results;
-  });
+    console.log('btc38.com', currency, results.length)
+    return results
+  })
 }
 
 /**
@@ -44,29 +71,34 @@ function getBTC38(currency) {
  */
 
 function getPoloniex(currency) {
-  var start = smoment();
-  var end = smoment();
 
-  currency = currency.toUpperCase();
+  var start = smoment()
+  var end = smoment()
 
-  start.moment.subtract(5, 'days');
+  start.moment.subtract(1, 'days')
   var url = 'https://poloniex.com/public?' +
     'command=returnChartData&currencyPair=' +
-     currency + '_XRP&period=7200' +
+     currency + '_XRP&period=300' +
     '&start=' + start.moment.unix() +
-    '&end=' + end.moment.unix();
+    '&end=' + end.moment.unix()
 
   return request({
     url: url,
     json: true
   }).then(function(resp) {
 
-    var results = [];
+    var results = []
     resp.forEach(function(r) {
+
+      // only include intervals with a trade
+      if (r.volume === 0) {
+        return
+      }
+
       results.push({
         date: smoment(r.date).format(),
         source: 'poloniex.com',
-        interval: '2hour',
+        interval: '5minute',
         base_currency: 'XRP',
         counter_currency: currency,
         base_volume: r.quoteVolume,
@@ -76,11 +108,12 @@ function getPoloniex(currency) {
         low: r.low,
         close: r.close,
         vwap: r.weightedAverage
-      });
-    });
+      })
+    })
 
-    return results;
-  });
+    console.log('poloniex.com', currency, results.length)
+    return results
+  })
 }
 
 /**
@@ -88,23 +121,23 @@ function getPoloniex(currency) {
  */
 
 function getJubi() {
-  var url = 'http://www.jubi.com/coin/xrp/k.js';
+  var url = 'http://www.jubi.com/coin/xrp/k.js'
 
   return request({
     url: url
   }).then(function(resp) {
 
-    var results = [];
-    var data = resp.trim().substr(6, resp.length-8);
+    var results = []
+    var data = resp.trim().substr(6, resp.length - 8)
 
-    data = data.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ');
-    data = JSON.parse(data);
+    data = data.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
+    data = JSON.parse(data)
 
-    data.time_line['1h'].forEach(function(r) {
+    data.time_line['5m'].forEach(function(r) {
       results.push({
         date: smoment(r[0] / 1000).format(),
         source: 'jubi.com',
-        interval: '1hour',
+        interval: '5minute',
         base_currency: 'XRP',
         counter_currency: 'CNY',
         base_volume: r[1],
@@ -112,11 +145,12 @@ function getJubi() {
         high: r[3],
         low: r[4],
         close: r[5]
-      });
-    });
+      })
+    })
 
-    return results;
-  });
+    console.log('jubi.com', results.length)
+    return results
+  })
 }
 
 /**
@@ -124,53 +158,80 @@ function getJubi() {
  */
 
 function getKraken() {
-  var url = 'https://api.kraken.com/0/public/OHLC?pair=XXBTXXRP&interval=60';
+  var url = 'https://api.kraken.com/0/public/OHLC'
+  var pair = 'XXRPXXBT'
 
   return request({
     url: url,
-    json: true
+    json: true,
+    qs: {
+      pair: pair,
+      interval: 5
+    }
   }).then(function(resp) {
-    var results = [];
+    var results = []
 
-    resp.result.XXBTXXRP.forEach(function(r) {
+    resp.result[pair].forEach(function(r) {
 
       // only include intervals with a trade
       if (r[7] === 0) {
-        return;
+        return
       }
 
-      var vwap = 1 / Number(r[5]);
+      var vwap = 1 / Number(r[5])
 
       results.push({
         date: smoment(r[0]).format(),
         source: 'kraken.com',
-        interval: '1hour',
+        interval: '5minute',
         base_currency: 'XRP',
         counter_currency: 'BTC',
-        base_volume: Number(r[6]) / vwap,
-        counter_volume: Number(r[6]),
-        open: round(1 / Number(r[1]), 6),
-        high: round(1 / Number(r[2]), 6),
-        low: round(1 / Number(r[3]), 6),
-        close: round(1 / Number(r[4]), 6),
-        vwap: round(vwap, 6),
+        base_volume: Number(r[6]),
+        counter_volume: Number(r[6]) / vwap,
+        open: round(Number(r[1]), 6),
+        high: round(Number(r[2]), 6),
+        low: round(Number(r[3]), 6),
+        close: round(Number(r[4]), 6),
+        vwap: round(1 / vwap, 6),
         count: r[7]
-      });
-    });
+      })
+    })
 
-    return results;
-  });
+    console.log('kraken.com', results.length)
+    return results
+  })
 }
 
 /**
- * round
- * round to siginficant digits
+ * reduce
  */
 
-function round(n, sig) {
-  var mult = Math.pow(10,
-      sig - Math.floor(Math.log(n) / Math.LN10) - 1);
-  return Math.round(n * mult) / mult;
+function reduce(data) {
+  var reduced = {
+    base_volume: 0,
+    counter_volume: 0,
+    count: 0
+  }
+
+  data.forEach(function(d) {
+    reduced.base_volume += Number(d.base_volume || 0)
+    reduced.counter_volume += Number(d.counter_volume || 0)
+    reduced.count += Number(d.count || 0)
+  })
+
+  if (!reduced.count) {
+    delete reduced.count
+  }
+
+  if (reduced.counter_volume) {
+    reduced.vwap = reduced.counter_volume / reduced.base_volume
+    reduced.vwap = round(reduced.vwap, 6)
+
+  } else {
+    delete reduced.counter_volume
+  }
+
+  return reduced
 }
 
 /**
@@ -178,15 +239,20 @@ function round(n, sig) {
  */
 
 function save(data) {
-  var rows = {};
+
+  var rows = {}
   data.forEach(function(rowset) {
+    if (!rowset) {
+      return
+    }
+
     rowset.forEach(function(r) {
-      var date = smoment(r.date);
+      var date = smoment(r.date)
       var rowkey = r.source + '|' +
         r.base_currency + '|' +
         r.counter_currency + '|' +
         r.interval + '|' +
-        date.hbaseFormatStartRow();
+        date.hbaseFormatStartRow()
 
       rows[rowkey] = {
         'f:date': r.date,
@@ -202,30 +268,110 @@ function save(data) {
         close: r.close,
         vwap: r.vwap,
         count: r.count
-      };
-    });
-  });
+      }
+    })
+  })
 
-  console.log('saving ' + Object.keys(rows).length + ' rows');
+  console.log('saving ' + Object.keys(rows).length + ' rows')
   return hbase.putRows({
-    table: 'agg_exchanges_external',
+    table: table,
     rows: rows
-  });
+  })
+}
+
+/**
+ * savePeriod
+ */
+
+function savePeriod(period, increment) {
+  var markets = [
+    'poloniex.com|XRP|BTC',
+    'poloniex.com|XRP|USDT',
+    'kraken.com|XRP|BTC',
+    'btc38.com|XRP|CNY',
+    'btc38.com|XRP|BTC',
+    'jubi.com|XRP|CNY'
+  ]
+
+  var tasks = []
+  var end = smoment()
+  var start = smoment()
+  var label = (increment || '') + period
+
+  // save single market
+  function saveMarket(m) {
+    return new Promise(function(resolve, reject) {
+      var startRow = m + '|5minute|' + start.hbaseFormatStartRow()
+      var stopRow = m + '|5minute|' + end.hbaseFormatStopRow()
+
+      hbase.getScan({
+        table: table,
+        startRow: startRow,
+        stopRow: stopRow
+      }, function(err, resp) {
+
+        if (err) {
+          reject(err)
+        } else {
+          var d = reduce(resp)
+          var parts = m.split('|')
+          d.source = parts[0]
+          d.base_currency = parts[1]
+          d.counter_currency = parts[2]
+          resolve(d)
+        }
+      })
+    })
+  }
+
+  start.moment.subtract(increment || 1, period)
+
+  markets.forEach(function(m) {
+    tasks.push(saveMarket(m))
+  })
+
+  return Promise.all(tasks)
+  .then(function(components) {
+    var result = {
+      components: components,
+      period: label,
+      total: 0,
+      date: end.format()
+    }
+
+    components.forEach(function(d) {
+      result.total += d.base_volume
+    })
+
+    console.log('saving: ' + label +
+                ' ' + result.total + ' XRP')
+    return hbase.putRow({
+      table: 'agg_metrics',
+      rowkey: 'trade_volume|external|live|' + label,
+      columns: result
+    })
+  })
 }
 
 Promise.all([
   getBTC38('CNY'),
   getBTC38('BTC'),
   getPoloniex('BTC'),
+  getPoloniex('USDT'),
   getJubi(),
   getKraken()
 ])
 .then(save)
+.then(savePeriod.bind(this, 'hour', 1))
+.then(savePeriod.bind(this, 'day', 1))
+.then(savePeriod.bind(this, 'day', 3))
+.then(savePeriod.bind(this, 'day', 7))
+.then(savePeriod.bind(this, 'day', 30))
 .then(function() {
-  console.log('success');
-  process.exit(0);
+  console.log('success')
+  process.exit(0)
 })
 .catch(function(e) {
-  console.log('error', e, e.stack);
-  process.exit(1);
-});
+  console.log('error', e, e.stack)
+  process.exit(1)
+})
