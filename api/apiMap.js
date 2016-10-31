@@ -98,6 +98,10 @@ var generateMap = function(url) {
         route: '/v2/network/issued_value',
         example: url + '/network/issued_value'
       }, {
+        action: 'Get External Market Volume',
+        route: '/v2/network/external_markets',
+        example: url + '/network/external_markets?period=3day'
+      }, {
         action: 'Get XRP Distribution',
         route: '/v2/network/xrp_distribution',
         example: url + '/network/xrp_distribution'
