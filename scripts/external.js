@@ -74,6 +74,7 @@ function getPoloniex(currency) {
 
   var start = smoment()
   var end = smoment()
+  var c = currency
 
   start.moment.subtract(1, 'days')
   var url = 'https://poloniex.com/public?' +
@@ -81,6 +82,10 @@ function getPoloniex(currency) {
      currency + '_XRP&period=300' +
     '&start=' + start.moment.unix() +
     '&end=' + end.moment.unix()
+
+  if (c === 'USDT') {
+    c = 'USD'
+  }
 
   return request({
     url: url,
@@ -100,7 +105,7 @@ function getPoloniex(currency) {
         source: 'poloniex.com',
         interval: '5minute',
         base_currency: 'XRP',
-        counter_currency: currency,
+        counter_currency: c,
         base_volume: r.quoteVolume,
         counter_volume: r.volume,
         open: r.open,
@@ -111,7 +116,7 @@ function getPoloniex(currency) {
       })
     })
 
-    console.log('poloniex.com', currency, results.length)
+    console.log('poloniex.com', c, results.length)
     return results
   })
 }
@@ -286,7 +291,7 @@ function save(data) {
 function savePeriod(period, increment) {
   var markets = [
     'poloniex.com|XRP|BTC',
-    'poloniex.com|XRP|USDT',
+    'poloniex.com|XRP|USD',
     'kraken.com|XRP|BTC',
     'btc38.com|XRP|CNY',
     'btc38.com|XRP|BTC',

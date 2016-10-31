@@ -1,6 +1,9 @@
+'use strict'
+
 module.exports = function(db) {
   var getMetric = require('./getMetric')(db)
   return {
+    externalMarkets: require('./externalMarkets')(db),
     exchangeVolume: getMetric.bind(undefined, 'trade_volume'),
     paymentVolume: getMetric.bind(undefined, 'payment_volume'),
     issuedValue: getMetric.bind(undefined, 'issued_value'),
@@ -18,4 +21,4 @@ module.exports = function(db) {
     getValidations: require('./getValidations')(db),
     getVersions: require('./getVersions')(db)
   }
-};
+}
