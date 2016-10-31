@@ -1,0 +1,50 @@
+{
+  "components": [
+    {
+      "base_volume": 1327611013.8607888,
+      "counter_volume": 17111.766308600007,
+      "vwap": 0.0000128891,
+      "source": "poloniex.com",
+      "base_currency": "XRP",
+      "counter_currency": "BTC"
+    },
+    {
+      "base_volume": 6647075.167541749,
+      "counter_volume": 53305.59183249999,
+      "vwap": 0.00801941,
+      "source": "poloniex.com",
+      "base_currency": "XRP",
+      "counter_currency": "USDT"
+    },
+    {
+      "base_volume": 74480901.6141709,
+      "counter_volume": 908.8869504285512,
+      "count": 2477,
+      "vwap": 0.000012203,
+      "source": "kraken.com",
+      "base_currency": "XRP",
+      "counter_currency": "BTC"
+    },
+    {
+      "base_volume": 94738413.36980103,
+      "source": "btc38.com",
+      "base_currency": "XRP",
+      "counter_currency": "CNY"
+    },
+    {
+      "base_volume": 562955.3365720001,
+      "source": "btc38.com",
+      "base_currency": "XRP",
+      "counter_currency": "BTC"
+    },
+    {
+      "base_volume": 7892284.8506000005,
+      "source": "jubi.com",
+      "base_currency": "XRP",
+      "counter_currency": "CNY"
+    }
+  ],
+  "date": "2016-10-31T17:45:20Z",
+  "period": "30day",
+  "total": "1511932644.1994743"
+}

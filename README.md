@@ -48,6 +48,7 @@ Ledger Contents Methods:
 * [Get Exchange Volume - `GET /v2/network/exchange_volume`](#get-exchange-volume)
 * [Get Payment Volume - `GET /v2/network/payment_volume`](#get-payment-volume)
 * [Get Issued Value - `GET /v2/network/issued_value`](#get-issued-value)
+* [Get External Markets - `GET /v2/network/external_markets`](#get-external-markets)
 * [Get XRP Distribution - `GET /v2/network/xrp_distribution`](#get-xrp-distribution)
 * [Get Top Currencies - `GET /v2/network/top_currencies`](#get-top-currencies)
 * [Get Top Markets - `GET /v2/network/top_markets`](#get-top-markets)
@@ -1945,6 +1946,131 @@ Response:
   ]
 }
 ```
+
+
+
+
+## Get External Markets ##
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/externalMarkets.js "Source")
+
+Get aggregated exchange volume from a list of off ledger exchanges for a specified rolling interval.
+
+The API returns results in units of a single _display currency_ rather than many different currencies. The conversion uses standard rates to and from XRP.
+
+#### Request Format ####
+
+<!-- MULTICODE_BLOCK_START -->
+
+*REST*
+
+```
+GET /v2/network/external_markets
+```
+
+<!-- MULTICODE_BLOCK_END -->
+
+[Try it! >](https://ripple.com/build/data-api-tool/#get-external-markets)
+
+Optionally, you can provide the following query parameters:
+
+| Field    | Value   | Description |
+|----------|---------|-------------|
+| `period` | String  | Aggregation Period - valid intervals are `1hour`, `1day`, `3day`, `7day`, or `30day`. Defaults to `1day`. |
+| `exchange_currency` | String - [Currency Code][] | Normalize all amounts to use this as a display currency. If not XRP, `exchange_issuer` is also required. Defaults to XRP. |
+| `exchange_issuer` | String - [Address][] | Normalize results to the specified `currency` issued by this issuer. |
+
+
+#### Response Format ####
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field  | Value | Description |
+|--------|-------|-------------|
+| `result` | String | The value `success` indicates that this is a successful response. |
+| `data` | Object | Contains data for the specified period |
+| `data.date` | String | Date at which this period was calculated. |
+| `data.total` | Number | Total XRP volume exchanged during the period. |
+| `data.period` | String | Name of the period queried. |
+
+Each object in the `components` array of the Volume Objects represent the volume of a single external market.  Not all fields will be present for each market, depending on availability.
+
+| Field  | Value  | Description |
+|--------|--------|-------------|
+| `source` | String | Domain name of the specific external market. |
+| `base_volume` | Number | Exchange volume in terms of the base currency (XRP) |
+| `counter_volume` | Number | Exchange volume in terms of the counter currency. |
+| `base_currecy` | String | Base currency of the market pair.  |
+| `counter_currency` | String | Counter currency of the market pair. |
+| `rate` | Number | Exchange rate. |
+
+#### Example ####
+
+Request:
+
+```
+GET /v2/network/external_markets
+```
+
+
+Response:
+
+```
+200 OK
+
+{
+  "result": "success",
+  "data": {
+    "components": [
+      {
+        "base_volume": "52847221.256202064",
+        "counter_volume": "619.8111371100003",
+        "source": "poloniex.com",
+        "base_currency": "XRP",
+        "counter_currency": "BTC",
+        "rate": "0.0000117284"
+      },
+      {
+        "base_volume": "389955.29648717004",
+        "counter_volume": "3212.07137265",
+        "source": "poloniex.com",
+        "base_currency": "XRP",
+        "counter_currency": "USD",
+        "rate": "0.00823702"
+      },
+      {
+        "base_volume": "6025268.09143092",
+        "counter_volume": "70.57870572291264",
+        "count": 250,
+        "source": "kraken.com",
+        "base_currency": "XRP",
+        "counter_currency": "BTC",
+        "rate": "0.0000117138"
+      },
+      {
+        "base_volume": "4141962.161763998",
+        "source": "btc38.com",
+        "base_currency": "XRP",
+        "counter_currency": "CNY"
+      },
+      {
+        "base_volume": "303505",
+        "source": "btc38.com",
+        "base_currency": "XRP",
+        "counter_currency": "BTC"
+      },
+      {
+        "base_volume": "1275008.2922999999",
+        "source": "jubi.com",
+        "base_currency": "XRP",
+        "counter_currency": "CNY"
+      }
+    ],
+    "date": "2016-10-31T20:45:20Z",
+    "period": "1day",
+    "total": "64982920.098184146"
+  }
+}
+```
+
 
 
 
