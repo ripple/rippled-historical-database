@@ -8,7 +8,7 @@ var moment = require('moment')
 var smoment = require('../lib/smoment')
 var utils = require('./utils')
 
-var hb = require('../lib/hbase/hbase-client')
+var HBase = require('../lib/hbase/hbase-client')
 var geolocation = require('../lib/validations/geolocation')
 var saveVersions = require('../scripts/saveVersions')
 var mockExchangeVolume = require('./mock/exchange-volume.json')
@@ -40,12 +40,13 @@ hbaseConfig.prefix = prefix
 hbaseConfig.max_sockets = 500
 hbaseConfig.timeout = 60000
 
-hbase = hb(hbaseConfig)
 geo = geolocation({
   hbase: hbaseConfig,
   table: prefix + 'node_state',
   columnFamily: 'd'
 })
+
+hbase = new HBase(hbaseConfig)
 
 /**
  * setup
@@ -539,7 +540,7 @@ describe('network fees', function() {
   it('should include a link header when marker is present', function(done) {
     var url = 'http://localhost:' + port + '/v2/network/fees?limit=1'
     var linkHeader = '<' + url +
-      '&marker=ledger|20131025102710|000002964124> rel="next"'
+      '&marker=ledger|20131025102710|000002964124>; rel="next"'
 
     request({
       url: url,
@@ -744,7 +745,7 @@ describe('network fee stats', function() {
   it('should include a link header when marker is present', function(done) {
     var url = 'http://localhost:' + port + '/v2/network/fee_stats?limit=1'
     var linkHeader = '<' + url +
-      '&marker=raw|20160824001505> rel="next"'
+      '&marker=raw|20160824001505>; rel="next"'
 
     request({
       url: url,
@@ -1178,7 +1179,7 @@ describe('network - issued value', function() {
     var url = 'http://localhost:' + port +
         '/v2/network/issued_value?start=2013&limit=1'
     var linkHeader = '<' + url +
-      '&marker=issued_value|20150114000000> rel="next"'
+      '&marker=issued_value|20150114000000>; rel="next"'
 
     request({
       url: url,
@@ -1274,7 +1275,7 @@ describe('network - XRP distribution', function() {
     var url = 'http://localhost:' + port +
       '/v2/network/xrp_distribution?limit=1'
     var linkHeader = '<' + url +
-      '&marker=20160320000000> rel="next"'
+      '&marker=20160320000000>; rel="next"'
 
     request({
       url: url,
@@ -1309,7 +1310,7 @@ describe('network - XRP distribution', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(res.headers['content-disposition'],
-        'attachment filename=XRP-distribution.csv')
+        'attachment; filename=XRP-distribution.csv')
       done()
     })
   })
@@ -1717,7 +1718,7 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(res.headers['content-disposition'],
-        'attachment filename=topology nodes - 2016-03-18T22:31:33Z.csv')
+        'attachment; filename=topology nodes - 2016-03-18T22:31:33Z.csv')
       done()
     })
   })
@@ -1733,7 +1734,7 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(res.headers['content-disposition'],
-        'attachment filename=topology links - 2016-03-18T22:31:33Z.csv')
+        'attachment; filename=topology links - 2016-03-18T22:31:33Z.csv')
       done()
     })
   })
