@@ -1035,7 +1035,8 @@ describe('network - exchange volume', function() {
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'error')
       assert.strictEqual(body.message,
-                         'invalid period - use: minute, hour, day')
+                         'invalid period - use: ' +
+                         'minute, hour, day, 3day, 7day, 30day')
       done()
     })
   })
