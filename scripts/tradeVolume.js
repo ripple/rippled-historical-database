@@ -18,7 +18,10 @@ var intervals = [
 var periods = [
   'minute',
   'hour',
-  'day'
+  'day',
+  '3day',
+  '7day',
+  '30day'
 ]
 
 var options = {
@@ -95,12 +98,33 @@ function handleAggregation(params, done) {
     })
   }
 
+  function reduce(rows) {
+    var reduced = {
+      base_volume: 0,
+      counter_volume: 0,
+      count: 0,
+      vwap: 0
+    }
+
+    rows.forEach(function(d) {
+      reduced.base_volume += d.base_volume
+      reduced.counter_volume += d.counter_volume
+      reduced.count += d.count
+    })
+
+    if (reduced.base_volume) {
+      reduced.vwap = reduced.counter_volume / reduced.base_volume
+    }
+    return reduced
+  }
+
   /**
    * getVolumes
    * get trade volume for each market
    */
 
   function getVolumes(markets) {
+
 
     markets.forEach(function(market) {
       var swap
@@ -115,23 +139,38 @@ function handleAggregation(params, done) {
     return Promise.map(markets, function(market) {
       return new Promise(function(resolve, reject) {
         var start = smoment(params.start)
-        var end = smoment(params.start)
+        var end
+        var interval
 
-        end.moment.add(1, params.interval || 'day').subtract(1, 'second')
+        if (params.live &&
+            ['3day', '7day', '30day'].indexOf(params.live) !== -1) {
+          interval = '5minute'
+          end = smoment(params.end)
+
+        } else {
+          end = smoment(params.start)
+          end.moment.add(1, params.interval || 'day').subtract(1, 'second')
+        }
 
         hbase.getExchanges({
           base: market.base,
           counter: market.counter,
           start: start,
           end: end,
+          interval: interval,
           limit: Infinity,
           reduce: true
         }, function(err, resp) {
+
           var data = {}
 
           if (err) {
             reject(err)
             return
+          }
+
+          if (interval) {
+            resp.reduced = reduce(resp.rows)
           }
 
           data.count = resp.reduced.count
@@ -350,6 +389,33 @@ function aggregateTradeVolume(params) {
   } else if (params.live && periods.indexOf(params.live) === -1) {
     console.log('invalid live period:', params.live)
     process.exit(1)
+
+  } else if (params.live === '3day') {
+    start = smoment()
+    start.moment.subtract(3, 'day')
+    list.push({
+      start: start,
+      end: smoment(),
+      live: params.live
+    })
+
+  } else if (params.live === '7day') {
+    start = smoment()
+    start.moment.subtract(7, 'day')
+    list.push({
+      start: start,
+      end: smoment(),
+      live: params.live
+    })
+
+  } else if (params.live === '30day') {
+    start = smoment()
+    start.moment.subtract(30, 'day')
+    list.push({
+      start: start,
+      end: smoment(),
+      live: params.live
+    })
 
   // live hourly
   } else if (params.live) {
