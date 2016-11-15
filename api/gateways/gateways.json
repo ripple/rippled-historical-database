@@ -74,8 +74,8 @@
     "accounts": [{
       "address": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
       "currencies": {
-        "USD" : { "featured" : true },
-        "EUR" : { "featured" : true },
+        "USD" : { "featured" : false },
+        "EUR" : { "featured" : false },
         "GBP" : { "featured" : false }
       }
     }],
@@ -92,7 +92,7 @@
     "start_date": "2013-06-18",
     "accounts": [{
       "address": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
-      "currencies": {"BTC" : { "featured" : true }}
+      "currencies": {"BTC" : { "featured" : false }}
     }],
     "hotwallets": [
       "rQsAshmCjPsxkYnxY9GnmBTAeEUaePDAie",
