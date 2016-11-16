@@ -408,9 +408,15 @@
       }
     },
     {
+      "address": "rDAN8tzydyNfnNf2bfUQY6iR96UbpvNsze",
+      "currencies": {
+        "ETC" : { "featured" : true }
+      }
+    },
+    {
       "address": "rckzVpTnKpP4TJ1puQe827bV3X4oYtdTP",
       "currencies": {
-        "REP" : { "featured" : false }
+        "REP" : { "featured" : true }
       }
     }],
     "hotwallets": [
@@ -418,6 +424,16 @@
       "rhdT3DksUegs6SDztyLRaCNP2ukfbHKy5g"
     ],
     "domain": "gatehub.net"
+  }, {
+    "name": "BPG",
+    "start_date":"2016-10-01",
+    "accounts": [{
+      "address": "rcoef87SYMJ58NAFx7fNM5frVknmvHsvJ",
+      "currencies": {
+        "XAU" : { "featured" : true }
+      }
+    }],
+    "hotwallets": []
   }, {
     "name": "EXRP",
     "start_date":"2015-03-16",
