@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
-var Logger = require('../../lib/logger');
-var log = new Logger({scope: 'exchanges'});
-var smoment = require('../../lib/smoment');
-var utils = require('../../lib/utils');
+var Logger = require('../../lib/logger')
+var log = new Logger({scope: 'exchanges'})
+var smoment = require('../../lib/smoment')
+var utils = require('../../lib/utils')
 var intervals = [
   '1minute',
   '5minute',
@@ -17,12 +17,12 @@ var intervals = [
   '7day',
   '1month',
   '1year'
-];
-var PRECISION = 8;
-var hbase;
+]
+var PRECISION = 8
+var hbase
 
-var getExchanges = function(req, res) {
-  var options;
+function getExchanges(req, res) {
+  var params
 
   function prepareOptions() {
     var options = {
@@ -37,58 +37,93 @@ var getExchanges = function(req, res) {
       autobridged: (/true/i).test(req.query.autobridged) ? true : false,
       format: (req.query.format || 'json').toLowerCase(),
       marker: req.query.marker
-    };
+    }
 
-    var base = req.params.base.split(/[\+|\.]/); //any of +, |, or .
-    var counter = req.params.counter.split(/[\+|\.]/);
+    var base = req.params.base.split(/[\+|\.]/) // any of +, |, or .
+    var counter = req.params.counter.split(/[\+|\.]/)
 
-    options.base.currency = base[0] ? base[0].toUpperCase() : undefined;
-    options.base.issuer = base[1] ? base[1] : undefined;
+    options.base.currency = base[0] ? base[0].toUpperCase() : undefined
+    options.base.issuer = base[1] ? base[1] : undefined
 
-    options.counter.currency = counter[0] ? counter[0].toUpperCase() : undefined;
-    options.counter.issuer = counter[1] ? counter[1] : undefined;
+    options.counter.currency = counter[0] ? counter[0].toUpperCase() : undefined
+    options.counter.issuer = counter[1] ? counter[1] : undefined
 
     if (!options.base.currency) {
-      return {error:'base currency is required', code:400};
+      return {error: 'base currency is required', code: 400}
     } else if (!options.counter.currency) {
-      return {error:'counter currency is required', code:400};
+      return {error: 'counter currency is required', code: 400}
     } else if (options.base.currency === 'XRP' && options.base.issuer) {
-      return {error:'XRP cannot have an issuer', code:400};
+      return {error: 'XRP cannot have an issuer', code: 400}
     } else if (options.counter.currency === 'XRP' && options.counter.issuer) {
-      return {error:'XRP cannot have an issuer', code:400};
+      return {error: 'XRP cannot have an issuer', code: 400}
     } else if (options.base.currency !== 'XRP' && !options.base.issuer) {
-      return {error:'base issuer is required', code:400};
+      return {error: 'base issuer is required', code: 400}
     } else if (options.counter.currency !== 'XRP' && !options.counter.issuer) {
-      return {error:'counter issuer is required', code:400};
+      return {error: 'counter issuer is required', code: 400}
     }
 
     if (!options.start) {
-      return {error: 'invalid start date format', code: 400};
+      return {error: 'invalid start date format', code: 400}
     } else if (!options.end) {
-      return {error: 'invalid end date format', code: 400};
+      return {error: 'invalid end date format', code: 400}
     }
 
     if (options.interval) {
-      options.interval = options.interval.toLowerCase();
+      options.interval = options.interval.toLowerCase()
     }
     if (options.interval === 'week') {
-      options.interval = '7day';
+      options.interval = '7day'
     }
 
     if (isNaN(options.limit)) {
-      return {error: 'invalid limit: ' + options.limit, code: 400};
+      return {error: 'invalid limit: ' + options.limit, code: 400}
     } else if (options.reduce && options.interval) {
-      return {error: 'cannot use reduce with interval', code: 400};
+      return {error: 'cannot use reduce with interval', code: 400}
     } else if (options.reduce) {
-      options.limit = req.query.limit ? options.limit : 50000;
+      options.limit = req.query.limit ? options.limit : 50000
     } else if (options.limit > 1000) {
-      options.limit = 1000;
+      options.limit = 1000
     } else if (options.interval &&
                intervals.indexOf(options.interval) === -1) {
-      return {error: 'invalid interval: ' + options.interval, code: 400};
+      return {error: 'invalid interval: ' + options.interval, code: 400}
     }
 
-    return options;
+    return options
+  }
+
+  /**
+   * formatInterval
+   */
+
+  function formatInterval(ex) {
+    delete ex.rowkey
+    delete ex.sort_open
+    delete ex.sort_close
+
+    if (ex.open_time) {
+      ex.open_time = smoment(ex.open_time).format()
+    } else {
+      delete ex.open_time
+    }
+
+    if (ex.close_time) {
+      ex.close_time = smoment(ex.close_time).format()
+    } else {
+      delete ex.close_time
+    }
+
+    ex.start = smoment(ex.start).format()
+    ex.base_currency = params.base.currency
+    ex.base_issuer = params.base.issuer
+    ex.counter_currency = params.counter.currency
+    ex.counter_issuer = params.counter.issuer
+    ex.base_volume = ex.base_volume.toString()
+    ex.counter_volume = ex.counter_volume.toString()
+    ex.open = ex.open.toPrecision(PRECISION)
+    ex.high = ex.high.toPrecision(PRECISION)
+    ex.low = ex.low.toPrecision(PRECISION)
+    ex.close = ex.close.toPrecision(PRECISION)
+    ex.vwap = ex.vwap.toPrecision(PRECISION)
   }
 
   /**
@@ -98,17 +133,17 @@ var getExchanges = function(req, res) {
   */
 
   function errorResponse(err) {
-    log.error(err.error || err);
+    log.error(err.error || err)
     if (err.code && err.code.toString()[0] === '4') {
       res.status(err.code).json({
         result: 'error',
         message: err.error
-      });
+      })
     } else {
       res.status(500).json({
         result: 'error',
         message: 'unable to retrieve exchanges'
-      });
+      })
     }
   }
 
@@ -119,22 +154,22 @@ var getExchanges = function(req, res) {
    */
 
   function successResponse(resp) {
-    var filename;
+    var filename
 
     if (resp.marker) {
-      utils.addLinkHeader(req, res, resp.marker);
+      utils.addLinkHeader(req, res, resp.marker)
     }
 
-    if (options.format === 'csv') {
+    if (params.format === 'csv') {
       filename = 'exchanges - ' +
-        options.base.currency + '-' +
-        options.counter.currency +
-        '.csv';
+        params.base.currency + '-' +
+        params.counter.currency +
+        '.csv'
 
       // ensure consistent order and
       // inclusion of all fields
       if (resp.rows.length &&
-         (options.reduce || options.interval)) {
+         (params.reduce || params.interval)) {
 
         resp.rows[0] = {
           open: resp.rows[0].open,
@@ -152,7 +187,7 @@ var getExchanges = function(req, res) {
           open_time: resp.rows[0].open_time,
           close_time: resp.rows[0].close_time,
           start: resp.rows[0].start
-        };
+        }
 
       } else if (resp.rows.length) {
         resp.rows[0] = {
@@ -176,87 +211,65 @@ var getExchanges = function(req, res) {
           tx_index: resp.rows[0].tx_index,
           node_index: resp.rows[0].node_index,
           tx_hash: resp.rows[0].tx_hash
-        };
+        }
       }
 
-      res.csv(resp.rows, filename);
+      res.csv(resp.rows, filename)
     } else {
       res.json({
         result: 'success',
         count: resp.rows.length,
         marker: resp.marker,
         exchanges: resp.rows
-      });
+      })
     }
   }
 
-  options = prepareOptions();
+  params = prepareOptions()
 
-  if (options.error) {
-    errorResponse(options);
+  if (params.error) {
+    errorResponse(params)
 
   } else {
-    log.info(options.base.currency, options.counter.currency);
+    log.info(params.base.currency, params.counter.currency)
 
-    hbase.getExchanges(options, function(err, resp) {
+    hbase.getExchanges(params, function(err, resp) {
       if (err) {
-        errorResponse(err);
-      } else if (options.reduce) {
-        formatInterval(resp.reduced);
-        resp.rows = [resp.reduced];
-        successResponse(resp);
+        errorResponse(err)
+      } else if (params.reduce) {
+        formatInterval(resp.reduced)
+        resp.rows = [resp.reduced]
+        successResponse(resp)
 
       } else {
-        if (options.interval) {
-          resp.rows.forEach(formatInterval);
+        if (params.interval) {
+          resp.rows.forEach(formatInterval)
 
         } else {
           resp.rows.forEach(function(ex) {
-            delete ex.rowkey;
-            delete ex.time;
-            delete ex.client;
+            delete ex.rowkey
+            delete ex.time
+            delete ex.client
 
-            ex.executed_time = smoment(ex.executed_time).format();
-            ex.base_currency = options.base.currency;
-            ex.base_issuer = options.base.issuer;
-            ex.counter_currency = options.counter.currency;
-            ex.counter_issuer = options.counter.issuer;
-            ex.base_amount = ex.base_amount.toString();
-            ex.counter_amount = ex.counter_amount.toString();
-            ex.rate = ex.rate.toPrecision(PRECISION);
-          });
+            ex.executed_time = smoment(ex.executed_time).format()
+            ex.base_currency = params.base.currency
+            ex.base_issuer = params.base.issuer
+            ex.counter_currency = params.counter.currency
+            ex.counter_issuer = params.counter.issuer
+            ex.base_amount = ex.base_amount.toString()
+            ex.counter_amount = ex.counter_amount.toString()
+            ex.rate = ex.rate.toPrecision(PRECISION)
+          })
         }
 
-        successResponse(resp);
+        successResponse(resp)
       }
-    });
+    })
   }
-
-
-  function formatInterval(ex) {
-    delete ex.rowkey;
-    delete ex.sort_open;
-    delete ex.sort_close;
-
-    ex.open_time = smoment(ex.open_time).format();
-    ex.close_time = smoment(ex.close_time).format();
-    ex.start = smoment(ex.start).format();
-    ex.base_currency = options.base.currency;
-    ex.base_issuer = options.base.issuer;
-    ex.counter_currency = options.counter.currency;
-    ex.counter_issuer = options.counter.issuer;
-    ex.base_volume = ex.base_volume.toString();
-    ex.counter_volume = ex.counter_volume.toString();
-    ex.open = ex.open.toPrecision(PRECISION);
-    ex.high = ex.high.toPrecision(PRECISION);
-    ex.low = ex.low.toPrecision(PRECISION);
-    ex.close = ex.close.toPrecision(PRECISION);
-    ex.vwap = ex.vwap.toPrecision(PRECISION);
-  }
-};
+}
 
 
 module.exports = function(db) {
-  hbase = db;
-  return getExchanges;
-};
+  hbase = db
+  return getExchanges
+}
