@@ -80,7 +80,7 @@ function getExchanges(req, res) {
     } else if (options.reduce && options.interval) {
       return {error: 'cannot use reduce with interval', code: 400}
     } else if (options.reduce) {
-      options.limit = req.query.limit ? options.limit : 50000
+      options.limit = 10000
     } else if (options.limit > 1000) {
       options.limit = 1000
     } else if (options.interval &&
@@ -234,8 +234,15 @@ function getExchanges(req, res) {
     log.info(params.base.currency, params.counter.currency)
 
     hbase.getExchanges(params, function(err, resp) {
-      if (err) {
+      if (err && err === 'too many rows') {
+        errorResponse({
+          code: 400,
+          error: 'too many exchanges, use a smaller interval'
+        })
+
+      } else if (err) {
         errorResponse(err)
+
       } else if (params.reduce) {
         formatInterval(resp.reduced)
         resp.rows = [resp.reduced]
