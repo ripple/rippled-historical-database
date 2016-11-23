@@ -2,6 +2,7 @@
 
 var request = require('request-promise')
 var smoment = require('../lib/smoment')
+var moment = require('moment')
 var config = require('../config/import.config')
 var Hbase = require('../lib/hbase/hbase-client')
 var hbase = new Hbase(config.get('hbase'))
@@ -208,6 +209,76 @@ function getKraken() {
 }
 
 /**
+ * getKraken
+ */
+
+function getBittrex() {
+  var url = 'https://bittrex.com/api/v1.1/public/getmarkethistory'
+  var pair = 'BTC-XRP'
+
+  return request({
+    url: url,
+    json: true,
+    qs: {
+      market: pair
+    }
+  }).then(function(resp) {
+    var buckets = {}
+
+    var data = {
+      base: 0,
+      counter: 0,
+      count: 0
+    }
+
+    resp.result.forEach(function(d) {
+      var bucket = moment.utc(d.TimeStamp)
+
+
+      data.base += d.Quantity
+      data.counter += d.Total
+      data.count++
+
+
+      bucket = bucket.startOf('minute')
+      .subtract(bucket.minutes() % 5, 'minute')
+      .format('YYYY-MM-DDTHH:mm:ss[Z]')
+
+      if (!buckets[bucket]) {
+        buckets[bucket] = {
+          base_volume: 0,
+          counter_volume: 0,
+          count: 0
+        }
+      }
+
+      buckets[bucket].base_volume += d.Quantity
+      buckets[bucket].counter_volume += d.Total
+      buckets[bucket].count++
+    })
+
+    var results = Object.keys(buckets).map(function(key) {
+      var row = buckets[key]
+      row.source = 'bittrex.com'
+      row.interval = '5minute'
+      row.base_currency = 'XRP'
+      row.counter_currency = 'BTC'
+      row.date = key
+      row.vwap = row.counter_volume / row.base_volume
+      row.vwap = round(row.vwap, 6)
+      return row
+    })
+
+    // drop the oldest row,
+    // since we dont know if
+    // all exchanges were represented
+    results.pop()
+    console.log('bittrex.com', results.length)
+    return results
+  })
+}
+
+/**
  * reduce
  */
 
@@ -244,7 +315,6 @@ function reduce(data) {
  */
 
 function save(data) {
-
   var rows = {}
   data.forEach(function(rowset) {
     if (!rowset) {
@@ -290,6 +360,7 @@ function save(data) {
 
 function savePeriod(period, increment) {
   var markets = [
+    'bittrex.com|XRP|BTC',
     'poloniex.com|XRP|BTC',
     'poloniex.com|XRP|USD',
     'kraken.com|XRP|BTC',
@@ -364,7 +435,8 @@ Promise.all([
   getPoloniex('BTC'),
   getPoloniex('USDT'),
   getJubi(),
-  getKraken()
+  getKraken(),
+  getBittrex()
 ])
 .then(save)
 .then(savePeriod.bind(this, 'hour', 1))
