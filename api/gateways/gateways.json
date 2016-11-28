@@ -408,6 +408,12 @@
       }
     },
     {
+      "address": "rchGBxcD1A1C2tdxF6papQYZ8kjRKMYcL",
+      "currencies": {
+        "BTC" : { "featured" : true }
+      }
+    },
+    {
       "address": "rDAN8tzydyNfnNf2bfUQY6iR96UbpvNsze",
       "currencies": {
         "ETC" : { "featured" : true }
