@@ -6,9 +6,29 @@ var hdfs = WebHDFS.createClient(config.get('hdfs'))
 var moment = require('moment')
 
 var url = 'wss://clientapi.tradeblock.com/json/RPbb09aee6'
-var connection = new WebSocket(url)
+var connection
 var buffer = {}
 var last
+
+/**
+ * checkStatus
+ */
+
+function checkStatus() {
+  var time = moment.utc()
+  .startOf('hour')
+  .subtract(1, 'hour')
+
+  var filename = 'file_date=' + time.format('YYYYMMDD') +
+  '/XBT|USD/STMP/' + time.format('HH') + '.csv'
+
+  console.log('checking for file: ' + filename)
+
+  hdfs.exists(filename, function(exists) {
+    console.log(filename + (exists ? ' found' : ' not found'))
+    process.exit(exists ? 0 : 1)
+  })
+}
 
 /**
  * appendFile
@@ -102,6 +122,12 @@ function bufferOrderbookData(json) {
   }
 }
 
+if (config.get('check')) {
+  checkStatus()
+  return
+}
+
+connection = new WebSocket(url)
 connection.onopen = function() {
   console.log('started at: ' + new Date())
   var message = {
