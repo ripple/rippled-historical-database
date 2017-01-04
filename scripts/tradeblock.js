@@ -20,7 +20,7 @@ function checkStatus() {
   .subtract(1, 'hour')
 
   var filename = 'file_date=' + time.format('YYYYMMDD') +
-  '/XBT|USD/STMP/' + time.format('HH') + '.csv'
+  '/pair=XBT_USD/source=STMP/' + time.format('HH') + '.csv'
 
   console.log('checking for file: ' + filename)
 
@@ -34,10 +34,10 @@ function checkStatus() {
  * appendFile
  */
 
-function appendFile(pair, market, time, data) {
+function appendFile(pair, source, time, data) {
   var filename = 'file_date=' + time.format('YYYYMMDD') +
-  '/' + pair.replace('/', '|') +
-  '/' + market +
+  '/pair=' + pair.replace('/', '_') +
+  '/source=' + source +
   '/' + time.format('HH') + '.csv'
   console.log('appending file: ' + filename)
 
@@ -57,15 +57,15 @@ function appendFile(pair, market, time, data) {
  */
 
 function saveBuffer(time) {
-  var market
+  var source
   var pair
 
   console.log('save buffer')
 
   for (pair in buffer) {
-    for (market in buffer[pair]) {
-      appendFile(pair, market, time, buffer[pair][market])
-      delete buffer[pair][market]
+    for (source in buffer[pair]) {
+      appendFile(pair, source, time, buffer[pair][source])
+      delete buffer[pair][source]
     }
   }
 
