@@ -271,7 +271,7 @@ LedgerStreamSpout.prototype.fail = function(id, done) {
   if (!data) {
     self.log('Received FAIL for - ' + id + ' Stopping, ledger failed');
 
-  } else if (++txData.attempts <= 3) {
+  } else if (txData && ++txData.attempts <= 3) {
     self.log('Received FAIL for - ' + id + ' Retrying, attempt #' + txData.attempts);
     self.emit({
       tuple  : [txData.tx],
@@ -282,7 +282,11 @@ LedgerStreamSpout.prototype.fail = function(id, done) {
     });
 
   } else {
-    self.log('Received FAIL for - ' + id + ' - Stopping after 3 attempts');
+    if (txData) {
+      self.log('Received FAIL for - ' + id + ' - Stopping after 3 attempts');
+    } else {
+      self.log('Received Fail for - ' + id);
+    }
 
     //execute callback, if it exists
     if (data.cb) {
