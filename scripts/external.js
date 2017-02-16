@@ -448,6 +448,7 @@ function save(data) {
 
 function savePeriod(period, increment) {
   var markets = [
+    'bitstamp.net|XRP|BTC',
     'bitstamp.net|XRP|USD',
     'bitstamp.net|XRP|EUR',
     'bittrex.com|XRP|BTC',
@@ -520,6 +521,7 @@ function savePeriod(period, increment) {
 }
 
 Promise.all([
+  getBitstamp('BTC'),
   getBitstamp('USD'),
   getBitstamp('EUR'),
   getBTC38('CNY'),
