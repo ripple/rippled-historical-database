@@ -59,6 +59,16 @@ describe('manifests', function(done) {
     });
   });
 
+  it('should accept second signature', function(done) {
+    manifests.handleManifest({
+      master_key: 'nHUM1j7YGDVH7VbYw7bvjh9QR4f59GmQjwaNvnG34ki6U2upPYmY',
+      signing_key: 'n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr',
+      seq: 4,
+      signature: '3045022100b05e6738721100bf3eee37acab2ad60070bf9c7fa8e494f0d3f4de5eca291a220220677943ea5b1fcaadb71e6288a4a0982279c21bfbdcb3b0c3c26dffb84c27dd99',
+      master_signature: '26e008edecbf7457f05fe569dbb6e0a6117da7d2e6903664647265429dae3acd5edc1fdbfdb792ff038086db46a98205d4d9ca73b8ef6a41ee42aa6ac3f5a70c'
+    }).then(() => { done(); })
+  });
+
   it('should require an ephemeral key', function(done) {
     manifests.handleManifest({
       master_key: 'nHU5wPBpv1kk3kafS2ML2GhyoGJuHhPP4fCa2dwYUjMT5wR8Dk5B',
@@ -113,6 +123,29 @@ describe('manifests', function(done) {
       assert.strictEqual(err, 'Manifest has invalid signature');
       done();
     });
+  });
+
+  it('should require a valid master signature', function(done) {
+    manifests.handleManifest({
+      master_key: 'nHUM1j7YGDVH7VbYw7bvjh9QR4f59GmQjwaNvnG34ki6U2upPYmY',
+      signing_key: 'n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr',
+      seq: 4,
+      signature: '3045022100b05e6738721100bf3eee37acab2ad60070bf9c7fa8e494f0d3f4de5eca291a220220677943ea5b1fcaadb71e6288a4a0982279c21bfbdcb3b0c3c26dffb84c27dd99',
+      master_signature: 'badsig'
+    }).catch((err) => {
+      assert.strictEqual(err, 'Manifest has invalid signature');
+      done();
+    });
+  });
+
+  it('should not require a valid ephemeral signature', function(done) {
+    manifests.handleManifest({
+      master_key: 'nHUM1j7YGDVH7VbYw7bvjh9QR4f59GmQjwaNvnG34ki6U2upPYmY',
+      signing_key: 'n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr',
+      seq: 4,
+      signature: 'badsig',
+      master_signature: '26e008edecbf7457f05fe569dbb6e0a6117da7d2e6903664647265429dae3acd5edc1fdbfdb792ff038086db46a98205d4d9ca73b8ef6a41ee42aa6ac3f5a70c'
+    }).then(() => { done(); })
   });
 
   it('should cache new manifests', function(done) {
