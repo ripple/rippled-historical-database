@@ -121,7 +121,7 @@ describe('exchanges rates API endpoint', function() {
       url: url,
       json: true,
       qs: {
-        date: '2017-01-14'
+        date: '9999-01-01'
       }
     },
     function(err, res, body) {
@@ -168,7 +168,7 @@ describe('normalization API endpoint', function() {
       json: true,
       qs: {
         amount: 10,
-        date: '2017-01-14',
+        date: '9999-01-14',
         currency: 'USD',
         issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
       }
