@@ -13,15 +13,6 @@ var favicon = require('serve-favicon')
 var ripple = require('ripple-lib')
 
 /**
- * cacheControl
- */
-
-function cacheControl(req, res, next) {
-  res.setHeader('Cache-Control', 'max-age=1')
-  next()
-}
-
-/**
  * filterDuplicateQueryParams
  * NOTE: this only works if we dont pass
  * an array as a query param intentionally
@@ -43,11 +34,28 @@ function filterDuplicateQueryParams(req, res, next) {
  */
 
 function Server(options) {
+
   var rippleAPI = new ripple.RippleAPI(options.ripple)
   var app = express()
   var hbase = new Hbase(options.hbase)
   var routes = new Routes(hbase, rippleAPI)
+  var cacheControl = ''
   var server
+
+  /**
+  * setCacheControl
+  */
+
+  function setCacheControl(req, res, next) {
+    res.setHeader('Cache-Control', cacheControl)
+    next()
+  }
+
+  Object.keys(options.cacheControl || {}).forEach(function(key) {
+    cacheControl += key + '=' + options.cacheControl[key] + ', '
+  })
+
+  console.log('CACHE: ' + (cacheControl || 'none set'))
 
   rippleAPI.connect()
   .then(function() {
@@ -68,7 +76,7 @@ function Server(options) {
   app.use(filterDuplicateQueryParams)
   app.use(favicon(__dirname + '/favicon.png'))
   app.use(compression())
-  app.use(cacheControl)
+  app.use(setCacheControl)
 
   app.get('/v2/health/:aspect?', routes.checkHealth)
   app.get('/v2/gateways/:gateway?', routes.gateways.Gateways)
