@@ -107,6 +107,55 @@ function getBitstamp(currency) {
  * getBTC38
  */
 
+function getCoincheck() {
+
+  var url = 'https://coincheck.com/exchange/candle_rates'
+
+  return request({
+    url: url,
+    json: true,
+    qs: {
+      limit: 288,
+      market: 'coincheck',
+      pair: 'xrp_jpy',
+      unit: 300,
+      v2: true
+    }
+  }).then(function(resp) {
+
+    var results = []
+
+    resp.forEach(function(r) {
+      if (!r[5]) {
+        return
+      }
+
+      results.push({
+        date: smoment(r[0]).format(),
+        source: 'coincheck.com',
+        interval: '5minute',
+        base_currency: 'XRP',
+        counter_currency: 'JPY',
+        base_volume: r[5],
+        open: r[1],
+        high: r[2],
+        low: r[3],
+        close: r[4]
+      })
+    })
+
+    console.log('coincheck.com', 'JPY', results.length)
+    return results
+  })
+  .catch(function(e) {
+    console.log('coincheck error:', e)
+  })
+}
+
+/**
+ * getBTC38
+ */
+
 function getBTC38(currency) {
 
 
@@ -148,6 +197,9 @@ function getBTC38(currency) {
 
     console.log('btc38.com', currency, results.length)
     return results
+  })
+  .catch(function(e) {
+    console.log('btc38.com error:', currency, e)
   })
 }
 
@@ -204,6 +256,9 @@ function getPoloniex(currency) {
     console.log('poloniex.com', c, results.length)
     return results
   })
+  .catch(function(e) {
+    console.log('polniex.com error:', c, e)
+  })
 }
 
 /**
@@ -240,6 +295,10 @@ function getJubi() {
 
     console.log('jubi.com', results.length)
     return results
+  })
+
+  .catch(function(e) {
+    console.log('jubiu error:', e)
   })
 }
 
@@ -289,6 +348,9 @@ function getKraken() {
 
     console.log('kraken.com', results.length)
     return results
+  })
+  .catch(function(e) {
+    console.log('kraken error:', e)
   })
 }
 
@@ -359,6 +421,9 @@ function getBittrex() {
     results.pop()
     console.log('bittrex.com', results.length)
     return results
+  })
+  .catch(function(e) {
+    console.log('bittrex error:', e)
   })
 }
 
@@ -457,7 +522,8 @@ function savePeriod(period, increment) {
     'kraken.com|XRP|BTC',
     'btc38.com|XRP|CNY',
     'btc38.com|XRP|BTC',
-    'jubi.com|XRP|CNY'
+    'jubi.com|XRP|CNY',
+    'coincheck.com|XRP|JPY'
   ]
 
   var tasks = []
@@ -530,7 +596,8 @@ Promise.all([
   getPoloniex('USDT'),
   getJubi(),
   getKraken(),
-  getBittrex()
+  getBittrex(),
+  getCoincheck()
 ])
 .then(save)
 .then(savePeriod.bind(this, 'hour', 1))
