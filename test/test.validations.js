@@ -18,7 +18,7 @@ var port = config.get('port') || 7111
 var prefix = config.get('prefix')
 
 hbaseConfig.prefix = prefix
-validations = new Validations(hbaseConfig)
+validations = new Validations(hbaseConfig, config.get('validator-domains'))
 
 const hbase = new Hbase(hbaseConfig)
 
@@ -329,7 +329,20 @@ describe('validations import', function() {
     this.timeout(20000)
 
     validations.verifyDomains()
-    .then(done)
+    .then(() => {
+      return hbase.getAllRows({
+        table: 'validators'
+      })
+    }).then(rows => {
+      rows.forEach(function(row) {
+        if (config.get('validator-domains')[row.validation_public_key]) {
+          assert.strictEqual(row.domain_state, 'verified')
+          assert.strictEqual(row.domain,
+            config.get('validator-domains')[row.validation_public_key])
+        }
+      })
+      done()
+    })
     .catch(e => {
       assert.ifError(e)
     })

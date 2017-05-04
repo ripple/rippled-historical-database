@@ -13,12 +13,15 @@ nconf.argv()
         }
       ]
     },
-    'hbase-rest' : {
+    'hbase-rest': {
       host: 'hbase',
       port: 8080
     },
     ripple: {
       server: 'wss://s1.ripple.com:443'
+    },
+    'validator-domains': {
+      'n9LYyd8eUVd54NQQWPAJRFPM1bghJjaf1rkdji2haF4zVjeAPjT2': 'ripple.com'
     }
   });
 
