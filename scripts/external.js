@@ -513,6 +513,7 @@ function save(data) {
 
 function savePeriod(period, increment) {
   var markets = [
+    //'coincheck.com|XRP|JPY',
     'bitstamp.net|XRP|BTC',
     'bitstamp.net|XRP|USD',
     'bitstamp.net|XRP|EUR',
@@ -522,8 +523,7 @@ function savePeriod(period, increment) {
     'kraken.com|XRP|BTC',
     'btc38.com|XRP|CNY',
     'btc38.com|XRP|BTC',
-    'jubi.com|XRP|CNY',
-    'coincheck.com|XRP|JPY'
+    'jubi.com|XRP|CNY'
   ]
 
   var tasks = []
@@ -597,7 +597,7 @@ Promise.all([
   getJubi(),
   getKraken(),
   getBittrex(),
-  getCoincheck()
+  //getCoincheck()
 ])
 .then(save)
 .then(savePeriod.bind(this, 'hour', 1))

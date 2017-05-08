@@ -77,8 +77,8 @@ var accountTransactions = function (req, res) {
   if (isNaN(options.limit)) {
     options.limit = 20;
 
-  } else if (options.limit > 100) {
-    options.limit = 100;
+  } else if (options.limit > 1000) {
+    options.limit = 1000;
   }
 
   // query by sequence #
