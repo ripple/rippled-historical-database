@@ -98,7 +98,87 @@ function getBitstamp(currency) {
       return row
     })
 
+    // drop the oldest row,
+    // since we dont know if
+    // all exchanges were represented
+    results.pop()
     console.log('bitstamp.net', results.length)
+    return results
+  })
+}
+
+/**
+ * getBitstamp
+ */
+
+function getCoinone() {
+
+  var url = 'https://api.coinone.co.kr/trades'
+
+  return request({
+    url: url,
+    json: true,
+    qs: {
+      currency: 'xrp',
+      period: 'hour'
+    }
+  }).then(function(resp) {
+
+    var buckets = {}
+
+    resp.completeOrders.forEach(function(d) {
+      var bucket = moment.unix(d.timestamp).utc()
+      var price = Number(d.price)
+      var amount = Number(d.qty)
+
+      bucket = bucket.startOf('minute')
+      .subtract(bucket.minutes() % 5, 'minute')
+      .format('YYYY-MM-DDTHH:mm:ss[Z]')
+
+      if (!buckets[bucket]) {
+        buckets[bucket] = {
+          base_volume: 0,
+          counter_volume: 0,
+          count: 0,
+          open: price,
+          high: price,
+          low: price,
+          close: price
+        }
+      }
+
+      if (price > buckets[bucket].high) {
+        buckets[bucket].high = price
+      }
+
+      if (price < buckets[bucket].low) {
+        buckets[bucket].low = price
+      }
+
+
+      buckets[bucket].close = price
+      buckets[bucket].base_volume += amount
+      buckets[bucket].counter_volume += amount * price
+      buckets[bucket].count++
+    })
+
+    var results = Object.keys(buckets).map(function(key) {
+      var row = buckets[key]
+      row.source = 'coinone.co.kr'
+      row.interval = '5minute'
+      row.base_currency = 'XRP'
+      row.counter_currency = 'KRW'
+      row.date = key
+      row.vwap = row.counter_volume / row.base_volume
+      row.vwap = round(row.vwap, 6)
+      return row
+    })
+
+    // drop the oldest row,
+    // since we dont know if
+    // all exchanges were represented
+    results.pop()
+    console.log('coinone.co.kr', results.length)
     return results
   })
 }
@@ -514,6 +594,7 @@ function save(data) {
 function savePeriod(period, increment) {
   var markets = [
     //'coincheck.com|XRP|JPY',
+    'coinone.co.kr|XRP|KRW',
     'bitstamp.net|XRP|BTC',
     'bitstamp.net|XRP|USD',
     'bitstamp.net|XRP|EUR',
@@ -587,6 +668,8 @@ function savePeriod(period, increment) {
 }
 
 Promise.all([
+  //getCoincheck(),
+  getCoinone(),
   getBitstamp('BTC'),
   getBitstamp('USD'),
   getBitstamp('EUR'),
@@ -596,8 +679,7 @@ Promise.all([
   getPoloniex('USDT'),
   getJubi(),
   getKraken(),
-  getBittrex(),
-  //getCoincheck()
+  getBittrex()
 ])
 .then(save)
 .then(savePeriod.bind(this, 'hour', 1))
