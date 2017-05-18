@@ -3,7 +3,7 @@
 var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'validator reports'});
 var smoment = require('../../../lib/smoment');
-var hbase;
+var hbase = require('../../../lib/hbase')
 
 var getValidatorReports = function(req, res) {
   var options = {
@@ -125,7 +125,4 @@ var getValidatorReports = function(req, res) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getValidatorReports;
-};
+module.exports = getValidatorReports

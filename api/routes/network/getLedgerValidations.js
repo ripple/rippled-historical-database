@@ -4,7 +4,7 @@ var Logger = require('../../../lib/logger');
 var log = new Logger({scope : 'ledger validations'});
 var smoment = require('../../../lib/smoment');
 var utils = require('../../../lib/utils');
-var hbase;
+var hbase = require('../../../lib/hbase')
 
 var getLedgerValidations = function (req, res, next) {
 
@@ -126,7 +126,4 @@ var getLedgerValidations = function (req, res, next) {
 
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getLedgerValidations;
-};
+module.exports = getLedgerValidations

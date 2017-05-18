@@ -44,9 +44,6 @@
       <resource>
         <targetPath>resources/config</targetPath>
         <directory>../../config</directory>
-        <includes>
-          <include>import*</include>
-        </includes>
       </resource>
       <resource>
         <targetPath>resources/lib</targetPath>

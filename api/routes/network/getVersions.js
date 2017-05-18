@@ -4,7 +4,7 @@ var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'metrics'});
 var smoment = require('../../../lib/smoment');
 var utils = require('../../../lib/utils');
-var hbase;
+var hbase = require('../../../lib/hbase')
 
 function getRippledVersions(req, res) {
 
@@ -93,7 +93,4 @@ function getRippledVersions(req, res) {
   }
 }
 
-module.exports = function(db) {
-  hbase = db;
-  return getRippledVersions;
-};
+module.exports = getRippledVersions

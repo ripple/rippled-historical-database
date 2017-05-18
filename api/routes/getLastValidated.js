@@ -1,7 +1,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'last validated'});
 var smoment = require('../../lib/smoment');
-var hbase;
+var hbase = require('../../lib/hbase')
 
 var getLastValidated = function(req, res, next) {
 
@@ -26,7 +26,4 @@ var getLastValidated = function(req, res, next) {
   });
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getLastValidated;
-};
+module.exports = getLastValidated

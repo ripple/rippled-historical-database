@@ -1,24 +1,23 @@
 'use strict'
+var getMetric = require('./getMetric')
 
-module.exports = function(db) {
-  var getMetric = require('./getMetric')(db)
-  return {
-    externalMarkets: require('./externalMarkets')(db),
-    exchangeVolume: getMetric.bind(undefined, 'trade_volume'),
-    paymentVolume: getMetric.bind(undefined, 'payment_volume'),
-    issuedValue: getMetric.bind(undefined, 'issued_value'),
-    xrpDistribution: require('./xrpDistribution')(db),
-    topMarkets: require('./topMarkets')(db),
-    topCurrencies: require('./topCurrencies')(db),
-    getFees: require('./getFees')(db),
-    getFeeStats: require('./getFeeStats')(db),
-    getNodes: require('./getNodes')(db),
-    getLinks: require('./getLinks')(db),
-    getTopology: require('./getTopology')(db),
-    getValidatorReports: require('./getValidatorReports')(db),
-    getLedgerValidations: require('./getLedgerValidations')(db),
-    getValidators: require('./getValidators')(db),
-    getValidations: require('./getValidations')(db),
-    getVersions: require('./getVersions')(db)
-  }
+module.exports = {
+  externalMarkets: require('./externalMarkets'),
+  exchangeVolume: getMetric.bind(undefined, 'trade_volume'),
+  paymentVolume: getMetric.bind(undefined, 'payment_volume'),
+  issuedValue: getMetric.bind(undefined, 'issued_value'),
+  xrpDistribution: require('./xrpDistribution'),
+  topMarkets: require('./topMarkets'),
+  topCurrencies: require('./topCurrencies'),
+  getFees: require('./getFees'),
+  getFeeStats: require('./getFeeStats'),
+  getNodes: require('./getNodes'),
+  getLinks: require('./getLinks'),
+  getTopology: require('./getTopology'),
+  getValidatorReports: require('./getValidatorReports'),
+  getLedgerValidations: require('./getLedgerValidations'),
+  getValidators: require('./getValidators'),
+  getValidations: require('./getValidations'),
+  getVersions: require('./getVersions')
 }
+

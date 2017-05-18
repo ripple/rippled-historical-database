@@ -3,7 +3,7 @@ var assert = require('assert');
 var Promise = require('bluebird');
 var Rest = require('../../lib/hbase/hbase-rest');
 var Parser = require('../../lib/ledgerParser');
-var prefix = config.get('prefix');
+var prefix = config.get('hbase:prefix');
 var hbaseConfig = config.get('hbase');
 var restConfig = config.get('hbase-rest');
 

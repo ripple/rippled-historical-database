@@ -15,17 +15,7 @@ var log = new Logger({
 require('./exception')(log);
 
 function FeesBolt() {
-  var options = config.get('hbase2');
-
-  if (!options) {
-    options = config.get('hbase');
-  }
-
-  options.logLevel = config.get('logLevel');
-  options.logFile  = config.get('logFile');
-
-  this.fees = new Aggregation(options);
-
+  this.fees = new Aggregation();
   BasicBolt.call(this);
 }
 

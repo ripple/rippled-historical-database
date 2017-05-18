@@ -2,8 +2,8 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account tx'});
 var smoment = require('../../lib/smoment');
 var utils = require('../../lib/utils');
+var hbase = require('../../lib/hbase')
 var intMatch = /^\d+$/;
-var hbase;
 
 var txTypes = [
   'Payment',
@@ -178,7 +178,4 @@ var accountTransactions = function (req, res) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return accountTransactions;
-};
+module.exports = accountTransactions

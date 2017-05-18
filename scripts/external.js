@@ -4,8 +4,7 @@ var request = require('request-promise')
 var smoment = require('../lib/smoment')
 var moment = require('moment')
 var config = require('../config/import.config')
-var Hbase = require('../lib/hbase/hbase-client')
-var hbase = new Hbase(config.get('hbase'))
+var hbase = require('../lib/hbase')
 var table = 'agg_exchanges_external'
 
 /**

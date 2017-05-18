@@ -4,8 +4,8 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account payments'});
 var smoment = require('../../lib/smoment');
 var utils = require('../../lib/utils');
+var hbase = require('../../lib/hbase')
 var types = ['sent', 'received'];
-var hbase;
 
 /**
  * AccountPayments
@@ -138,7 +138,5 @@ var AccountPayments = function (req, res, next) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return AccountPayments;
-};
+module.exports = AccountPayments;
+

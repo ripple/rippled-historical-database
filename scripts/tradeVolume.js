@@ -4,7 +4,7 @@ var async = require('async')
 var Promise = require('bluebird')
 var smoment = require('../lib/smoment')
 var config = require('../config/import.config')
-var Hbase = require('../lib/hbase/hbase-client')
+var Hbase = require('../lib/hbase')
 var hbaseOptions = config.get('hbase')
 var hbase
 

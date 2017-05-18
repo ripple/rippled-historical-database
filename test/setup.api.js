@@ -1,24 +1,16 @@
 /* eslint no-unused-vars:0 */
 'use strict'
+var config = require('../config')
+config.file('defaults', __dirname + '/test_config.json')
 
 var Server = require('../api/server')
-var config = require('./config')
 var assert = require('assert')
 var request = require('request')
-var hbaseConfig = config.get('hbase')
-var prefix = config.get('prefix')
-var port = config.get('port') || 7111
+var port = config.get('port') || 7112
 var server
-
-hbaseConfig.prefix = prefix
-hbaseConfig.topologyPrefix = prefix
-hbaseConfig.logLevel = 2
-hbaseConfig.max_sockets = 200
-hbaseConfig.timeout = 60000
 
 server = new Server({
   postgres: undefined,
-  hbase: hbaseConfig,
   port: port,
   cacheControl: {
     'max-age': 10,
@@ -50,6 +42,7 @@ describe('server setup', function() {
       json: true
     },
     function(err, res) {
+      console.log(url, err)
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(res.headers['cache-control'],

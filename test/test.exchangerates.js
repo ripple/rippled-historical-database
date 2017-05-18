@@ -1,6 +1,6 @@
 'use strict';
 
-var config = require('./config');
+var config = require('../config');
 var request = require('request');
 var assert = require('assert');
 var port = config.get('port') || 7111;

@@ -3,7 +3,7 @@ var smoment = require('../../lib/smoment');
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get tx'});
 var utils = require('../../lib/utils');
-var hbase;
+var hbase = require('../../lib/hbase')
 
 var txTypes = [
   'AccountSet',
@@ -201,7 +201,4 @@ var getTransactions = function (req, res, next) {
 
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getTransactions;
-};
+module.exports = getTransactions

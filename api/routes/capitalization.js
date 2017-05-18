@@ -6,7 +6,7 @@ var smoment = require('../../lib/smoment');
 var utils = require('../../lib/utils');
 var intervals = ['day', 'week', 'month'];
 var validator = require('ripple-address-codec');
-var hbase;
+var hbase = require('../../lib/hbase')
 
 var getCapitalization = function (req, res, next) {
 
@@ -127,7 +127,4 @@ var getCapitalization = function (req, res, next) {
 
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getCapitalization;
-};
+module.exports = getCapitalization

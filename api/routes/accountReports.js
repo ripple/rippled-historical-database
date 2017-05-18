@@ -2,8 +2,7 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'Account Reports'});
 var utils = require('../../lib/utils');
 var smoment = require('../../lib/smoment');
-var hbase;
-
+var hbase = require('../../lib/hbase')
 /**
  * Account Reports
  */
@@ -153,7 +152,4 @@ var AccountReports = function (req, res, next) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return AccountReports;
-};
+module.exports = AccountReports

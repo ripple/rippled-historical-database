@@ -3,8 +3,9 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'exchange rate'});
 var smoment = require('../../lib/smoment');
+var hbase = require('../../lib/hbase')
 var PRECISION = 8;
-var hbase;
+
 
 function getExchangeRate(req, res) {
 
@@ -94,7 +95,4 @@ function getExchangeRate(req, res) {
 }
 
 
-module.exports = function(db) {
-  hbase = db;
-  return getExchangeRate;
-};
+module.exports = getExchangeRate

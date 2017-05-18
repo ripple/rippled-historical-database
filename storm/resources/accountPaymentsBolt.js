@@ -16,17 +16,7 @@ var log = new Logger({
 require('./exception')(log);
 
 function AccountPaymentsBolt() {
-  var options = config.get('hbase2');
-
-  if (!options) {
-    options = config.get('hbase');
-  }
-
-  options.logLevel = config.get('logLevel');
-  options.logFile  = config.get('logFile');
-
-  this.payments = new Aggregation(options);
-
+  this.payments = new Aggregation();
   BasicBolt.call(this);
 }
 
