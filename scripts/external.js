@@ -386,9 +386,11 @@ function getJubi() {
  * getKraken
  */
 
-function getKraken() {
+function getKraken(currency) {
+
   var url = 'https://api.kraken.com/0/public/OHLC'
-  var pair = 'XXRPXXBT'
+  var pair = 'XXRP' +
+    (currency === 'BTC' ? 'XXBT' : 'Z' + currency)
 
   return request({
     url: url,
@@ -414,7 +416,7 @@ function getKraken() {
         source: 'kraken.com',
         interval: '5minute',
         base_currency: 'XRP',
-        counter_currency: 'BTC',
+        counter_currency: currency,
         base_volume: Number(r[6]),
         counter_volume: Number(r[6]) / vwap,
         open: round(Number(r[1]), 6),
@@ -426,7 +428,7 @@ function getKraken() {
       })
     })
 
-    console.log('kraken.com', results.length)
+    console.log('kraken.com', currency, results.length)
     return results
   })
   .catch(function(e) {
@@ -544,6 +546,9 @@ function reduce(data) {
  */
 
 function save(data) {
+  //console.log(data)
+  process.exit()
+
   var rows = {}
   data.forEach(function(rowset) {
     if (!rowset) {
@@ -602,6 +607,10 @@ function savePeriod(period, increment) {
     'poloniex.com|XRP|BTC',
     'poloniex.com|XRP|USD',
     'kraken.com|XRP|BTC',
+    'kraken.com|XRP|USD',
+    'kraken.com|XRP|EUR',
+    'kraken.com|XRP|CAD',
+    'kraken.com|XRP|JPY',
     'btc38.com|XRP|CNY',
     'btc38.com|XRP|BTC',
     'jubi.com|XRP|CNY'
@@ -669,6 +678,11 @@ function savePeriod(period, increment) {
 
 Promise.all([
   //getCoincheck(),
+  getKraken('BTC'),
+  getKraken('USD'),
+  getKraken('EUR'),
+  getKraken('CAD'),
+  getKraken('JPY'),
   getCoinone(),
   getBitstamp('BTC'),
   getBitstamp('USD'),
@@ -678,7 +692,6 @@ Promise.all([
   getPoloniex('BTC'),
   getPoloniex('USDT'),
   getJubi(),
-  getKraken(),
   getBittrex()
 ])
 .then(save)
