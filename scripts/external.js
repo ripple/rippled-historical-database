@@ -107,6 +107,90 @@ function getBitstamp(currency) {
   })
 }
 
+/**
+ * getBitso
+ */
+
+function getBitfinex(currency) {
+
+  var pair = ('xrp' + currency).toLowerCase()
+  var url = 'https://api.bitfinex.com/v1/trades/'
+
+
+  return request({
+    url: url + pair,
+    json: true
+  }).then(function(resp) {
+    var buckets = {}
+
+    resp.forEach(function(d) {
+      var bucket = moment.unix(d.timestamp).utc()
+      var price = Number(d.price)
+      var amount = Number(d.amount)
+
+      bucket = bucket.startOf('minute')
+      .subtract(bucket.minutes() % 5, 'minute')
+      .format('YYYY-MM-DDTHH:mm:ss[Z]')
+
+      if (!buckets[bucket]) {
+        buckets[bucket] = {
+          base_volume: 0,
+          counter_volume: 0,
+          count: 0,
+          buy_volume: 0,
+          sell_volume: 0,
+          buy_count: 0,
+          sell_count: 0,
+          open: price,
+          high: price,
+          low: price,
+          close: price
+        }
+      }
+
+      if (price > buckets[bucket].high) {
+        buckets[bucket].high = price
+      }
+
+      if (price < buckets[bucket].low) {
+        buckets[bucket].low = price
+      }
+
+
+      buckets[bucket].close = price
+      buckets[bucket].base_volume += amount
+      buckets[bucket].counter_volume += amount * price
+      buckets[bucket].count++
+
+      if (d.type === 'sell') {
+        buckets[bucket].sell_volume += amount
+        buckets[bucket].sell_count++
+      } else {
+        buckets[bucket].buy_volume += amount
+        buckets[bucket].buy_count++
+      }
+    })
+
+    var results = Object.keys(buckets).map(function(key) {
+      var row = buckets[key]
+      row.source = 'bitfinex.com'
+      row.interval = '5minute'
+      row.base_currency = 'XRP'
+      row.counter_currency = currency
+      row.date = key
+      row.vwap = row.counter_volume / row.base_volume
+      row.vwap = round(row.vwap, 6)
+      return row
+    })
+
+    // drop the oldest row,
+    // since we dont know if
+    // all exchanges were represented
+    results.pop()
+    console.log('bitfinex.com', currency, results.length)
+    return results
+  })
+}
 
 /**
  * getBitso
@@ -691,6 +775,8 @@ function savePeriod(period, increment) {
   var markets = [
     //'coincheck.com|XRP|JPY',
     'coinone.co.kr|XRP|KRW',
+    'bitfinex.com|XRP|USD',
+    'bitfinex.com|XRP|BTC',
     'bitso.com|XRP|MXN',
     'bitso.com|XRP|BTC',
     'bitstamp.net|XRP|BTC',
@@ -775,6 +861,8 @@ function savePeriod(period, increment) {
 
 Promise.all([
   //getCoincheck(),
+  getBitfinex('USD'),
+  getBitfinex('BTC'),
   getBitso('MXN'),
   getBitso('BTC'),
   getKraken('BTC'),
