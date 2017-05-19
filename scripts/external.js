@@ -105,10 +105,13 @@ function getBitstamp(currency) {
     console.log('bitstamp.net', currency, results.length)
     return results
   })
+  .catch(function(e) {
+    console.log('bitstamp error:', e)
+  })
 }
 
 /**
- * getBitso
+ * getBitfinex
  */
 
 function getBitfinex(currency) {
@@ -189,6 +192,9 @@ function getBitfinex(currency) {
     results.pop()
     console.log('bitfinex.com', currency, results.length)
     return results
+  })
+  .catch(function(e) {
+    console.log('bitfinex error:', e)
   })
 }
 
@@ -279,6 +285,9 @@ function getBitso(currency) {
     console.log('bitso.com', currency, results.length)
     return results
   })
+  .catch(function(e) {
+    console.log('bitso error:', e)
+  })
 }
 
 /**
@@ -354,6 +363,9 @@ function getCoinone() {
     results.pop()
     console.log('coinone.co.kr', results.length)
     return results
+  })
+  .catch(function(e) {
+    console.log('coinone error:', e)
   })
 }
 
