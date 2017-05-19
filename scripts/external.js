@@ -691,8 +691,8 @@ function savePeriod(period, increment) {
   var markets = [
     //'coincheck.com|XRP|JPY',
     'coinone.co.kr|XRP|KRW',
-    'bitso.co.kr|XRP|MXN',
-    'bitso.co.kr|XRP|BTC',
+    'bitso.com|XRP|MXN',
+    'bitso.com|XRP|BTC',
     'bitstamp.net|XRP|BTC',
     'bitstamp.net|XRP|USD',
     'bitstamp.net|XRP|EUR',
@@ -725,6 +725,10 @@ function savePeriod(period, increment) {
         startRow: startRow,
         stopRow: stopRow
       }, function(err, resp) {
+
+        if (!resp.length) {
+          console.log(m + ': no data')
+        }
 
         if (err) {
           reject(err)
