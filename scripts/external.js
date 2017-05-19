@@ -102,13 +102,103 @@ function getBitstamp(currency) {
     // since we dont know if
     // all exchanges were represented
     results.pop()
-    console.log('bitstamp.net', results.length)
+    console.log('bitstamp.net', currency, results.length)
+    return results
+  })
+}
+
+
+/**
+ * getBitso
+ */
+
+function getBitso(currency) {
+
+  var pair = ('xrp_' + currency).toLowerCase()
+  var url = 'https://api.bitso.com/v3/trades'
+
+
+  return request({
+    url: url,
+    json: true,
+    qs: {
+      book: pair,
+      limit: 100
+    }
+  }).then(function(resp) {
+    var buckets = {}
+
+    resp.payload.forEach(function(d) {
+      var bucket = moment(d.created_at).utc()
+      var price = Number(d.price)
+      var amount = Number(d.amount)
+
+      bucket = bucket.startOf('minute')
+      .subtract(bucket.minutes() % 5, 'minute')
+      .format('YYYY-MM-DDTHH:mm:ss[Z]')
+
+      if (!buckets[bucket]) {
+        buckets[bucket] = {
+          base_volume: 0,
+          counter_volume: 0,
+          count: 0,
+          buy_volume: 0,
+          sell_volume: 0,
+          buy_count: 0,
+          sell_count: 0,
+          open: price,
+          high: price,
+          low: price,
+          close: price
+        }
+      }
+
+      if (price > buckets[bucket].high) {
+        buckets[bucket].high = price
+      }
+
+      if (price < buckets[bucket].low) {
+        buckets[bucket].low = price
+      }
+
+
+      buckets[bucket].close = price
+      buckets[bucket].base_volume += amount
+      buckets[bucket].counter_volume += amount * price
+      buckets[bucket].count++
+
+      if (d.maker_side === 'buy') {
+        buckets[bucket].sell_volume += amount
+        buckets[bucket].sell_count++
+      } else {
+        buckets[bucket].buy_volume += amount
+        buckets[bucket].buy_count++
+      }
+    })
+
+    var results = Object.keys(buckets).map(function(key) {
+      var row = buckets[key]
+      row.source = 'bitso.com'
+      row.interval = '5minute'
+      row.base_currency = 'XRP'
+      row.counter_currency = currency
+      row.date = key
+      row.vwap = row.counter_volume / row.base_volume
+      row.vwap = round(row.vwap, 6)
+      return row
+    })
+
+    // drop the oldest row,
+    // since we dont know if
+    // all exchanges were represented
+    results.pop()
+    console.log('bitso.com', currency, results.length)
     return results
   })
 }
 
 /**
- * getBitstamp
+ * getCoinone
  */
 
 function getCoinone() {
@@ -547,7 +637,7 @@ function reduce(data) {
 
 function save(data) {
   //console.log(data)
-  process.exit()
+  //process.exit()
 
   var rows = {}
   data.forEach(function(rowset) {
@@ -597,9 +687,12 @@ function save(data) {
  */
 
 function savePeriod(period, increment) {
+
   var markets = [
     //'coincheck.com|XRP|JPY',
     'coinone.co.kr|XRP|KRW',
+    'bitso.co.kr|XRP|MXN',
+    'bitso.co.kr|XRP|BTC',
     'bitstamp.net|XRP|BTC',
     'bitstamp.net|XRP|USD',
     'bitstamp.net|XRP|EUR',
@@ -678,6 +771,8 @@ function savePeriod(period, increment) {
 
 Promise.all([
   //getCoincheck(),
+  getBitso('MXN'),
+  getBitso('BTC'),
   getKraken('BTC'),
   getKraken('USD'),
   getKraken('EUR'),
