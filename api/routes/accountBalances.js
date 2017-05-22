@@ -140,8 +140,12 @@ var accountBalances = function (req, res, next) {
 
       successResponse(results, opts);
     }).catch(function(e) {
-      if (e.message === 'Account not found.') {
-        errorResponse({code:404, error: e.message});
+      if (e.message === 'actNotFound') {
+        errorResponse({
+          code: 404,
+          error: 'account not found'
+        });
+
       } else {
         errorResponse(e.toString());
       }
@@ -158,7 +162,7 @@ var accountBalances = function (req, res, next) {
     var code = err.code || 500;
     var message = err.error || 'unable to retrieve balances';
 
-    log.error(err.error || err);
+    log.error(err.error || err, code);
     res.status(code).json({
       result: 'error',
       message: message
