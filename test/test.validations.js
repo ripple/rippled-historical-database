@@ -272,28 +272,6 @@ describe('handleValidation', function() {
       done()
     })
   })
-
-  it('should require a valid signature', function(done) {
-    tmp_validations.handleValidation({
-      flags: 2147483648,
-      ledger_hash: '41EE7EFCAFB912715D7D92D8C328747996ABFDF95A111667D1032F9334AFD45E',
-      ledger_index: 5788323,
-      load_fee: 256000,
-      signature: '30450221009D9D65ADBD77D7D37DC7F40C7EE3249EBCF3033CE99B502EF376B9ECEB536DC80220564ACF514AA546ECF1CB04A4548CDBB24F6C2940A1DF36BDB0556DD9B64BBDE8',
-      signing_time: 514683328,
-      validation_public_key: 'n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr'
-    }).catch(err => {
-      assert.strictEqual(err, 'invalid signature')
-      return Promise.delay(500)
-    }).then(() => {
-      return hbase.getAllRows({
-        table: 'validations_by_ledger'
-      })
-    }).then(rows => {
-      assert.strictEqual(rows.length, 0)
-      done()
-    })
-  })
 })
 
 describe('validations import', function() {
