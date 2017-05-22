@@ -17,7 +17,6 @@
   "license": "ISC",
   "dependencies": {
     "async": "^0.9.0",
-    "babel-runtime": "6.6.1",
     "bignumber.js": "2.0.7",
     "bluebird": "^2.3.4",
     "body-parser": "^1.8.2",
@@ -41,7 +40,6 @@
     "request-promise": "^2.0.0",
     "ripple-address-codec": "2.0.1",
     "ripple-binary-codec": "0.1.9",
-    "ripple-domain-verifier": "0.2.1",
     "ripple-lib": "0.17.6",
     "ripple-lib-transactionparser": "0.6.0",
     "serve-favicon": "^2.3.0",

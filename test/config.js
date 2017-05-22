@@ -20,9 +20,7 @@ nconf.argv()
     ripple: {
       server: 'wss://s1.ripple.com:443'
     },
-    'validator-domains': {
-      'n9LYyd8eUVd54NQQWPAJRFPM1bghJjaf1rkdji2haF4zVjeAPjT2': 'ripple.com'
-    }
+    'validators-config': './test/validators.config.json'
   });
 
 module.exports = nconf;
