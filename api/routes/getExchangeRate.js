@@ -46,6 +46,7 @@ function getExchangeRate(req, res) {
   var options = {
     date: smoment(req.query.date),
     strict: (/false/i).test(req.query.strict) ? false : true,
+    live: (/true/i).test(req.query.live) ? true : false,
     base: {},
     counter: {}
   };
