@@ -33,6 +33,13 @@ var getValidations = function(req, res) {
     return;
   }
 
+  var max = smoment()
+  max.moment.subtract(3, 'months')
+
+  if (options.start.moment.diff(max.moment) < 0) {
+    options.start = max
+  }
+
   if (isNaN(options.limit)) {
     options.limit = 200;
 
