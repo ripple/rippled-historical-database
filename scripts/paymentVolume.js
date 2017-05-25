@@ -3,10 +3,8 @@
 var async = require('async')
 var Promise = require('bluebird')
 var smoment = require('../lib/smoment')
-var config = require('../config/import.config')
-var Hbase = require('../lib/hbase')
-var hbaseOptions = config.get('hbase')
-var hbase
+var config = require('../config')
+var hbase = require('../lib/hbase')
 
 var intervals = [
   'hour',
@@ -31,10 +29,8 @@ var options = {
 }
 
 if (!options.save && !options.summary) {
-  hbaseOptions.logLevel = 1
+  config.set('logLevel', 1)
 }
-
-hbase = new Hbase(hbaseOptions)
 
 /**
  * handleAggregation

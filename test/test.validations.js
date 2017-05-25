@@ -14,6 +14,8 @@ var Validations = require('../lib/validations/validations')
 var mockValidations = require('./mock/validations.json')
 var validations = new Validations()
 var port = config.get('port') || 7111
+const valConfig = nconf.file(config.get('validators-config'))
+console.log('val conf', config.get('validators-config'))
 
 describe('handleValidation', function() {
   var tmp_validations
