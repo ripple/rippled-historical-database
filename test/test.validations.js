@@ -8,17 +8,19 @@ var Promise = require('bluebird')
 const Hbase = require('../lib/hbase/hbase-client')
 var smoment = require('../lib/smoment')
 var moment = require('moment')
+const nconf = require('nconf');
 var utils = require('./utils')
 var Validations = require('../lib/validations/validations')
 var mockValidations = require('./mock/validations.json')
 var validations
 
-var hbaseConfig = config.get('hbase')
-var port = config.get('port') || 7111
-var prefix = config.get('prefix')
+const hbaseConfig = config.get('hbase')
+const valConfig = nconf.file(config.get('validators-config'))
+const port = config.get('port') || 7111
+const prefix = config.get('prefix')
 
 hbaseConfig.prefix = prefix
-validations = new Validations(hbaseConfig, config.get('validator-domains'))
+validations = new Validations(hbaseConfig, config.get('validators-config'))
 
 const hbase = new Hbase(hbaseConfig)
 
@@ -270,28 +272,6 @@ describe('handleValidation', function() {
       done()
     })
   })
-
-  it('should require a valid signature', function(done) {
-    tmp_validations.handleValidation({
-      flags: 2147483648,
-      ledger_hash: '41EE7EFCAFB912715D7D92D8C328747996ABFDF95A111667D1032F9334AFD45E',
-      ledger_index: 5788323,
-      load_fee: 256000,
-      signature: '30450221009D9D65ADBD77D7D37DC7F40C7EE3249EBCF3033CE99B502EF376B9ECEB536DC80220564ACF514AA546ECF1CB04A4548CDBB24F6C2940A1DF36BDB0556DD9B64BBDE8',
-      signing_time: 514683328,
-      validation_public_key: 'n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr'
-    }).catch(err => {
-      assert.strictEqual(err, 'invalid signature')
-      return Promise.delay(500)
-    }).then(() => {
-      return hbase.getAllRows({
-        table: 'validations_by_ledger'
-      })
-    }).then(rows => {
-      assert.strictEqual(rows.length, 0)
-      done()
-    })
-  })
 })
 
 describe('validations import', function() {
@@ -324,27 +304,95 @@ describe('validations import', function() {
       assert.ifError(e)
     })
   })
+})
 
-  it('should update validator domains', function(done) {
-    this.timeout(20000)
+describe('verifyDomains', function() {
+  it('should add verified domains from validators config file', function(done) {
+    const valPubKey = 'n9LYyd8eUVd54NQQWPAJRFPM1bghJjaf1rkdji2haF4zVjeAPjT2'
+    const valDomains = valConfig.get('validator-domains')
+
+    assert(valDomains[valPubKey] !== undefined)
 
     validations.verifyDomains()
     .then(() => {
-      return hbase.getAllRows({
-        table: 'validators'
-      })
-    }).then(rows => {
-      rows.forEach(function(row) {
-        if (config.get('validator-domains')[row.validation_public_key]) {
-          assert.strictEqual(row.domain_state, 'verified')
-          assert.strictEqual(row.domain,
-            config.get('validator-domains')[row.validation_public_key])
-        }
-      })
-      done()
+      hbase.getRow({
+        table: 'validators',
+        rowkey: valPubKey
+      }, function(err, row) {
+        assert.strictEqual(row.domain_state, 'verified')
+        assert.strictEqual(row.domain, valDomains[row.validation_public_key])
+        done()
+      });
     })
-    .catch(e => {
-      assert.ifError(e)
+  })
+
+  it('should remove unverified domains based on validators config file',
+      function(done) {
+    const valPubKey = 'n9Kk6U5nSF8EggfmTpMdna96UuXWAVwSsDSXRkXeZ5vLcAFk77tr'
+    const unverifiedVals = valConfig.get('unverified-validators')
+
+    assert(unverifiedVals.indexOf(valPubKey) !== -1)
+
+    hbase.putRow({
+      table: 'validators',
+      rowkey: valPubKey,
+      columns: {
+        domain: 'unverifyme.com',
+        domain_state: 'verified'
+      }
+    }).then(() => {
+      return validations.verifyDomains()
+    }).then(() => {
+      hbase.getRow({
+        table: 'validators',
+        rowkey: valPubKey
+      }, function(err, row) {
+        assert.strictEqual(row.domain_state, 'unverified')
+        assert.strictEqual(row.domain, undefined)
+        done()
+      });
+    })
+  })
+
+  it('should not affect validators missing from validators config file', function(done) {
+    const verifiedVal = 'n9KcuH7Y4q4SD3KoS5uXLhcDVvexpnYkwciCbcX131ehM5ek2BB6'
+    const unverifiedVal = 'n9LXZBs2aBiNsgBkhVJJjDX4xA4DoEBLycF6q8zRhXD1Zu3Kwbe4'
+    const valDomains = valConfig.get('validator-domains')
+    const unverifiedVals = valConfig.get('unverified-validators')
+
+    assert(valDomains[verifiedVal] === undefined)
+    assert(valDomains[unverifiedVal] === undefined)
+    assert(unverifiedVals.indexOf(verifiedVal) === -1)
+    assert(unverifiedVals.indexOf(unverifiedVal) === -1)
+
+    hbase.putRow({
+      table: 'validators',
+      rowkey: verifiedVal,
+      columns: {
+        domain: 'verified.com',
+        domain_state: 'verified'
+      }
+    }).then(() => {
+      return validations.verifyDomains()
+    }).then(() => {
+      hbase.getRows({
+        table: 'validators',
+        rowkeys: [verifiedVal, unverifiedVal]
+      }, function(err, rows) {
+        assert.strictEqual(rows.length, 2)
+
+        rows.forEach(function(row) {
+          if (row.validation_public_key === verifiedVal) {
+            assert.strictEqual(row.domain_state, 'verified')
+            assert.strictEqual(row.domain, 'verified.com')
+          } else {
+            assert.strictEqual(row.validation_public_key, unverifiedVal)
+            assert.strictEqual(row.domain_state, undefined)
+            assert.strictEqual(row.domain, undefined)
+          }
+        })
+        done()
+      })
     })
   })
 })
