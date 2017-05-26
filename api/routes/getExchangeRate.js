@@ -5,7 +5,13 @@ var log = new Logger({scope: 'exchange rate'});
 var smoment = require('../../lib/smoment');
 var hbase = require('../../lib/hbase')
 var PRECISION = 8;
-
+var periods = [
+  '1hour',
+  '1day',
+  '3day',
+  '7day',
+  '30day'
+]
 
 function getExchangeRate(req, res) {
 
@@ -47,6 +53,7 @@ function getExchangeRate(req, res) {
     date: smoment(req.query.date),
     strict: (/false/i).test(req.query.strict) ? false : true,
     live: (/true/i).test(req.query.live) ? true : false,
+    period: (req.query.period || '').toLowerCase(),
     base: {},
     counter: {}
   };
@@ -77,6 +84,15 @@ function getExchangeRate(req, res) {
     return;
   } else if (options.counter.currency !== 'XRP' && !options.counter.issuer) {
     errorResponse({error: 'counter issuer is required', code: 400});
+    return;
+  }
+
+  if (options.period &&
+      periods.indexOf(options.period) === -1) {
+    errorResponse({
+      error: 'invalid period: ' + options.period,
+      code: 400
+    })
     return;
   }
 
