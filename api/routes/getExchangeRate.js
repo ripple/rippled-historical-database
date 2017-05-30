@@ -6,8 +6,8 @@ var smoment = require('../../lib/smoment');
 var hbase = require('../../lib/hbase')
 var PRECISION = 8;
 var periods = [
-  '1hour',
-  '1day',
+  'hour',
+  'day',
   '3day',
   '7day',
   '30day'
