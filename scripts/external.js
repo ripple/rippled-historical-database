@@ -111,6 +111,169 @@ function getBitstamp(currency) {
 }
 
 /**
+ * getBtcxIndia
+ */
+
+function getBtcxIndia() {
+
+  var url = 'https://api.btcxindia.com/trades'
+
+  return request({
+    url: url,
+    json: true
+  })
+  .then(function(resp) {
+    var buckets = {}
+
+    resp.data.transactions.forEach(function(d) {
+      var bucket = moment.utc(d.time, 'YYYY-MM-DD HH:mm:ss')
+      var price = Number(d.price)
+      var amount = Number(d.volume)
+
+      bucket = bucket.startOf('minute')
+      .subtract(bucket.minutes() % 5, 'minute')
+      .format('YYYY-MM-DDTHH:mm:ss[Z]')
+
+      if (!buckets[bucket]) {
+        buckets[bucket] = {
+          base_volume: 0,
+          counter_volume: 0,
+          count: 0,
+          open: price,
+          high: price,
+          low: price,
+          close: price
+        }
+      }
+
+      if (price > buckets[bucket].high) {
+        buckets[bucket].high = price
+      }
+
+      if (price < buckets[bucket].low) {
+        buckets[bucket].low = price
+      }
+
+
+      buckets[bucket].close = price
+      buckets[bucket].base_volume += amount
+      buckets[bucket].counter_volume += amount * price
+      buckets[bucket].count++
+    })
+
+    var results = Object.keys(buckets).map(function(key) {
+      var row = buckets[key]
+      row.source = 'btcxindia.com'
+      row.interval = '5minute'
+      row.base_currency = 'XRP'
+      row.counter_currency = 'INR'
+      row.date = key
+      row.vwap = row.counter_volume / row.base_volume
+      row.vwap = round(row.vwap, 6)
+      return row
+    })
+
+    // drop the oldest row,
+    // since we dont know if
+    // all exchanges were represented
+    results.pop()
+    console.log(results)
+    console.log('btcxindia.com', results.length)
+    return results
+  })
+  .catch(function(e) {
+    console.log('btcxindia error:', e)
+  })
+}
+
+/**
+ * getBitbank
+ */
+
+function getBitbank() {
+
+  var url = 'https://public.bitbank.cc/xrp_jpy/transactions'
+
+  return request({
+    url: url,
+    json: true
+  })
+  .then(function(resp) {
+    var buckets = {}
+
+    resp.data.transactions.forEach(function(d) {
+      var bucket = moment(d.executed_at).utc()
+      var price = Number(d.price)
+      var amount = Number(d.amount)
+
+      bucket = bucket.startOf('minute')
+      .subtract(bucket.minutes() % 5, 'minute')
+      .format('YYYY-MM-DDTHH:mm:ss[Z]')
+
+      if (!buckets[bucket]) {
+        buckets[bucket] = {
+          base_volume: 0,
+          counter_volume: 0,
+          count: 0,
+          buy_volume: 0,
+          sell_volume: 0,
+          buy_count: 0,
+          sell_count: 0,
+          open: price,
+          high: price,
+          low: price,
+          close: price
+        }
+      }
+
+      if (price > buckets[bucket].high) {
+        buckets[bucket].high = price
+      }
+
+      if (price < buckets[bucket].low) {
+        buckets[bucket].low = price
+      }
+
+
+      buckets[bucket].close = price
+      buckets[bucket].base_volume += amount
+      buckets[bucket].counter_volume += amount * price
+      buckets[bucket].count++
+
+      if (d.side === 'sell') {
+        buckets[bucket].sell_volume += amount
+        buckets[bucket].sell_count++
+      } else {
+        buckets[bucket].buy_volume += amount
+        buckets[bucket].buy_count++
+      }
+    })
+
+    var results = Object.keys(buckets).map(function(key) {
+      var row = buckets[key]
+      row.source = 'bitbank.cc'
+      row.interval = '5minute'
+      row.base_currency = 'XRP'
+      row.counter_currency = 'JPY'
+      row.date = key
+      row.vwap = row.counter_volume / row.base_volume
+      row.vwap = round(row.vwap, 6)
+      return row
+    })
+
+    // drop the oldest row,
+    // since we dont know if
+    // all exchanges were represented
+    results.pop()
+    console.log('bitbank.cc', results.length)
+    return results
+  })
+  .catch(function(e) {
+    console.log('bitbank error:', e)
+  })
+}
+
+/**
  * getBitfinex
  */
 
@@ -732,8 +895,8 @@ function reduce(data) {
  */
 
 function save(data) {
-  //console.log(data)
-  //process.exit()
+  // console.log(data)
+  // process.exit()
 
   var rows = {}
   data.forEach(function(rowset) {
@@ -786,6 +949,7 @@ function savePeriod(period, increment) {
 
   var markets = [
     //'coincheck.com|XRP|JPY',
+    'bitbank.cc|XRP|JPY',
     'coinone.co.kr|XRP|KRW',
     'bitfinex.com|XRP|USD',
     'bitfinex.com|XRP|BTC',
@@ -873,6 +1037,8 @@ function savePeriod(period, increment) {
 
 Promise.all([
   //getCoincheck(),
+  getBitbank(),
+  //getBtcxIndia(),
   getBitfinex('USD'),
   getBitfinex('BTC'),
   getBitso('MXN'),
