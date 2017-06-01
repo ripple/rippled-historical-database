@@ -1,23 +1,12 @@
 'use strict';
 
-var config = require('./config');
+var config = require('../config');
 var assert = require('assert');
 var request = require('request');
-var HBase = require('../lib/hbase/hbase-client');
-
+var hbase = require('../lib/hbase');
 var port = config.get('port') || 7111;
 var baseURL = 'http://localhost:' + port + '/v2/health';
-var prefix = config.get('prefix');
 
-var hbaseConfig = config.get('hbase');
-var hbase;
-
-hbaseConfig.prefix = prefix;
-hbaseConfig.max_sockets = 500;
-hbaseConfig.timeout = 60000;
-console.log(hbaseConfig);
-
-hbase = new HBase(hbaseConfig);
 describe('load mock data', function() {
   it('load control', function() {
     return hbase.putRow({

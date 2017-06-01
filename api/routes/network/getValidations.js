@@ -4,7 +4,7 @@ var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'get validations'});
 var smoment = require('../../../lib/smoment');
 var utils = require('../../../lib/utils');
-var hbase;
+var hbase = require('../../../lib/hbase')
 
 var getValidations = function(req, res) {
   var options = {
@@ -31,6 +31,13 @@ var getValidations = function(req, res) {
       code: 400
     });
     return;
+  }
+
+  var max = smoment()
+  max.moment.subtract(3, 'months')
+
+  if (options.start.moment.diff(max.moment) < 0) {
+    options.start = max
   }
 
   if (isNaN(options.limit)) {
@@ -95,7 +102,4 @@ var getValidations = function(req, res) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getValidations;
-};
+module.exports = getValidations

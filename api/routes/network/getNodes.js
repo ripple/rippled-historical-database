@@ -3,7 +3,7 @@
 var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'topology nodes'});
 var smoment = require('../../../lib/smoment');
-var hbase;
+var hbase = require('../../../lib/hbase')
 
 var getNodes = function(req, res) {
   var options = {
@@ -93,7 +93,4 @@ var getNodes = function(req, res) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getNodes;
-};
+module.exports = getNodes

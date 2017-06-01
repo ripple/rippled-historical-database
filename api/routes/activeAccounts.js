@@ -4,7 +4,7 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get ledger'});
 var smoment = require('../../lib/smoment');
 var periods = ['1day', '3day', '7day'];
-var hbase;
+var hbase = require('../../lib/hbase')
 
 function activeAccounts(req, res) {
   var options = {
@@ -227,7 +227,4 @@ function activeAccounts(req, res) {
   }
 }
 
-module.exports = function(db) {
-  hbase = db;
-  return activeAccounts;
-};
+module.exports = activeAccounts

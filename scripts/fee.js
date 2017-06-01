@@ -1,16 +1,14 @@
 var config  = require('../config/import.config');
 var Logger  = require('../lib/logger');
-var Hbase   = require('../lib/hbase/hbase-client');
+var hbase   = require('../lib/hbase');
 var Parser  = require('../lib/ledgerParser');
 var utils   = require('../lib/utils');
 var Promise = require('bluebird');
 var smoment = require('../lib/smoment');
 var binary = require('ripple-binary-codec');
-var options = config.get('hbase');
 
 options.logLevel = 1;
 
-var hbase = new Hbase(options);
 var count = 0;
 
 function getNext(marker) {

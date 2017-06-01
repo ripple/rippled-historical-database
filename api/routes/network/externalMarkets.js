@@ -2,7 +2,7 @@
 
 var Logger = require('../../../lib/logger')
 var log = new Logger({scope: 'external markets'})
-
+var hbase = require('../../../lib/hbase')
 var periods = [
   'hour',
   'day',
@@ -11,7 +11,6 @@ var periods = [
   '30day'
 ]
 
-var hbase
 
 /**
  * getExternalMarketData
@@ -96,7 +95,4 @@ function getExternalMarketData(req, res) {
   })
 }
 
-module.exports = function(db) {
-  hbase = db
-  return getExternalMarketData
-}
+module.exports = getExternalMarketData

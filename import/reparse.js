@@ -1,6 +1,6 @@
 var config   = require('../config/import.config');
 var Logger   = require('../lib/logger');
-var Hbase    = require('../lib/hbase/hbase-client');
+var Hbase    = require('../lib/hbase');
 var Parser   = require('../lib/ledgerParser');
 var utils    = require('../lib/utils');
 

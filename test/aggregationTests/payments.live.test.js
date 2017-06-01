@@ -1,6 +1,6 @@
 var Aggregation  = require('../../lib/aggregation/payments');
 var Parser       = require('../../lib/ledgerParser');
-var Hbase        = require('../../lib/hbase/hbase-client');
+var Hbase        = require('../../lib/hbase');
 var utils        = require('../../lib/utils');
 var Importer     = require('../../lib/ripple-importer');
 

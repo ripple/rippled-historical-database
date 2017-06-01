@@ -4,7 +4,7 @@ var Logger = require('../../../lib/logger')
 var log = new Logger({scope: 'metrics'})
 var smoment = require('../../../lib/smoment')
 var utils = require('../../../lib/utils')
-var hbase
+var hbase = require('../../../lib/hbase')
 var PRECISION = 8
 var intervals = [
   'day',
@@ -241,7 +241,4 @@ function getMetric(metric, req, res) {
   })
 }
 
-module.exports = function(db) {
-  hbase = db
-  return getMetric
-}
+module.exports = getMetric

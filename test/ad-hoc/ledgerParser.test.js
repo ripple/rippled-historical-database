@@ -1,6 +1,6 @@
 var Parser   = require('../../lib/ledgerParser');
 var Importer = require('../../lib/ripple-importer');
-var Hbase    = require('../../lib/hbase/hbase-client');
+var Hbase    = require('../../lib/hbase');
 
 var fs       = require('fs');
 var live     = new Importer({

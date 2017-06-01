@@ -4,8 +4,9 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'normalize'});
 var smoment = require('../../lib/smoment');
 var Promise = require('bluebird');
+var hbase = require('../../lib/hbase')
 var PRECISION = 8;
-var hbase;
+
 
 function normalize(req, res) {
 
@@ -142,7 +143,4 @@ function normalize(req, res) {
 }
 
 
-module.exports = function(db) {
-  hbase = db;
-  return normalize;
-};
+module.exports = normalize

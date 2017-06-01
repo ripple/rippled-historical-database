@@ -1,34 +1,27 @@
 /* eslint max-len:0 */
 'use strict'
 
-var config = require('./config')
+var config = require('../config')
 var assert = require('assert')
 var request = require('request')
 var Promise = require('bluebird')
-const Hbase = require('../lib/hbase/hbase-client')
+var hbase = require('../lib/hbase')
 var smoment = require('../lib/smoment')
 var moment = require('moment')
 const nconf = require('nconf');
 var utils = require('./utils')
 var Validations = require('../lib/validations/validations')
 var mockValidations = require('./mock/validations.json')
-var validations
-
-const hbaseConfig = config.get('hbase')
+var validations = new Validations()
+var port = config.get('port') || 7111
 const valConfig = nconf.file(config.get('validators-config'))
-const port = config.get('port') || 7111
-const prefix = config.get('prefix')
-
-hbaseConfig.prefix = prefix
-validations = new Validations(hbaseConfig, config.get('validators-config'))
-
-const hbase = new Hbase(hbaseConfig)
+console.log('val conf', config.get('validators-config'))
 
 describe('handleValidation', function() {
   var tmp_validations
 
   beforeEach(function(done) {
-    tmp_validations = new Validations(hbaseConfig)
+    tmp_validations = new Validations()
     hbase.deleteAllRows({
       table: 'validations_by_ledger'
     }).then(() => {

@@ -3,7 +3,7 @@
 var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'top currencies'});
 var smoment = require('../../../lib/smoment');
-var hbase;
+var hbase = require('../../../lib/hbase')
 
 var getTopCurrencies = function(req, res) {
   var options = {
@@ -84,7 +84,4 @@ var getTopCurrencies = function(req, res) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getTopCurrencies;
-};
+module.exports = getTopCurrencies

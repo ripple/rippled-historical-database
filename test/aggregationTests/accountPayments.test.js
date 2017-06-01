@@ -1,6 +1,6 @@
 var Aggregation  = require('../../lib/aggregation/accountPayments');
 var Parser       = require('../../lib/ledgerParser');
-var Hbase        = require('../../lib/hbase/hbase-client');
+var Hbase        = require('../../lib/hbase');
 var utils        = require('../../lib/utils');
 var fs           = require('fs');
 var config       = require('../../config/test.config');

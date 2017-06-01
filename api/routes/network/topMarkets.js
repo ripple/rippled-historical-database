@@ -3,7 +3,7 @@
 var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'top markets'});
 var smoment = require('../../../lib/smoment');
-var hbase;
+var hbase = require('../../../lib/hbase')
 
 var getTopMarkets = function(req, res) {
   var options = {
@@ -84,7 +84,4 @@ var getTopMarkets = function(req, res) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getTopMarkets;
-};
+module.exports = getTopMarkets

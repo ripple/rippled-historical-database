@@ -4,7 +4,7 @@ var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'metrics'});
 var smoment = require('../../../lib/smoment');
 var utils = require('../../../lib/utils');
-var hbase;
+var hbase = require('../../../lib/hbase')
 
 function getXrpDistribution(req, res) {
 
@@ -117,7 +117,4 @@ function getXrpDistribution(req, res) {
   }
 }
 
-module.exports = function(db) {
-  hbase = db;
-  return getXrpDistribution;
-};
+module.exports = getXrpDistribution

@@ -3,8 +3,15 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'exchange rate'});
 var smoment = require('../../lib/smoment');
+var hbase = require('../../lib/hbase')
 var PRECISION = 8;
-var hbase;
+var periods = [
+  'hour',
+  'day',
+  '3day',
+  '7day',
+  '30day'
+]
 
 function getExchangeRate(req, res) {
 
@@ -45,6 +52,8 @@ function getExchangeRate(req, res) {
   var options = {
     date: smoment(req.query.date),
     strict: (/false/i).test(req.query.strict) ? false : true,
+    live: (/true/i).test(req.query.live) ? true : false,
+    period: (req.query.period || '').toLowerCase(),
     base: {},
     counter: {}
   };
@@ -78,6 +87,15 @@ function getExchangeRate(req, res) {
     return;
   }
 
+  if (options.period &&
+      periods.indexOf(options.period) === -1) {
+    errorResponse({
+      error: 'invalid period: ' + options.period,
+      code: 400
+    })
+    return;
+  }
+
   if (options.date.moment.diff(smoment().moment) > 10) {
     errorResponse({error: 'must not be a future date', code: 400});
     return;
@@ -94,7 +112,4 @@ function getExchangeRate(req, res) {
 }
 
 
-module.exports = function(db) {
-  hbase = db;
-  return getExchangeRate;
-};
+module.exports = getExchangeRate

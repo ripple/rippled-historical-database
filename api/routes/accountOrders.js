@@ -1,11 +1,12 @@
 'use strict';
 
+var config = require('../../config')
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account orders'});
 var request = require('request');
 var smoment = require('../../lib/smoment');
-var rippleAPI;
-var hbase;
+var rippleAPI = require('../../lib/rippleApi')
+var hbase = require('../../lib/hbase')
 
 function accountOrders(req, res) {
   var options = {
@@ -168,8 +169,4 @@ function accountOrders(req, res) {
   }
 }
 
-module.exports = function(db, r) {
-  hbase = db;
-  rippleAPI = r;
-  return accountOrders;
-};
+module.exports = accountOrders;

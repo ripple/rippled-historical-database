@@ -2,7 +2,7 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account exchanges'});
 var smoment = require('../../lib/smoment');
 var utils = require('../../lib/utils');
-var hbase;
+var hbase = require('../../lib/hbase')
 
 AccountExchanges = function (req, res, next) {
 
@@ -165,7 +165,4 @@ AccountExchanges = function (req, res, next) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return AccountExchanges;
-};
+module.exports = AccountExchanges;

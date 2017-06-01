@@ -1,6 +1,6 @@
 'use strict';
 
-var config = require('./config');
+var config = require('../config');
 var request = require('request');
 var assert = require('assert');
 var port = config.get('port') || 7111;
@@ -23,6 +23,28 @@ describe('exchanges rates API endpoint', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'success');
       assert.strictEqual(body.rate, '0.0000000');
+      done();
+    });
+  });
+
+  it('err on invalid period', function(done) {
+    var url = 'http://localhost:' + port + '/v2/exchange_rates/' +
+      'XRP/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
+
+    request({
+      url: url,
+      json: true,
+      qs: {
+        date: '2015-01-14',
+        period: '13week'
+      }
+    },
+    function(err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(typeof body, 'object');
+      assert.strictEqual(body.result, 'error');
+      assert.strictEqual(body.message, 'invalid period: 13week');
       done();
     });
   });
