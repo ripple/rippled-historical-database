@@ -74,10 +74,7 @@ module.exports = run;
 
 if (require.main === module) {
 
-var config = require('../config/import.config');
-var Hbase = require('../lib/hbase');
-var hbaseOptions = config.get('hbase');
-var hbase = new Hbase(hbaseOptions);
+var hbase = require('../lib/hbase');
 
   run(hbase)
   .then(function() {
