@@ -128,7 +128,7 @@ function getBithumb() {
     var buckets = {}
 
     resp.data.forEach(function(d) {
-      var bucket = moment.utc(d.transaction_date, 'YYYY-MM-DD HH:mm:ss')
+      var bucket = moment.utc(d.transaction_date, 'YYYY-MM-DD HH:mm:ss').utcOffset('-0900')
       var price = Number(d.price)
       var amount = Number(d.units_traded)
 
@@ -1078,12 +1078,12 @@ function savePeriod(period, increment) {
         startRow: startRow,
         stopRow: stopRow
       }, function(err, resp) {
-
         if (err) {
           reject(err)
 
         } else if (!resp.length) {
           console.log(m + ': no data')
+          resolve()
 
         } else {
           var d = reduce(resp)
@@ -1106,13 +1106,15 @@ function savePeriod(period, increment) {
   return Promise.all(tasks)
   .then(function(components) {
     var result = {
-      components: components,
+      components: components.filter(function(d) {
+        return Boolean(d)
+      }),
       period: label,
       total: 0,
       date: end.format()
     }
 
-    components.forEach(function(d) {
+    result.components.forEach(function(d) {
       result.total += d.base_volume
     })
 
