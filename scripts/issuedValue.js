@@ -3,7 +3,15 @@
 var async = require('async')
 var Promise = require('bluebird')
 var smoment = require('../lib/smoment')
+var config = require('../config')
 var hbase = require('../lib/hbase')
+
+var options = {
+  start: config.get('start'),
+  end: config.get('end'),
+  save: config.get('save'),
+  summary: config.get('summary')
+}
 
 /**
  * handleAggregation
