@@ -1,5 +1,5 @@
 'use strict'
-var config = require('../config/import.config')
+var config = require('../config')
 var WebSocket = require('ws')
 var WebHDFS = require('webhdfs')
 var hdfs = WebHDFS.createClient(config.get('hdfs'))
