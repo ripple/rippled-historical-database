@@ -1,6 +1,6 @@
 var Aggregation  = require('../../lib/aggregation/exchanges');
 var Parser       = require('../../lib/ledgerParser');
-var Hbase        = require('../../lib/hbase/hbase-client');
+var Hbase        = require('../../lib/hbase');
 var utils        = require('../../lib/utils');
 var fs           = require('fs');
 var moment       = require('moment');

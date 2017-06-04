@@ -3,7 +3,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'accounts'});
 var smoment = require('../../lib/smoment');
-var hbase;
+var hbase = require('../../lib/hbase')
 
 /**
  * getAccount
@@ -74,7 +74,4 @@ var getAccount = function(req, res, next) {
   });
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getAccount;
-};
+module.exports = getAccount

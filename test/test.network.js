@@ -1,6 +1,6 @@
 'use strict'
 
-var config = require('./config')
+var config = require('../config')
 var request = require('request')
 var Promise = require('bluebird')
 var assert = require('assert')
@@ -8,7 +8,7 @@ var moment = require('moment')
 var smoment = require('../lib/smoment')
 var utils = require('./utils')
 
-var HBase = require('../lib/hbase/hbase-client')
+var hbase = require('../lib/hbase')
 var geolocation = require('../lib/validations/geolocation')
 var saveVersions = require('../scripts/saveVersions')
 var mockExchangeVolume = require('./mock/exchange-volume.json')
@@ -28,25 +28,14 @@ var mockExternalDay = require('./mock/external-markets-day.json')
 var mockExternal3Day = require('./mock/external-markets-3day.json')
 var mockExternal7Day = require('./mock/external-markets-7day.json')
 var mockExternal30Day = require('./mock/external-markets-30day.json')
-
 var port = config.get('port') || 7111
-var prefix = config.get('prefix')
 
-var hbaseConfig = config.get('hbase')
-var hbase
-var geo
 
-hbaseConfig.prefix = prefix
-hbaseConfig.max_sockets = 500
-hbaseConfig.timeout = 60000
-
-geo = geolocation({
-  hbase: hbaseConfig,
-  table: prefix + 'node_state',
+var geo = geolocation({
+  table: config.get('hbase:prefix') + 'node_state',
   columnFamily: 'd'
 })
 
-hbase = new HBase(hbaseConfig)
 
 /**
  * setup

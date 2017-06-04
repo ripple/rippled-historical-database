@@ -1,20 +1,21 @@
-var config = require('./config');
-var assert = require('assert');
-var Parser = require('../lib/ledgerParser');
-var Rest = require('../lib/hbase/hbase-rest');
-var HBase = require('../lib/hbase/hbase-client');
-var Promise = require('bluebird');
-var moment = require('moment');
-var exAggregation = require('../lib/aggregation/exchanges');
-var statsAggregation = require('../lib/aggregation/stats');
-var paymentsAggregation = require('../lib/aggregation/accountPayments');
-var feesAggregation = require('../lib/aggregation/fees');
+var config = require('../config')
+config.file('defaults', __dirname + '/test_config.json')
 
+var assert = require('assert')
+var Parser = require('../lib/ledgerParser')
+var Rest = require('../lib/hbase/hbase-rest')
+var Promise = require('bluebird')
+var moment = require('moment')
+var exAggregation = require('../lib/aggregation/exchanges')
+var statsAggregation = require('../lib/aggregation/stats')
+var paymentsAggregation = require('../lib/aggregation/payments')
+var accountPaymentsAggregation = require('../lib/aggregation/accountPayments')
+var feesAggregation = require('../lib/aggregation/fees')
+
+var hbase = require('../lib/hbase')
 var fs = require('fs');
 var path = __dirname + '/mock/ledgers/';
 var files = fs.readdirSync(path);
-var hbaseConfig = config.get('hbase');
-var statsConfig;
 var updates = [];
 var exchanges = [];
 var payments = [];
@@ -25,16 +26,9 @@ var stats;
 var aggPayments;
 var aggFees;
 
-
-hbaseConfig.prefix = config.get('prefix');
-hbaseConfig.logLevel = 2;
-hbaseConfig.max_sockets = 100;
-hbaseConfig.timeout = 60000;
-
-aggPayments = new paymentsAggregation(hbaseConfig);
-aggFees = new feesAggregation(hbaseConfig);
-stats = new statsAggregation(hbaseConfig);
-hbase = new HBase(hbaseConfig);
+aggAccountPayments = new accountPaymentsAggregation()
+aggFees = new feesAggregation()
+stats = new statsAggregation()
 
 describe('import ledgers', function(done) {
   it('should save ledgers into hbase', function(done) {
@@ -108,7 +102,6 @@ describe('import ledgers', function(done) {
         pairs[pair] = new exAggregation({
           base     : ex.base,
           counter  : ex.counter,
-          hbase    : hbase,
           earliest : moment.unix(ex.time).utc()
         });
       }
@@ -135,18 +128,41 @@ describe('import ledgers', function(done) {
   it('should aggregate account payments', function(done) {
     this.timeout(7000);
     payments.forEach(function(p) {
-      aggPayments.add({
+      aggAccountPayments.add({
         data: p,
         account: p.source
       });
 
-      aggPayments.add({
+      aggAccountPayments.add({
         data: p,
         account: p.destination
       });
     });
     setTimeout(done, 6500);
   });
+
+  it('should aggregate payments', function(done) {
+    this.timeout(4000);
+    var currencies = {}
+    var counter = 0
+
+    payments.forEach(function(p) {
+      var key = p.currency + p.issuer
+
+      if (!currencies[key]) {
+        currencies[key] = new paymentsAggregation({
+          currency: p.currency,
+          issuer: p.issuer,
+        });
+      }
+
+      currencies[key].add(p, function(err) {
+        if (++counter === payments.length) {
+          done()
+        }
+      })
+    })
+  })
 });
 
 function addStats (parsed) {

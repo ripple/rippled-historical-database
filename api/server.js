@@ -4,13 +4,11 @@
 var express = require('express')
 var bodyParser = require('body-parser')
 var compression = require('compression')
-var Hbase = require('../lib/hbase/hbase-client')
 var cors = require('cors')
-var Routes = require('./routes')
+var routes = require('./routes')
 var map = require('./apiMap')
 var json2csv = require('nice-json2csv')
 var favicon = require('serve-favicon')
-var ripple = require('ripple-lib')
 
 /**
  * filterDuplicateQueryParams
@@ -35,10 +33,7 @@ function filterDuplicateQueryParams(req, res, next) {
 
 function Server(options) {
 
-  var rippleAPI = new ripple.RippleAPI(options.ripple)
   var app = express()
-  var hbase = new Hbase(options.hbase)
-  var routes = new Routes(hbase, rippleAPI)
   var cacheControl = ''
   var server
 
@@ -56,18 +51,6 @@ function Server(options) {
   })
 
   console.log('CACHE: ' + (cacheControl || 'none set'))
-
-  rippleAPI.connect()
-  .then(function() {
-    console.log('ripple API connected.')
-  })
-  .catch(function(e) {
-    console.log(e)
-  })
-
-  rippleAPI.on('error', function(errorCode, errorMessage, data) {
-    console.log(errorCode, errorMessage, data)
-  })
 
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({extended: true}))

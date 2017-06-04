@@ -1,4 +1,4 @@
-var config = require('./config');
+var config = require('../config');
 var assert = require('assert');
 var request = require('request');
 var path = require('path');

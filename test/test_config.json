@@ -1,0 +1,20 @@
+{
+  "port": 7112,
+  "hbase": {
+    "prefix": "",
+    "servers": [
+      {
+        "host": "hbase",
+        "port": 9090
+      }
+    ]
+  },
+  "hbase-rest": {
+    "host": "hbase",
+    "port": 8080
+  },
+  "ripple": {
+    "server": "wss://ripple:443"
+  },
+  "validators-config": "./test/validators.config.json"
+}

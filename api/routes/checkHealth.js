@@ -3,8 +3,7 @@
 var Logger = require('../../lib/logger')
 var log = new Logger({scope: 'health check'})
 var moment = require('moment')
-
-var hbase
+var hbase = require('../../lib/hbase')
 
 var defaults = {
   api: {
@@ -276,7 +275,4 @@ function checkHealth(req, res) {
   }
 }
 
-module.exports = function(db) {
-  hbase = db
-  return checkHealth
-}
+module.exports = checkHealth

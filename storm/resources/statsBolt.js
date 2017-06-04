@@ -16,17 +16,7 @@ var log = new Logger({
 require('./exception')(log);
 
 function StatsBolt() {
-  var options = config.get('hbase2');
-
-  if (!options) {
-    options = config.get('hbase');
-  }
-
-  options.logLevel = config.get('logLevel');
-  options.logFile  = config.get('logFile');
-
-  this.stats = new Aggregation(options);
-
+  this.stats = new Aggregation();
   BasicBolt.call(this);
 }
 

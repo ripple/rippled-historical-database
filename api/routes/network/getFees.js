@@ -4,8 +4,7 @@ var Logger = require('../../../lib/logger');
 var log = new Logger({scope: 'network fees'});
 var smoment = require('../../../lib/smoment');
 var utils = require('../../../lib/utils');
-
-var hbase;
+var hbase = require('../../../lib/hbase')
 var intervals = [
   'ledger',
   'hour',
@@ -107,7 +106,4 @@ var getFees = function(req, res) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getFees;
-};
+module.exports = getFees

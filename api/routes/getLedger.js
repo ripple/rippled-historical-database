@@ -3,7 +3,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get ledger'});
 var smoment = require('../../lib/smoment');
-var hbase;
+var hbase = require('../../lib/hbase')
 
 var getLedger = function (req, res, next) {
 
@@ -126,7 +126,4 @@ var getLedger = function (req, res, next) {
 
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getLedger;
-};
+module.exports = getLedger

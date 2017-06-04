@@ -1,24 +1,15 @@
-var config = require('./config');
+var config = require('../config');
 var assert = require('assert');
 var request = require('request');
 var Promise = require('bluebird');
-const Hbase = require('../lib/hbase/hbase-client');
+var hbase = require('../lib/hbase');
 var smoment = require('../lib/smoment');
 var Manifests = require('../lib/validations/manifests');
-const dateFormat = 'YYYY-MM-DDTHH:mm:ss.SSS[Z]';
-
-var hbaseConfig = config.get('hbase');
-var port = config.get('port') || 7111;
-var prefix = config.get('prefix');
-
-hbaseConfig.prefix = prefix;
-
-const hbase = new Hbase(hbaseConfig);
-
+var dateFormat = 'YYYY-MM-DDTHH:mm:ss.SSS[Z]';
 var manifests;
 
 beforeEach(function(done) {
-  manifests = new Manifests(hbaseConfig);
+  manifests = new Manifests();
   hbase.deleteAllRows({
     table: 'manifests_by_master_key'
   }).then(() => {

@@ -3,18 +3,13 @@
 var request = require('request-promise');
 var Promise = require('bluebird');
 var path = require('path');
-var config = require('../config/import.config');
-var Hbase = require('../lib/hbase/hbase-client');
+var config = require('../config');
+var hbase = require('../lib/hbase');
 var spawn = require('child_process').spawn;
 var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport();
 var to = config.get('recipients');
 var interval = 5 * 60 * 1000;
-var options = config.get('hbase');
-var hbase;
-
-options.logLevel = 2;
-hbase = new Hbase(options);
 
 // get topology status
 var getTopologyStatus = function() {

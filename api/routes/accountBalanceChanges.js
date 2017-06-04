@@ -4,6 +4,8 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account balance changes'});
 var smoment = require('../../lib/smoment');
 var utils = require('../../lib/utils');
+var hbase = require('../../lib/hbase')
+
 var types = [
   'transaction_cost',
   'exchange',
@@ -11,8 +13,6 @@ var types = [
   'payment_source',
   'payment_destination'
 ];
-
-var hbase;
 
 /**
  * AccountBalanceChanges
@@ -150,7 +150,4 @@ var AcccountBalanceChanges = function(req, res) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return AcccountBalanceChanges;
-};
+module.exports = AcccountBalanceChanges

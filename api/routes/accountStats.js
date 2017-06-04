@@ -2,8 +2,9 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'Account Stats'});
 var utils = require('../../lib/utils');
 var smoment = require('../../lib/smoment');
+var hbase = require('../../lib/hbase')
 var families = ['transactions', 'value'];
-var hbase;
+
 
 
 /**
@@ -117,7 +118,4 @@ var AccountStats = function (req, res, next) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return AccountStats;
-};
+module.exports = AccountStats

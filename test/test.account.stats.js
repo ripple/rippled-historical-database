@@ -1,24 +1,16 @@
-var config = require('./config');
+var config = require('../config');
 var request = require('request');
 var assert = require('assert');
 var moment = require('moment');
 var Promise = require('bluebird');
 var utils = require('./utils');
-var HBase = require('../lib/hbase/hbase-client');
+var hbase = require('../lib/hbase');
 var txStats = require('./mock/account-stats-tx.json');
 var valueStats = require('./mock/account-stats-value.json');
-var prefix = config.get('prefix');
 var port = config.get('port') || 7111;
-
-var hbaseConfig = config.get('hbase');
 var account = 'r3fRiC42XCDHFkE4vLdJUhsVcx7hFbE5gU';
 
-hbaseConfig.prefix = prefix;
-hbaseConfig.logLevel = 2;
-hbaseConfig.max_sockets = 200;
-hbaseConfig.timeout = 60000;
 
-hbase = new HBase(hbaseConfig);
 
 describe('account stats API endpoint', function() {
 

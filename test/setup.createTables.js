@@ -1,12 +1,12 @@
-var config = require('./config');
+var config = require('../config')
+config.file('defaults', __dirname + '/test_config.json')
+
 var assert = require('assert');
 var Rest = require('../lib/hbase/hbase-rest');
 var restConfig = config.get('hbase-rest');
-var prefix = config.get('prefix');
-var rest;
+restConfig.prefix = config.get('hbase:prefix');
 
-restConfig.prefix = prefix;
-rest = new Rest(restConfig);
+var rest = new Rest(restConfig);
 
 describe('create Hbase tables', function(done) {
   it('should create tables via rest API', function(done) {

@@ -1,21 +1,13 @@
 var config = require('./config');
 var Storm = require('./storm');
-var LedgerStream = require('./lib/ledgerStream');
 var Spout = Storm.Spout;
+var stream = require('./lib/ledgerStream');
 var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport();
 var to = config.get('recipients');
 var exec = require('child_process').exec;
 
 var ledgerSpout;
-var stream;
-var options = {
-  logLevel: config.get('logLevel'),
-  logFile: config.get('logFile'),
-  ripple: config.get('ripple'),
-  hbase: config.get('hbase'),
-  recipients: config.get('recipients')
-}
 
 var Logger = require('./lib/logger');
 var log = new Logger({
@@ -26,8 +18,6 @@ var log = new Logger({
 
 // handle uncaught exceptions
 require('./exception')(log);
-
-stream = new LedgerStream(options);
 
 stream.live.api.on('error', handleAPIError);
 stream.validator.importer.api.on('error', handleAPIError);
@@ -101,7 +91,7 @@ LedgerStreamSpout.prototype.constructor = LedgerStreamSpout;
 
 LedgerStreamSpout.prototype.nextTuple = function(done) {
   var self    = this;
-  var timeout = 100;
+  var timeout = 50;
   var tx;
   var id;
 

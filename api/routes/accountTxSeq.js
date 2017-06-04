@@ -1,7 +1,7 @@
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'account tx by sequence'});
 var intMatch = /^\d+$/;
-var hbase;
+var hbase = require('../../lib/hbase')
 
 var accountTxSeq = function (req, res, next) {
 
@@ -62,7 +62,4 @@ var accountTxSeq = function (req, res, next) {
   };
 }
 
-module.exports = function(db) {
-  hbase = db;
-  return accountTxSeq;
-};
+module.exports = accountTxSeq

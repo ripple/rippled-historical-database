@@ -3,17 +3,26 @@ var smoment = require('../../lib/smoment');
 var Logger = require('../../lib/logger');
 var log = new Logger({scope : 'get tx'});
 var utils = require('../../lib/utils');
-var hbase;
+var hbase = require('../../lib/hbase')
 
 var txTypes = [
-  'Payment',
+  'AccountSet',
+  'TrustSet',
   'OfferCreate',
   'OfferCancel',
-  'AccountSet',
   'SetRegularKey',
-  'TrustSet',
+  'Payment',
+  'EscrowCreate',
+  'EscrowFinish',
+  'EscrowCancel',
   'EnableAmendment',
-  'SetFee'
+  'SetFee',
+  'TicketCreate',
+  'TicketCancel',
+  'SignerListSet',
+  'PaymentChannelCreate',
+  'PaymentChannelFund',
+  'PaymentChannelClaim'
 ];
 
 var txResults = [
@@ -48,7 +57,8 @@ var txResults = [
   'tecNEED_MASTER_KEY',
   'tecDST_TAG_NEEDED',
   'tecINTERNAL',
-  'tecOVERSIZE'
+  'tecOVERSIZE',
+  'tecCRYPTOCONDITION_ERROR'
 ];
 
 
@@ -191,7 +201,4 @@ var getTransactions = function (req, res, next) {
 
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getTransactions;
-};
+module.exports = getTransactions

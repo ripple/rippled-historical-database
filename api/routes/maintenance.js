@@ -2,8 +2,9 @@
 
 var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'maintenance'});
+var hbase = require('../../lib/hbase')
 var domains = ['ripplecharts', 'monitoring_tools'];
-var hbase;
+
 
 /**
  * Stats
@@ -75,7 +76,4 @@ var getMaintenance = function(req, res) {
   }
 };
 
-module.exports = function(db) {
-  hbase = db;
-  return getMaintenance;
-};
+module.exports = getMaintenance
