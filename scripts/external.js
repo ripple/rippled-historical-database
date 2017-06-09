@@ -6,6 +6,7 @@ var smoment = require('../lib/smoment')
 var moment = require('moment')
 var hbase = require('../lib/hbase')
 var table = 'agg_exchanges_external'
+var timeout = 8000
 
 /**
  * round
@@ -31,6 +32,7 @@ function getBitstamp(currency) {
   return request({
     url: url,
     json: true,
+    timeout: timeout,
     qs: {
       time: 'hour'
     }
@@ -121,6 +123,7 @@ function getBithumb() {
   return request({
     url: url,
     json: true,
+    timeout: timeout,
     qs: {
       count: 100
     }
@@ -209,12 +212,13 @@ function getBtcxIndia() {
 
   return request({
     url: url,
-    json: true
+    json: true,
+    timeout: timeout
   })
   .then(function(resp) {
     var buckets = {}
 
-    resp.data.transactions.forEach(function(d) {
+    resp.forEach(function(d) {
       var bucket = moment.utc(d.time, 'YYYY-MM-DD HH:mm:ss')
       var price = Number(d.price)
       var amount = Number(d.volume)
@@ -266,7 +270,6 @@ function getBtcxIndia() {
     // since we dont know if
     // all exchanges were represented
     results.pop()
-    console.log(results)
     console.log('btcxindia.com', results.length)
     return results
   })
@@ -285,7 +288,8 @@ function getBitbank() {
 
   return request({
     url: url,
-    json: true
+    json: true,
+    timeout: timeout
   })
   .then(function(resp) {
     var buckets = {}
@@ -374,7 +378,8 @@ function getBitfinex(currency) {
 
   return request({
     url: url + pair,
-    json: true
+    json: true,
+    timeout: timeout
   }).then(function(resp) {
     var buckets = {}
 
@@ -463,6 +468,7 @@ function getBitso(currency) {
   return request({
     url: url,
     json: true,
+    timeout: timeout,
     qs: {
       book: pair,
       limit: 100
@@ -553,6 +559,7 @@ function getCoinone() {
   return request({
     url: url,
     json: true,
+    timeout: timeout,
     qs: {
       currency: 'xrp',
       period: 'hour'
@@ -632,6 +639,7 @@ function getCoincheck() {
   return request({
     url: url,
     json: true,
+    timeout: timeout,
     qs: {
       limit: 288,
       market: 'coincheck',
@@ -687,6 +695,7 @@ function getBTC38(currency) {
   return request({
     url: url,
     json: true,
+    timeout: timeout,
     qs: {
       symbol: symbol,
       step: 300
@@ -744,7 +753,8 @@ function getPoloniex(currency) {
 
   return request({
     url: url,
-    json: true
+    json: true,
+    timeout: timeout
   }).then(function(resp) {
 
     var results = []
@@ -787,7 +797,8 @@ function getJubi() {
   var url = 'http://www.jubi.com/coin/xrp/k.js'
 
   return request({
-    url: url
+    url: url,
+    timeout: timeout
   }).then(function(resp) {
 
     var results = []
@@ -833,6 +844,7 @@ function getKraken(currency) {
   return request({
     url: url,
     json: true,
+    timeout: timeout,
     qs: {
       pair: pair,
       interval: 5
@@ -885,6 +897,7 @@ function getBittrex() {
   return request({
     url: url,
     json: true,
+    timeout: timeout,
     qs: {
       market: pair
     }
@@ -1130,7 +1143,7 @@ function savePeriod(period, increment) {
 
 Promise.all([
   // getCoincheck(),
-  // getBtcxIndia(),
+  getBtcxIndia(),
   getBithumb(),
   getBitbank(),
   getBitfinex('USD'),
