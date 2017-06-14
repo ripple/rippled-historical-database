@@ -112,6 +112,84 @@ function getBitstamp(currency) {
 }
 
 /**
+ * getBitstamp
+ */
+
+function getKorbit() {
+
+  var url = 'https://api.korbit.co.kr/v1/transactions?currency_pair=xrp_krw'
+
+  return request({
+    url: url,
+    json: true,
+    timeout: timeout,
+    qs: {
+      time: 'hour'
+    }
+  }).then(function(resp) {
+    var buckets = {}
+
+    resp.forEach(function(d) {
+      var bucket = moment(d.timestamp).utc()
+      var price = Number(d.price)
+      var amount = Number(d.amount)
+
+      bucket = bucket.startOf('minute')
+      .subtract(bucket.minutes() % 5, 'minute')
+      .format('YYYY-MM-DDTHH:mm:ss[Z]')
+
+      if (!buckets[bucket]) {
+        buckets[bucket] = {
+          base_volume: 0,
+          counter_volume: 0,
+          count: 0,
+          open: price,
+          high: price,
+          low: price,
+          close: price
+        }
+      }
+
+      if (price > buckets[bucket].high) {
+        buckets[bucket].high = price
+      }
+
+      if (price < buckets[bucket].low) {
+        buckets[bucket].low = price
+      }
+
+
+      buckets[bucket].close = price
+      buckets[bucket].base_volume += amount
+      buckets[bucket].counter_volume += amount * price
+      buckets[bucket].count++
+    })
+
+    var results = Object.keys(buckets).map(function(key) {
+      var row = buckets[key]
+      row.source = 'korbit.co.kr'
+      row.interval = '5minute'
+      row.base_currency = 'XRP'
+      row.counter_currency = 'KRW'
+      row.date = key
+      row.vwap = row.counter_volume / row.base_volume
+      row.vwap = round(row.vwap, 6)
+      return row
+    })
+
+    // drop the oldest row,
+    // since we dont know if
+    // all exchanges were represented
+    results.pop()
+    console.log('korbit.co.kr', results.length)
+    return results
+  })
+  .catch(function(e) {
+    console.log('bitstamp error:', e)
+  })
+}
+
+/**
  * getBithumb
  */
 
@@ -131,7 +209,8 @@ function getBithumb() {
     var buckets = {}
 
     resp.data.forEach(function(d) {
-      var bucket = moment.utc(d.transaction_date, 'YYYY-MM-DD HH:mm:ss').utcOffset('-0900')
+      var bucket = moment.utc(d.transaction_date, 'YYYY-MM-DD HH:mm:ss')
+        .utcOffset('-0900')
       var price = Number(d.price)
       var amount = Number(d.units_traded)
 
@@ -1052,6 +1131,7 @@ function savePeriod(period, increment) {
   var markets = [
     // 'coincheck.com|XRP|JPY',
     // 'btcxindia.com|XRP|KRW',
+    'korbit.co.kr|XRP|KRW',
     'bithumb.com|XRP|KRW',
     'bitbank.cc|XRP|JPY',
     'coinone.co.kr|XRP|KRW',
@@ -1143,6 +1223,7 @@ function savePeriod(period, increment) {
 
 Promise.all([
   // getCoincheck(),
+  getKorbit(),
   getBtcxIndia(),
   getBithumb(),
   getBitbank(),
