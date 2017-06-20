@@ -8,6 +8,32 @@ var hbase = require('../lib/hbase')
 var table = 'agg_exchanges_external'
 var timeout = 8000
 
+  var markets = [
+    // 'coincheck.com|XRP|JPY',
+    // 'btcxindia.com|XRP|KRW',
+    'korbit.co.kr|XRP|KRW',
+    'bithumb.com|XRP|KRW',
+    'bitbank.cc|XRP|JPY',
+    'coinone.co.kr|XRP|KRW',
+    'bitfinex.com|XRP|USD',
+    'bitfinex.com|XRP|BTC',
+    'bitso.com|XRP|MXN',
+    'bitso.com|XRP|BTC',
+    'bitstamp.net|XRP|BTC',
+    'bitstamp.net|XRP|USD',
+    'bitstamp.net|XRP|EUR',
+    'bittrex.com|XRP|BTC',
+    'poloniex.com|XRP|BTC',
+    'poloniex.com|XRP|USD',
+    'kraken.com|XRP|BTC',
+    'kraken.com|XRP|USD',
+    'kraken.com|XRP|EUR',
+    'kraken.com|XRP|CAD',
+    'kraken.com|XRP|JPY',
+    'btc38.com|XRP|CNY',
+    'btc38.com|XRP|BTC',
+    'jubi.com|XRP|CNY'
+  ]
 /**
  * round
  * round to siginficant digits
@@ -45,7 +71,6 @@ function getBitstamp(currency) {
       var amount = Number(d.amount)
 
       bucket = bucket.startOf('minute')
-      .subtract(bucket.minutes() % 5, 'minute')
       .format('YYYY-MM-DDTHH:mm:ss[Z]')
 
       if (!buckets[bucket]) {
@@ -90,7 +115,7 @@ function getBitstamp(currency) {
     var results = Object.keys(buckets).map(function(key) {
       var row = buckets[key]
       row.source = 'bitstamp.net'
-      row.interval = '5minute'
+      row.interval = '1minute'
       row.base_currency = 'XRP'
       row.counter_currency = currency
       row.date = key
@@ -135,7 +160,6 @@ function getKorbit() {
       var amount = Number(d.amount)
 
       bucket = bucket.startOf('minute')
-      .subtract(bucket.minutes() % 5, 'minute')
       .format('YYYY-MM-DDTHH:mm:ss[Z]')
 
       if (!buckets[bucket]) {
@@ -168,7 +192,7 @@ function getKorbit() {
     var results = Object.keys(buckets).map(function(key) {
       var row = buckets[key]
       row.source = 'korbit.co.kr'
-      row.interval = '5minute'
+      row.interval = '1minute'
       row.base_currency = 'XRP'
       row.counter_currency = 'KRW'
       row.date = key
@@ -215,7 +239,6 @@ function getBithumb() {
       var amount = Number(d.units_traded)
 
       bucket = bucket.startOf('minute')
-      .subtract(bucket.minutes() % 5, 'minute')
       .format('YYYY-MM-DDTHH:mm:ss[Z]')
 
       if (!buckets[bucket]) {
@@ -260,7 +283,7 @@ function getBithumb() {
     var results = Object.keys(buckets).map(function(key) {
       var row = buckets[key]
       row.source = 'bithumb.com'
-      row.interval = '5minute'
+      row.interval = '1minute'
       row.base_currency = 'XRP'
       row.counter_currency = 'KRW'
       row.date = key
@@ -272,7 +295,10 @@ function getBithumb() {
     // drop the oldest row,
     // since we dont know if
     // all exchanges were represented
-    results.pop()
+    if (results.length > 1) {
+      results.pop()
+    }
+
     console.log('bithumb.com', results.length)
     return results
   })
@@ -303,7 +329,6 @@ function getBtcxIndia() {
       var amount = Number(d.volume)
 
       bucket = bucket.startOf('minute')
-      .subtract(bucket.minutes() % 5, 'minute')
       .format('YYYY-MM-DDTHH:mm:ss[Z]')
 
       if (!buckets[bucket]) {
@@ -336,7 +361,7 @@ function getBtcxIndia() {
     var results = Object.keys(buckets).map(function(key) {
       var row = buckets[key]
       row.source = 'btcxindia.com'
-      row.interval = '5minute'
+      row.interval = '1minute'
       row.base_currency = 'XRP'
       row.counter_currency = 'INR'
       row.date = key
@@ -379,7 +404,6 @@ function getBitbank() {
       var amount = Number(d.amount)
 
       bucket = bucket.startOf('minute')
-      .subtract(bucket.minutes() % 5, 'minute')
       .format('YYYY-MM-DDTHH:mm:ss[Z]')
 
       if (!buckets[bucket]) {
@@ -424,7 +448,7 @@ function getBitbank() {
     var results = Object.keys(buckets).map(function(key) {
       var row = buckets[key]
       row.source = 'bitbank.cc'
-      row.interval = '5minute'
+      row.interval = '1minute'
       row.base_currency = 'XRP'
       row.counter_currency = 'JPY'
       row.date = key
@@ -468,7 +492,6 @@ function getBitfinex(currency) {
       var amount = Number(d.amount)
 
       bucket = bucket.startOf('minute')
-      .subtract(bucket.minutes() % 5, 'minute')
       .format('YYYY-MM-DDTHH:mm:ss[Z]')
 
       if (!buckets[bucket]) {
@@ -513,7 +536,7 @@ function getBitfinex(currency) {
     var results = Object.keys(buckets).map(function(key) {
       var row = buckets[key]
       row.source = 'bitfinex.com'
-      row.interval = '5minute'
+      row.interval = '1minute'
       row.base_currency = 'XRP'
       row.counter_currency = currency
       row.date = key
@@ -561,7 +584,6 @@ function getBitso(currency) {
       var amount = Number(d.amount)
 
       bucket = bucket.startOf('minute')
-      .subtract(bucket.minutes() % 5, 'minute')
       .format('YYYY-MM-DDTHH:mm:ss[Z]')
 
       if (!buckets[bucket]) {
@@ -606,7 +628,7 @@ function getBitso(currency) {
     var results = Object.keys(buckets).map(function(key) {
       var row = buckets[key]
       row.source = 'bitso.com'
-      row.interval = '5minute'
+      row.interval = '1minute'
       row.base_currency = 'XRP'
       row.counter_currency = currency
       row.date = key
@@ -653,7 +675,6 @@ function getCoinone() {
       var amount = Number(d.qty)
 
       bucket = bucket.startOf('minute')
-      .subtract(bucket.minutes() % 5, 'minute')
       .format('YYYY-MM-DDTHH:mm:ss[Z]')
 
       if (!buckets[bucket]) {
@@ -686,7 +707,7 @@ function getCoinone() {
     var results = Object.keys(buckets).map(function(key) {
       var row = buckets[key]
       row.source = 'coinone.co.kr'
-      row.interval = '5minute'
+      row.interval = '1minute'
       row.base_currency = 'XRP'
       row.counter_currency = 'KRW'
       row.date = key
@@ -999,7 +1020,6 @@ function getBittrex() {
 
 
       bucket = bucket.startOf('minute')
-      .subtract(bucket.minutes() % 5, 'minute')
       .format('YYYY-MM-DDTHH:mm:ss[Z]')
 
       if (!buckets[bucket]) {
@@ -1018,7 +1038,6 @@ function getBittrex() {
     var results = Object.keys(buckets).map(function(key) {
       var row = buckets[key]
       row.source = 'bittrex.com'
-      row.interval = '5minute'
       row.base_currency = 'XRP'
       row.counter_currency = 'BTC'
       row.date = key
@@ -1123,37 +1142,115 @@ function save(data) {
 }
 
 /**
+ * save5minute
+ */
+
+function save5minute() {
+
+  var end = smoment()
+  var start = smoment()
+  var tasks = []
+
+  // save single market
+  function saveMarket(m) {
+    return new Promise(function(resolve, reject) {
+      var params = m.split('|')
+      var startRow = m + '|1minute|' + start.hbaseFormatStartRow()
+      var stopRow = m + '|1minute|' + end.hbaseFormatStopRow()
+
+      hbase.getScan({
+        table: table,
+        startRow: startRow,
+        stopRow: stopRow
+      }, function(err, resp) {
+        if (err) {
+          reject(err)
+
+        } else if (!resp.length) {
+          console.log(m + ': no data')
+          resolve()
+
+        } else {
+          var buckets = {}
+
+          resp.forEach(function(d) {
+            var bucket = moment.utc(d.date)
+            var base_volume = Number(d.base_volume)
+            var counter_volume = Number(d.counter_volume)
+            var open = Number(d.open)
+            var high = Number(d.high)
+            var low = Number(d.low)
+            var close = Number(d.close)
+            var count = d.count ? Number(d.count) : undefined
+
+            bucket = bucket.startOf('minute')
+            .subtract(bucket.minutes() % 5, 'minute')
+            .format('YYYY-MM-DDTHH:mm:ss[Z]')
+
+            if (!buckets[bucket]) {
+              buckets[bucket] = {
+                base_volume: 0,
+                counter_volume: 0,
+                count: 0,
+                open: open,
+                high: high,
+                low: low,
+                close: close
+              }
+            }
+
+            if (high > buckets[bucket].high) {
+              buckets[bucket].high = high
+            }
+
+            if (low < buckets[bucket].low) {
+              buckets[bucket].low = low
+            }
+
+            if (count) {
+              buckets[bucket].count += count
+            }
+
+            buckets[bucket].close = close
+            buckets[bucket].base_volume += base_volume
+            buckets[bucket].counter_volume += counter_volume
+          })
+
+          var results = Object.keys(buckets).map(function(key) {
+            var row = buckets[key]
+            row.source = params[0]
+            row.interval = '5minute'
+            row.base_currency = params[1]
+            row.counter_currency = params[2]
+            row.date = key
+            row.vwap = row.counter_volume / row.base_volume
+            row.vwap = round(row.vwap, 6)
+            return row
+          })
+
+          console.log(m, results.length)
+          resolve(results)
+        }
+      })
+    })
+  }
+
+  start.moment.subtract(2, 'hour')
+
+  markets.forEach(function(m) {
+    tasks.push(saveMarket(m))
+  })
+
+  return Promise.all(tasks)
+  .then(save)
+
+}
+
+/**
  * savePeriod
  */
 
 function savePeriod(period, increment) {
-
-  var markets = [
-    // 'coincheck.com|XRP|JPY',
-    // 'btcxindia.com|XRP|KRW',
-    'korbit.co.kr|XRP|KRW',
-    'bithumb.com|XRP|KRW',
-    'bitbank.cc|XRP|JPY',
-    'coinone.co.kr|XRP|KRW',
-    'bitfinex.com|XRP|USD',
-    'bitfinex.com|XRP|BTC',
-    'bitso.com|XRP|MXN',
-    'bitso.com|XRP|BTC',
-    'bitstamp.net|XRP|BTC',
-    'bitstamp.net|XRP|USD',
-    'bitstamp.net|XRP|EUR',
-    'bittrex.com|XRP|BTC',
-    'poloniex.com|XRP|BTC',
-    'poloniex.com|XRP|USD',
-    'kraken.com|XRP|BTC',
-    'kraken.com|XRP|USD',
-    'kraken.com|XRP|EUR',
-    'kraken.com|XRP|CAD',
-    'kraken.com|XRP|JPY',
-    'btc38.com|XRP|CNY',
-    'btc38.com|XRP|BTC',
-    'jubi.com|XRP|CNY'
-  ]
 
   var tasks = []
   var end = smoment()
@@ -1248,6 +1345,7 @@ Promise.all([
   getBittrex()
 ])
 .then(save)
+.then(save5minute)
 .then(savePeriod.bind(this, 'hour', 1))
 .then(savePeriod.bind(this, 'day', 1))
 .then(savePeriod.bind(this, 'day', 3))
