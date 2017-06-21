@@ -11,8 +11,9 @@ var timeout = 8000
   var markets = [
     // 'coincheck.com|XRP|JPY',
     // 'btcxindia.com|XRP|KRW',
-    'korbit.co.kr|XRP|KRW',
     'bithumb.com|XRP|KRW',
+    'bittrex.com|XRP|BTC',
+    'korbit.co.kr|XRP|KRW',
     'bitbank.cc|XRP|JPY',
     'coinone.co.kr|XRP|KRW',
     'bitfinex.com|XRP|USD',
@@ -22,7 +23,6 @@ var timeout = 8000
     'bitstamp.net|XRP|BTC',
     'bitstamp.net|XRP|USD',
     'bitstamp.net|XRP|EUR',
-    'bittrex.com|XRP|BTC',
     'poloniex.com|XRP|BTC',
     'poloniex.com|XRP|USD',
     'kraken.com|XRP|BTC',
@@ -1012,12 +1012,11 @@ function getBittrex() {
 
     resp.result.forEach(function(d) {
       var bucket = moment.utc(d.TimeStamp)
-
+      var price = Number(d.Price)
 
       data.base += d.Quantity
       data.counter += d.Total
       data.count++
-
 
       bucket = bucket.startOf('minute')
       .format('YYYY-MM-DDTHH:mm:ss[Z]')
@@ -1026,10 +1025,23 @@ function getBittrex() {
         buckets[bucket] = {
           base_volume: 0,
           counter_volume: 0,
-          count: 0
+          count: 0,
+          open: price,
+          high: price,
+          low: price,
+          close: price
         }
       }
 
+      if (price > buckets[bucket].high) {
+        buckets[bucket].high = price
+      }
+
+      if (price < buckets[bucket].low) {
+        buckets[bucket].low = price
+      }
+
+      buckets[bucket].close = price
       buckets[bucket].base_volume += d.Quantity
       buckets[bucket].counter_volume += d.Total
       buckets[bucket].count++
@@ -1038,6 +1050,7 @@ function getBittrex() {
     var results = Object.keys(buckets).map(function(key) {
       var row = buckets[key]
       row.source = 'bittrex.com'
+      row.interval = '1minute'
       row.base_currency = 'XRP'
       row.counter_currency = 'BTC'
       row.date = key
@@ -1295,6 +1308,7 @@ function savePeriod(period, increment) {
 
   return Promise.all(tasks)
   .then(function(components) {
+
     var result = {
       components: components.filter(function(d) {
         return Boolean(d)
@@ -1320,9 +1334,9 @@ function savePeriod(period, increment) {
 
 Promise.all([
   // getCoincheck(),
+  getBithumb(),
   getKorbit(),
   getBtcxIndia(),
-  getBithumb(),
   getBitbank(),
   getBitfinex('USD'),
   getBitfinex('BTC'),
