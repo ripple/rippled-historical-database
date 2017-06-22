@@ -5,7 +5,7 @@ var log = new Logger({scope : 'account balances'});
 var request = require('request');
 var smoment = require('../../lib/smoment');
 var rippleAddress = require('ripple-address-codec');
-var rippleAPI = require('../../lib/rippleApi')
+var rippled = require('../../lib/rippled')
 var hbase = require('../../lib/hbase')
 
 var accountBalances = function (req, res, next) {
@@ -106,28 +106,12 @@ var accountBalances = function (req, res, next) {
   */
 
   function getBalances(opts) {
-    var params = {
-      ledgerVersion: opts.ledger_index,
-      currency: opts.currency,
-      counterparty: opts.counterparty,
-      limit: opts.limit ? Number(opts.limit) : undefined
-    };
-
-    if (!rippleAPI.isConnected()) {
-      errorResponse({
-        code: 500,
-        error: 'rippled connection error.'
-      });
-      rippleAPI.disconnect()
-      .then(function() {
-        return rippleAPI.connect();
-      }).catch(function(e) {
-        log.error(e);
-      });
-      return;
-    }
-
-    rippleAPI.getBalances(opts.account, params)
+    rippled.getBalances({
+      account: opts.account,
+      ledger: opts.ledger_index,
+      limit: opts.limit,
+      counterparty: opts.counterparty
+    })
     .then(function(balances) {
       var results = {
         result: 'success'
@@ -140,7 +124,7 @@ var accountBalances = function (req, res, next) {
 
       successResponse(results, opts);
     }).catch(function(e) {
-      if (e.message === 'actNotFound') {
+      if (e.message === 'Account not found.') {
         errorResponse({
           code: 404,
           error: 'account not found'

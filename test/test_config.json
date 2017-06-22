@@ -1,5 +1,6 @@
 {
   "port": 7112,
+  "logLevel": 2,
   "hbase": {
     "prefix": "",
     "servers": [
