@@ -17,7 +17,7 @@ describe('account offers API endpoint', function() {
     function (err, res, body) {
       assert.ifError(err);
       assert.strictEqual(body.result, 'error')
-      assert.strictEqual(body.message, 'rippled connection error.')
+      assert.strictEqual(body.message, 'unable to retrieve orders')
       done();
     });
   });

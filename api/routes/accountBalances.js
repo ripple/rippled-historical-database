@@ -130,6 +130,12 @@ var accountBalances = function (req, res, next) {
           error: 'account not found'
         });
 
+      } else if (e.message === 'ledgerNotFound') {
+        errorResponse({
+          code: 400,
+          error: 'the date provided is too old'
+        });
+
       } else {
         errorResponse(e.toString());
       }
