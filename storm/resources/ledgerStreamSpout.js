@@ -6,7 +6,7 @@ var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport();
 var to = config.get('recipients');
 var exec = require('child_process').exec;
-
+var name = config.get('name') || 'unnamed';
 var ledgerSpout;
 
 var Logger = require('./lib/logger');
@@ -35,7 +35,7 @@ function notify(message, kill) {
   var params = {
     from: 'Storm Import<storm-import@ripple.com>',
     to: to,
-    subject: 'rippleAPI error',
+    subject: name + ' - rippleAPI error',
     html: 'The import topology received ' +
       'a rippleAPI error: <br /><br />\n' +
       '<blockquote><pre>' + message + '</pre></blockquote><br />\n'
@@ -57,7 +57,7 @@ function notify(message, kill) {
  */
 
 function killTopology() {
-  exec('storm kill "ripple-ledger-importer"',
+  exec('storm kill "ripple-ledger-importer" -w 0',
        function callback(e, stdout, stderr) {
     if (e) {
       log.error(e);
@@ -257,11 +257,12 @@ LedgerStreamSpout.prototype.fail = function(id, done) {
   var parts  = id.split('|');
   var data   = this.pending[parts[0]];
   var txData = data ? data.transactions[parts[1]] : null;
+  var max = 2
 
   if (!data) {
     self.log('Received FAIL for - ' + id + ' Stopping, ledger failed');
 
-  } else if (txData && ++txData.attempts <= 3) {
+  } else if (txData && ++txData.attempts <= max) {
     self.log('Received FAIL for - ' + id + ' Retrying, attempt #' + txData.attempts);
     self.emit({
       tuple  : [txData.tx],
@@ -273,7 +274,7 @@ LedgerStreamSpout.prototype.fail = function(id, done) {
 
   } else {
     if (txData) {
-      self.log('Received FAIL for - ' + id + ' - Stopping after 3 attempts');
+      self.log('Received FAIL for - ' + id + ' - Stopping after ' + max + ' attempts');
     } else {
       self.log('Received Fail for - ' + id);
     }

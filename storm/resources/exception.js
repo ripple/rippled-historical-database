@@ -2,6 +2,7 @@ var config = require('./config');
 var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport();
 var to = config.get('recipients');
+var name = config.get('name') || 'unnamed';
 var exec = require('child_process').exec;
 var log;
 
@@ -13,9 +14,9 @@ function notify(message, callback) {
   var params = {
     from: 'Storm Import<storm-import@ripple.com>',
     to: to,
-    subject: 'uncaughtException',
+    subject: name + ' - uncaughtException',
     html: 'The import topology received ' +
-      'an uncaugt exception error: <br /><br />\n' +
+      'an uncaught exception error: <br /><br />\n' +
       '<blockquote><pre>' + message + '</pre></blockquote><br />\n'
   };
 

@@ -9,7 +9,7 @@ fi
 
 if [ "$1" = "restart" ] || [ "$1" = "stop" ]; then
   echo "stopping topology: '$TOPOLOGY'..."
-  storm kill "ripple-ledger-importer"
+  storm kill "ripple-ledger-importer" -w 0
 fi
 
 if [ "$1" = "restart" ] || [ "$1" = "start" ]; then
