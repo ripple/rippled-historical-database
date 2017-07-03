@@ -263,7 +263,7 @@ function checkHealth(req, res) {
   } else {
     hbase.getLedger({}, function(err, ledger) {
       var now = Date.now()
-      var gap = ledger ? (now - ledger.close_time * 1000) / 1000 : Infinity
+      var gap = ledger ? (now - ledger.close_time * 1000) / 1000 : 0
       var responseTime = (Date.now() - d) / 1000
 
       if (aspect === 'api') {
