@@ -79,25 +79,12 @@ var accountBalances = function (req, res, next) {
 
   log.info(options.account);
 
-  hbase.getLedger(options, function(err, ledger) {
 
-    if (err) {
-      errorResponse(err);
-      return;
 
-    } else if (ledger) {
-
-      options.ledger_index = ledger.ledger_index;
-      options.closeTime = smoment(ledger.close_time).format();
-      options.currency = req.query.currency;
-      options.counterparty = req.query.counterparty || req.query.issuer;
-      options.limit = options.limit;
-      getBalances(options);
-
-    } else {
-      errorResponse('ledger not found');
-    }
-  });
+  options.currency = req.query.currency;
+  options.counterparty = req.query.counterparty || req.query.issuer;
+  options.limit = options.limit;
+  getBalances(options);
 
   /**
   * getBalances
@@ -112,15 +99,14 @@ var accountBalances = function (req, res, next) {
       limit: opts.limit,
       counterparty: opts.counterparty
     })
-    .then(function(balances) {
+    .then(function(resp) {
       var results = {
         result: 'success'
       };
 
-      results.ledger_index = opts.ledger_index;
-      results.close_time = opts.closeTime;
+      results.ledger_index = resp.ledger_index;
       results.limit = opts.limit;
-      results.balances = balances;
+      results.balances = resp.balances;
 
       successResponse(results, opts);
     }).catch(function(e) {
