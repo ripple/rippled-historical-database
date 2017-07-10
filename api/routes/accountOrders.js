@@ -72,9 +72,27 @@ function accountOrders(req, res) {
   log.info(options.account);
 
   options.currency = req.query.currency;
-  options.counterparty = req.query.counterparty || req.query.issuer;
   options.limit = options.limit;
-  getOrders(options);
+
+  if (options.closeTime) {
+    hbase.getLedger(options, function(err, ledger) {
+      if (err) {
+        errorResponse(err);
+        return;
+
+      } else if (ledger) {
+        options.ledger_index = ledger.ledger_index;
+        options.closeTime = smoment(ledger.close_time).format()
+        getOrders(options)
+
+      } else {
+        errorResponse('ledger not found');
+      }
+    })
+
+  } else {
+    getOrders(options);
+  }
 
   /**
   * getOrders
@@ -94,6 +112,7 @@ function accountOrders(req, res) {
       };
 
       results.ledger_index = resp.ledger_index;
+      results.close_time = opts.closeTime;
       results.limit = opts.limit;
       results.orders = resp.orders;
 
