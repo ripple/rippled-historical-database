@@ -19,6 +19,8 @@ public class ImportTopology {
     input             = new FileInputStream("config.properties");
     prop.load(input);
 
+    int hl_count = Integer.parseInt(prop.getProperty("hdfs_ledger"));
+    int ht_count = Integer.parseInt(prop.getProperty("hdfs_tx"));
     int t_count = Integer.parseInt(prop.getProperty("transactions"));
     int e_count = Integer.parseInt(prop.getProperty("exchanges"));
     int p_count = Integer.parseInt(prop.getProperty("accountPayments"));
@@ -32,6 +34,12 @@ public class ImportTopology {
 
     builder.setBolt("transactions", new TransactionBolt(), t_count)
       .shuffleGrouping("ledgerStream", "txStream");
+
+    builder.setBolt("hdfs_ledger", new HDFSledgerBolt(), hl_count)
+      .shuffleGrouping("ledgerStream", "HDFS_ledgerStream");
+
+    builder.setBolt("hdfs_transactions", new HDFStransactionBolt(), ht_count)
+      .fieldsGrouping("transactions", "HDFS_txStream", new Fields("hdfs_tx"));
 
     builder.setBolt("exchanges", new ExchangesBolt(), e_count)
       .fieldsGrouping("transactions", "exchangeAggregation", new Fields("pair"));

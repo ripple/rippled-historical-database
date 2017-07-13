@@ -7,6 +7,7 @@ var transporter = nodemailer.createTransport();
 var to = config.get('recipients');
 var exec = require('child_process').exec;
 var name = config.get('name') || 'unnamed';
+var hdfs = require('./lib/hdfs')
 var ledgerSpout;
 
 var Logger = require('./lib/logger');
@@ -103,16 +104,24 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
         return;
       }
 
-      //emit transaction
+      //emit fee summary
       self.emit({
         tuple: [row.feeSummary],
-        id: row.ledger.ledger_index + '|fs',
+        id: row.ledger.ledger_index + '.fs',
         stream: 'feeSummaryStream'
-      });
+      })
+
+      //emit ledger header to HDFS
+      self.emit({
+        tuple: [row.ledger],
+        id: row.ledger.ledger_index + '.lh',
+        stream: 'HDFS_ledgerStream'
+      })
 
       //if there are no transactions
       //just save the ledger
       if (!row.ledger.transactions.length) {
+
         stream.hbase.saveLedger(row.ledger, function(err, resp) {
           if (err) {
             self.log(err);
@@ -154,7 +163,7 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
   //emit one transaction per call
   if (stream.transactions.length) {
     tx = stream.transactions.shift();
-    id = tx.ledger_index + '|' + tx.tx_index;
+    id = tx.ledger_index + '.' + tx.tx_index;
 
     //call the function immedately
     //if there are more transactions to process
@@ -193,23 +202,30 @@ LedgerStreamSpout.prototype.nextTuple = function(done) {
 
 LedgerStreamSpout.prototype.ack = function(id, done) {
   var self  = this;
-  var parts = id.split('|');
+  var parts = id.split('.');
   var data  = self.pending[parts[0]];
+  var total = 0
 
-  self.log('Received ack for - ' + id);
 
   //the ledger may already
   //have been removed because
   //of failed transactions
   if (!data) {
+    self.log('no ledger: ' + id)
     done();
     return;
   }
 
+  // HDFS ledger, fee summary, and transactions
+  total = data.ledger.transactions.length + 2
+
   data.acks.push(parts[1]);
 
-  //if we've acked all transactions, save the ledger
-  if (data.acks.length == data.ledger.transactions.length) {
+    self.log('Received ack for - ' + id +
+             ' (' + data.acks.length + '/' + total + ')');
+
+  //if we've got all the acks, save the ledger
+  if (data.acks.length === total) {
 
     //increment ledger counter
     self.emit({
@@ -254,13 +270,13 @@ LedgerStreamSpout.prototype.ack = function(id, done) {
 
 LedgerStreamSpout.prototype.fail = function(id, done) {
   var self   = this;
-  var parts  = id.split('|');
+  var parts  = id.split('.');
   var data   = this.pending[parts[0]];
-  var txData = data ? data.transactions[parts[1]] : null;
+  var txData = data && !isNaN(parts[1]) ? data.transactions[parts[1]] : null;
   var max = 2
 
   if (!data) {
-    self.log('Received FAIL for - ' + id + ' Stopping, ledger failed');
+    self.log('Received FAIL for - ' + id);
 
   } else if (txData && ++txData.attempts <= max) {
     self.log('Received FAIL for - ' + id + ' Retrying, attempt #' + txData.attempts);

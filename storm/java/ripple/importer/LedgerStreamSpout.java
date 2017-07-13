@@ -17,6 +17,7 @@ public class LedgerStreamSpout extends ShellSpout implements IRichSpout {
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     declarer.declareStream("txStream", new Fields("tx"));
+    declarer.declareStream("HDFS_ledgerStream", new Fields("ledger"));
     declarer.declareStream("statsAggregation", new Fields("stat", "label"));
     declarer.declareStream("feeSummaryStream", new Fields("feeSummary"));
   }

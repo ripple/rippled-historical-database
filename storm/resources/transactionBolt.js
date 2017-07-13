@@ -33,6 +33,12 @@ TransactionBolt.prototype.process = function(tup, done) {
   //set 'client' string
   tx.client = Parser.fromClient(tx);
 
+  self.emit({
+    tuple  : [tx],
+    anchorTupleId : tup.id,
+    stream : 'HDFS_txStream'
+  })
+
   //parse transaction
   parsed = {
     data        : Parser.parseTransaction(tx),
