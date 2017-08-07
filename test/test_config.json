@@ -15,7 +15,7 @@
     "port": 8080
   },
   "ripple": {
-    "server": "wss://ripple:443"
+    "server": "wss://localhost:443"
   },
   "validators-config": "./test/validators.config.json"
 }

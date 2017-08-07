@@ -1,6 +1,6 @@
-'use strict';
+'use strict'
 
-var Routes = { };
+var Routes = { }
 
 Routes.getLedger = require('./getLedger')
 Routes.getTransactions = require('./getTransactions')
@@ -8,6 +8,7 @@ Routes.accountTxSeq = require('./accountTxSeq')
 Routes.accountTransactions = require('./accountTransactions')
 Routes.accountExchanges = require('./accountExchanges')
 Routes.accountPayments = require('./accountPayments')
+Routes.accountEscrows = require('./accountEscrows')
 Routes.accountStats = require('./accountStats')
 Routes.accountBalances = require('./accountBalances')
 Routes.accountOrders = require('./accountOrders')
