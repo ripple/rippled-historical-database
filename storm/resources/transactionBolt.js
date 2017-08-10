@@ -8,6 +8,7 @@ var hbase = require('./lib/hbase')
 var BasicBolt = Storm.BasicBolt
 var bolt
 
+var saveToHDFS = Boolean(config.get('hdfs'))
 var Logger = require('./lib/logger')
 var log = new Logger({
   scope: 'transaction-bolt',
@@ -34,11 +35,13 @@ TransactionBolt.prototype.process = function(tup, done) {
   // set 'client' string
   tx.client = Parser.fromClient(tx)
 
-  self.emit({
-    tuple: [tx],
-    anchorTupleId: tup.id,
-    stream: 'HDFS_txStream'
-  })
+  if (saveToHDFS) {
+    self.emit({
+      tuple: [tx],
+      anchorTupleId: tup.id,
+      stream: 'HDFS_txStream'
+    })
+  }
 
   // parse transaction
   parsed = {

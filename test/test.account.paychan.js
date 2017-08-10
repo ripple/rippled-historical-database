@@ -87,7 +87,8 @@ describe('account payment channels API endpoint', function() {
 
   it('include a link header when marker is present', function(done) {
     var url = 'http://localhost:' + port +
-        '/v2/accounts/rnNzy3iPc7gPEAJbAdXwxY1UTBamBqTYhR/payment_channels?limit=1'
+        '/v2/accounts/rnNzy3iPc7gPEAJbAdXwxY1UTBamBqTYhR' +
+        '/payment_channels?limit=1'
     var linkHeader = '<' + url +
       '&marker=rnNzy3iPc7gPEAJbAdXwxY1UTBamBqTYhR' +
       '|20170512144852|000029709909|00038>; rel="next"'
