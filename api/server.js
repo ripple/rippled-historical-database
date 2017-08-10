@@ -105,6 +105,8 @@ function Server(options) {
   app.get('/v2/accounts/:address/payments', routes.accountPayments)
   app.get('/v2/accounts/:address/reports/:date?', routes.accountReports)
   app.get('/v2/accounts/:address/escrows', routes.accountEscrows)
+  app.get('/v2/accounts/:address/payment_channels',
+          routes.accountPaymentChannels)
   app.get('/v2/accounts/:address/balance_changes', routes.getChanges)
   app.get('/v2/accounts/:address/exchanges', routes.accountExchanges)
   app.get('/v2/accounts/:address/exchanges/:base', routes.accountExchanges)

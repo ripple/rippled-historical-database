@@ -6,7 +6,7 @@ var assert = require('assert')
 var utils = require('./utils')
 var port = config.get('port') || 7111
 
-describe('account escros API endpoint', function() {
+describe('account escrows API endpoint', function() {
 
   it('should get account escrows', function(done) {
     var account = 'rGhDCgik9CwiNpcNnYHkEHcMgw2dkLgtNB'
@@ -52,9 +52,9 @@ describe('account escros API endpoint', function() {
         '/v2/accounts/rGhDCgik9CwiNpcNnYHkEHcMgw2dkLgtNB/escrows?'
 
     utils.checkPagination(url, undefined, function(ref, i, body) {
-      assert.strictEqual(body.payments.length, 1)
-      assert.equal(body.payments[0].amount, ref.payments[i].amount)
-      assert.equal(body.payments[0].tx_hash, ref.payments[i].tx_hash)
+      assert.strictEqual(body.escrows.length, 1)
+      assert.equal(body.escrows[0].amount, ref.escrows[i].amount)
+      assert.equal(body.escrows[0].tx_hash, ref.escrows[i].tx_hash)
     }, done)
   })
 
@@ -63,9 +63,9 @@ describe('account escros API endpoint', function() {
         '/v2/accounts/rGhDCgik9CwiNpcNnYHkEHcMgw2dkLgtNB/escrows?'
 
     utils.checkPagination(url, undefined, function(ref, i, body) {
-      assert.strictEqual(body.payments.length, 1)
-      assert.equal(body.payments[0].amount, ref.payments[i].amount)
-      assert.equal(body.payments[0].tx_hash, ref.payments[i].tx_hash)
+      assert.strictEqual(body.escrows.length, 1)
+      assert.equal(body.escrows[0].amount, ref.escrows[i].amount)
+      assert.equal(body.escrows[0].tx_hash, ref.escrows[i].tx_hash)
     }, done)
   })
 

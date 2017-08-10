@@ -391,7 +391,7 @@ describe('network fees', function() {
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 53)
+      assert.strictEqual(body.count, 54)
       body.rows.forEach(function(r) {
         assert.strictEqual(typeof r.avg, 'number')
         assert.strictEqual(typeof r.min, 'number')
@@ -452,7 +452,7 @@ describe('network fees', function() {
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 53)
+      assert.strictEqual(body.count, 54)
       body.rows.forEach(function(r) {
         if (date) {
           assert(date.diff(r.date) >= 0)
@@ -477,7 +477,7 @@ describe('network fees', function() {
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 9)
+      assert.strictEqual(body.count, 10)
       body.rows.forEach(function(r) {
         assert.strictEqual(typeof r.avg, 'number')
         assert.strictEqual(typeof r.min, 'number')
@@ -503,7 +503,7 @@ describe('network fees', function() {
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 6)
+      assert.strictEqual(body.count, 7)
       body.rows.forEach(function(r) {
         assert.strictEqual(typeof r.avg, 'number')
         assert.strictEqual(typeof r.min, 'number')

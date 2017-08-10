@@ -23,7 +23,7 @@ describe('stats API endpoint', function() {
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'success')
       assert.strictEqual(body.stats.length, body.count)
-      assert.strictEqual(body.stats.length, 6)
+      assert.strictEqual(body.stats.length, 7)
       body.stats.forEach(function(s) {
         assert.strictEqual(typeof s.date, 'string')
         assert.strictEqual(typeof s.type, 'object')
@@ -84,7 +84,7 @@ describe('stats API endpoint', function() {
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'success')
       assert.strictEqual(body.stats.length, body.count)
-      assert.strictEqual(body.stats.length, 6)
+      assert.strictEqual(body.stats.length, 7)
       body.stats.forEach(function(s) {
         assert(date.diff(s.date) >= 0, 'date not less than previous date')
         date = moment.utc(s.date)
