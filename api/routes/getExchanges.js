@@ -79,10 +79,8 @@ function getExchanges(req, res) {
       return {error: 'invalid limit: ' + options.limit, code: 400}
     } else if (options.reduce && options.interval) {
       return {error: 'cannot use reduce with interval', code: 400}
-    } else if (options.reduce) {
-      options.limit = 10000
-    } else if (options.limit > 1000) {
-      options.limit = 1000
+    } else if (options.limit > 400) {
+      options.limit = 400
     } else if (options.interval &&
                intervals.indexOf(options.interval) === -1) {
       return {error: 'invalid interval: ' + options.interval, code: 400}

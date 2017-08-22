@@ -59,8 +59,8 @@ var getPayments = function (req, res, next) {
   if (isNaN(options.limit)) {
     options.limit = 200;
 
-  } else if (options.limit > 1000) {
-    options.limit = 1000;
+  } else if (options.limit > 200) {
+    options.limit = 200;
   }
 
     hbase.getPayments(options, function(err, resp) {
