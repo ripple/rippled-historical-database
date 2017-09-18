@@ -779,7 +779,7 @@ Optionally, you can provide the following query parameters:
 | `interval` | String | Aggregation interval: `1minute`, `5minute`, `15minute`, `30minute`, `1hour`, `2hour`, `4hour`, `1day`, `3day`, `7day`, or `1month`. Defaults to non-aggregated results. |
 | `descending` | Boolean | If true, return results in reverse chronological order. |
 | `reduce` | Boolean | Aggregate all individual results. Defaults to false. |
-| `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 20,000 if `reduce` is true. Otherwise cannot be more than 1,000. |
+| `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1,000. |
 | `marker` | String | [Pagination](#pagination) key from previously returned response. |
 | `autobridged` | Boolean | If true, filter results to autobridged exchanges only. |
 | `format` | String | Format of returned results: `csv` or `json`. Defaults to `json` |
