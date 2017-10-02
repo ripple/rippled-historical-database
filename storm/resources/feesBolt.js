@@ -28,7 +28,7 @@ FeesBolt.prototype.process = function(tup, done) {
 
   self.fees.handleFeeSummary(feeSummary)
   .catch(function(e) {
-    self.log(e);
+    self.log(e.toString());
   });
 
   //don't wait to ack

@@ -30,5 +30,6 @@ Routes.activeAccounts = require('./activeAccounts')
 Routes.maintenance = require('./maintenance')
 Routes.network = require('./network')
 Routes.gateways = require('./gateways')
+Routes.estimate = require('./estimate')
 
 module.exports = Routes
