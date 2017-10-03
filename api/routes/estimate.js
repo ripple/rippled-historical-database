@@ -106,8 +106,12 @@ function getRate(base) {
     }, (err, res) => {
       if (err) {
         reject(err)
-      } else {
+
+      } else if (res[0] && moment().diff(res[0].date, 'minutes') < 60) {
         resolve(res[0])
+
+      } else {
+        resolve()
       }
     })
   })
@@ -163,6 +167,10 @@ function validate(options) {
 
   if (!options.source_amount) {
     return Promise.reject('source amount required')
+  }
+
+  if (isNaN(options.source_amount)) {
+    return Promise.reject('source amount is not a number')
   }
 
   options.source = options.source.toLowerCase()
