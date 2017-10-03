@@ -40,7 +40,7 @@ module.exports = function(req, res) {
     })
   })
   .then(estimates => {
-    return getInterbank({
+    return getForex({
       base: req.query.source_currency,
       counter: req.query.destination_currency
     })
@@ -92,47 +92,52 @@ function getCachedRate(base, counter) {
 }
 
 /**
- * getInterbank
+ * getRate
  */
 
-function getInterbank(options) {
+function getRate(base) {
+  return new Promise((resolve, reject) => {
+    hbase.getScan({
+      table: 'forex_rates',
+      startRow: base,
+      stopRow: base + '|z',
+      descending: true,
+      limit: 1
+    }, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res[0])
+      }
+    })
+  })
+}
 
-  const rate = getCachedRate(options.base, options.counter)
+/**
+ * getForex
+ */
 
-  if (rate) {
-    return Promise.resolve(rate)
+function getForex(options) {
+  const tasks = []
 
-  } else if (rate === null) {
-    return Promise.resolve()
+  if (options.base !== 'USD') {
+    tasks.push(getRate('USD|' + options.base))
   }
 
-  return request({
-    method: 'get',
-    url: 'http://www.apilayer.net/api/live',
-    json: true,
-    qs: {
-      access_key: config.get('currencylayer'),
+  if (options.counter !== 'USD') {
+    tasks.push(getRate('USD|' + options.counter))
+  }
+
+  return Promise.all(tasks)
+  .then(res => {
+    if (res.length === 1 && res[0]) {
+      return options.base === 'USD' ?
+        Number(res[0].rate) : 1 / Number(res[0].rate)
+    } else if (res.length == 2 && res[0] && res[1]) {
+      return Number(res[1].rate) / Number(res[0].rate)
     }
   })
-  .then(data => {
-    if (data.error) {
-      cached = {
-        date: moment.utc().format(),
-        quotes: {}
-      }
 
-      return Promise.resolve()
-    }
-
-    log.info('updating cache')
-
-    cached = {
-      date: moment.unix(data.timestamp).utc().format(),
-      quotes: data.quotes
-    }
-
-    return Promise.resolve(getCachedRate(options.base, options.counter))
-  })
 }
 
 /**
