@@ -36,6 +36,8 @@ var geo = geolocation({
   columnFamily: 'd'
 })
 
+var now = Date.now()
+var today = smoment(moment(now))
 
 /**
  * setup
@@ -142,6 +144,14 @@ describe('setup mock data', function() {
         columns: r
       }))
     })
+
+    var parts = mockTopologyNodes[0].rowkey.split('+')
+    var range = now + '_' + now
+
+    mockTopologyNodes[0].rowkey = range + '+' + parts[1]
+    parts = mockTopologyLinks[0].rowkey.split('+')
+    mockTopologyLinks[0].rowkey = range + '+' + parts[1]
+    mockTopologyInfo[0].rowkey = range
 
     mockTopologyNodes.forEach(function(r) {
       rows.push(hbase.putRow({
@@ -1490,9 +1500,8 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.node_count, 9)
-      assert.strictEqual(body.link_count, 5)
+      assert.strictEqual(body.node_count, 1)
+      assert.strictEqual(body.link_count, 1)
       assert.strictEqual(body.nodes[0].city, undefined)
       done()
     })
@@ -1509,10 +1518,9 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.node_count, 9)
-      assert.strictEqual(body.link_count, 5)
-      assert.strictEqual(body.nodes[0].city, 'San Francisco')
+      assert.strictEqual(body.node_count, 1)
+      assert.strictEqual(body.link_count, 1)
+      assert.strictEqual(body.nodes[0].city, 'Montréal')
       done()
     })
   })
@@ -1528,8 +1536,7 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.count, 9)
+      assert.strictEqual(body.count, 1)
       assert.strictEqual(body.nodes[0].city, undefined)
       done()
     })
@@ -1546,9 +1553,8 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.count, 9)
-      assert.strictEqual(body.nodes[0].city, 'San Francisco')
+      assert.strictEqual(body.count, 1)
+      assert.strictEqual(body.nodes[0].city, 'Montréal')
       done()
     })
   })
@@ -1564,8 +1570,7 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.count, 5)
+      assert.strictEqual(body.count, 1)
       done()
     })
   })
@@ -1590,7 +1595,8 @@ describe('network - topology', function() {
 
   it('should get topology by date', function(done) {
     var url = 'http://localhost:' + port +
-        '/v2/network/topology?date=2016-03-16'
+        '/v2/network/topology?date=' +
+        moment().subtract(1, 'day').format('YYYY-MM-DD')
 
     request({
       url: url,
@@ -1599,16 +1605,17 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-15T23:59:54Z')
-      assert.strictEqual(body.node_count, 7)
-      assert.strictEqual(body.link_count, 11)
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
+      assert.strictEqual(body.node_count, 9)
+      assert.strictEqual(body.link_count, 5)
       done()
     })
   })
 
   it('should get topology nodes by date', function(done) {
     var url = 'http://localhost:' + port +
-        '/v2/network/topology/nodes?date=2016-03-16'
+        '/v2/network/topology/nodes?date=' +
+        moment().subtract(1, 'day').format('YYYY-MM-DD')
 
     request({
       url: url,
@@ -1617,15 +1624,16 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-15T23:59:54Z')
-      assert.strictEqual(body.count, 7)
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
+      assert.strictEqual(body.count, 9)
       done()
     })
   })
 
   it('should get topology links by date', function(done) {
     var url = 'http://localhost:' + port +
-        '/v2/network/topology/links?date=2016-03-16'
+        '/v2/network/topology/links?date=' +
+        moment().subtract(1, 'day').format('YYYY-MM-DD')
 
     request({
       url: url,
@@ -1634,8 +1642,8 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.date, '2016-03-15T23:59:54Z')
-      assert.strictEqual(body.count, 11)
+      assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
+      assert.strictEqual(body.count, 5)
       done()
     })
   })
@@ -1659,6 +1667,25 @@ describe('network - topology', function() {
     })
   })
 
+  it('should error on date over 30 days', function(done) {
+    var date = moment.utc().subtract(31, 'days').format('YYYY-MM-DD')
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology?date=' + date
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 400)
+      assert.strictEqual(typeof body, 'object')
+      assert.strictEqual(body.result, 'error')
+      assert.strictEqual(body.message, 'date must be less than 30 days ago')
+      done()
+    })
+  })
+
   it('should error on invalid date', function(done) {
     var date = 'zzz2015-01-14'
     var url = 'http://localhost:' + port +
@@ -1674,6 +1701,25 @@ describe('network - topology', function() {
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'error')
       assert.strictEqual(body.message, 'invalid date format')
+      done()
+    })
+  })
+
+  it('should error on date over 30 days', function(done) {
+    var date = moment.utc().subtract(31, 'days').format('YYYY-MM-DD')
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/nodes?date=' + date
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 400)
+      assert.strictEqual(typeof body, 'object')
+      assert.strictEqual(body.result, 'error')
+      assert.strictEqual(body.message, 'date must be less than 30 days ago')
       done()
     })
   })
@@ -1697,6 +1743,25 @@ describe('network - topology', function() {
     })
   })
 
+  it('should error on date over 30 days', function(done) {
+    var date = moment.utc().subtract(31, 'days').format('YYYY-MM-DD')
+    var url = 'http://localhost:' + port +
+        '/v2/network/topology/links?date=' + date
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 400)
+      assert.strictEqual(typeof body, 'object')
+      assert.strictEqual(body.result, 'error')
+      assert.strictEqual(body.message, 'date must be less than 30 days ago')
+      done()
+    })
+  })
+
   it('should get get topology nodes in CSV format', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/network/topology/nodes?format=csv'
@@ -1708,7 +1773,7 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(res.headers['content-disposition'],
-        'attachment; filename=topology nodes - 2016-03-18T22:31:33Z.csv')
+        'attachment; filename=topology nodes - ' + today.format() + '.csv')
       done()
     })
   })
@@ -1724,7 +1789,7 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(res.headers['content-disposition'],
-        'attachment; filename=topology links - 2016-03-18T22:31:33Z.csv')
+        'attachment; filename=topology links - ' + today.format() + '.csv')
       done()
     })
   })
