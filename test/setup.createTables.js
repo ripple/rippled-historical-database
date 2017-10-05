@@ -13,7 +13,7 @@ describe('create Hbase tables', function(done) {
     this.timeout(60000);
     rest.initTables('ledgers', function(err, resp) {
       assert.ifError(err);
-      rest.initTables('validations', function(err, resp) {
+      rest.initTables('validators', function(err, resp) {
         assert.ifError(err);
         done();
       });

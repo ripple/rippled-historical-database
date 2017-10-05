@@ -13,7 +13,7 @@ describe('remove hbase tables', function(done) {
     this.timeout(90000);
     rest.removeTables('ledgers', function(err, resp) {
       assert.ifError(err);
-      rest.removeTables('validations', function(err, resp) {
+      rest.removeTables('validators', function(err, resp) {
         assert.ifError(err);
         done();
       });

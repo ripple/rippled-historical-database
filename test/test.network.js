@@ -9,7 +9,7 @@ var smoment = require('../lib/smoment')
 var utils = require('./utils')
 
 var hbase = require('../lib/hbase')
-var geolocation = require('../lib/validations/geolocation')
+var geolocation = require('../lib/geolocation')
 var saveVersions = require('../scripts/saveVersions')
 var mockExchangeVolume = require('./mock/exchange-volume.json')
 var mockExchangeVolumeHour = require('./mock/exchange-volume-live-hour.json')

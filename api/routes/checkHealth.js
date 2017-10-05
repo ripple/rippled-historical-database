@@ -13,9 +13,6 @@ var defaults = {
     threshold1: 60 * 5,
     threshold2: 60 * 15
   },
-  validations_etl: {
-    threshold1: 60 * 2
-  },
   nodes_etl: {
     threshold1: 60 * 2
   }
@@ -94,48 +91,6 @@ function checkHealth(req, res) {
         result: 'error',
         message: 'hbase response error'
       })
-    })
-  }
-
-  /**
-   * validationHealthCheck
-   */
-
-  function validationHealthCheck() {
-    hbase.getScan({
-      table: 'validations_by_date',
-      startRow: 0,
-      stopRow: '~',
-      descending: true,
-      limit: 1
-    }, function(err, resp) {
-
-      if (err) {
-        log.error(err)
-        res.status(500).json({
-          result: 'error',
-          message: 'hbase response error'
-        })
-        return
-      }
-
-      var last = resp && resp.length ?
-        moment(resp[0].datetime) : null
-      var gap = last ?
-        (Date.now() - last.unix() * 1000) / 1000 : Infinity
-      var score = gap <= t1 ? 0 : 1
-
-      if (verbose) {
-        res.json({
-          score: score,
-          gap: duration(gap * 1000),
-          gap_threshold: duration(t1 * 1000),
-          message: score ? 'last imported data exceeds threshold' : undefined
-        })
-
-      } else {
-        res.send(score.toString())
-      }
     })
   }
 
@@ -256,9 +211,6 @@ function checkHealth(req, res) {
 
   if (aspect === 'nodes_etl') {
     nodeHealthCheck()
-
-  } else if (aspect === 'validations_etl') {
-    validationHealthCheck()
 
   } else {
     hbase.getLedger({}, function(err, ledger) {

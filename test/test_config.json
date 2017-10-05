@@ -16,6 +16,5 @@
   },
   "ripple": {
     "server": "wss://localhost:443"
-  },
-  "validators-config": "./test/validators.config.json"
+  }
 }

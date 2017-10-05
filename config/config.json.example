@@ -23,7 +23,6 @@
     "host"   : "",
     "port"   : 20550
   },
-  "validators-config" : "validators.config.json.example",
   "fee_url": "http://s1.ripple.com:51234",
   "hdfs": {
     "user": "impala",

@@ -24,7 +24,6 @@
     "compression": "^1.6.0",
     "cors": "^2.5.0",
     "cron": "^1.1.0",
-    "elliptic": "^6.2.3",
     "eslint": "2.9.0",
     "express": "^4.9.3",
     "hbase": "^0.1.7",
@@ -44,7 +43,6 @@
     "serve-favicon": "^2.3.0",
     "sjcl": "^1.0.3",
     "thrift": "^0.9.2",
-    "underscore": "^1.6.0",
     "webhdfs": "^1.1.1",
     "winston": "^0.8.3",
     "ws": "^1.0.1"
