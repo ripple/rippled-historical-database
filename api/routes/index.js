@@ -31,5 +31,7 @@ Routes.maintenance = require('./maintenance')
 Routes.network = require('./network')
 Routes.gateways = require('./gateways')
 Routes.estimate = require('./estimate')
+Routes.xrpIndex = require('./xrpIndex')
+Routes.xrpIndexTicker = require('./xrpIndexTicker')
 
 module.exports = Routes
