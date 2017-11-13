@@ -14,6 +14,5 @@
     "prefix" : "test_",
     "host"   : "",
     "port"   : 20550
-  },
-  "validators-config" : "validators.config.json.example"
+  }
 }

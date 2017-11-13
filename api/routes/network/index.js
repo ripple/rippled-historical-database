@@ -15,9 +15,7 @@ module.exports = {
   getLinks: require('./getLinks'),
   getTopology: require('./getTopology'),
   getValidatorReports: require('./getValidatorReports'),
-  getLedgerValidations: require('./getLedgerValidations'),
   getValidators: require('./getValidators'),
-  getValidations: require('./getValidations'),
   getVersions: require('./getVersions')
 }
 

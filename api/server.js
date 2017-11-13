@@ -82,21 +82,14 @@ function Server(options) {
   app.get('/v2/network/topology/links', routes.network.getLinks)
   app.get('/v2/network/validators', routes.network.getValidators)
   app.get('/v2/network/validators/:pubkey', routes.network.getValidators)
-  app.get('/v2/network/validators/:pubkey/validations',
-          routes.network.getValidations)
   app.get('/v2/network/validators/:pubkey/reports',
           routes.network.getValidatorReports)
   app.get('/v2/network/validator_reports', routes.network.getValidatorReports)
-  app.get('/v2/network/validations', routes.network.getValidations)
   app.get('/v2/network/rippled_versions', routes.network.getVersions)
   app.get('/v2/last_validated', routes.getLastValidated)
   app.get('/v2/transactions/', routes.getTransactions)
   app.get('/v2/transactions/:tx_hash', routes.getTransactions)
   app.get('/v2/ledgers/:ledger_param?', routes.getLedger)
-  app.get('/v2/ledgers/:ledger_hash/validations',
-          routes.network.getLedgerValidations)
-  app.get('/v2/ledgers/:ledger_hash/validations/:validation_pubkey',
-          routes.network.getLedgerValidations)
   app.get('/v2/accounts', routes.accounts)
   app.get('/v2/accounts/:address', routes.getAccount)
   app.get('/v2/accounts/:address/transactions/:sequence', routes.accountTxSeq)
