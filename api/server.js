@@ -124,6 +124,7 @@ function Server(options) {
   app.get('/v2/stats/:family', routes.stats)
   app.get('/v2/stats/:family/:metric', routes.stats)
   app.get('/v2/maintenance/:domain', routes.maintenance)
+  app.get('/v2/estimate', routes.estimate)
 
   // index page
   app.get('/', map.generate)

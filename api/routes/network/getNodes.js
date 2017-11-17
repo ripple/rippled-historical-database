@@ -74,6 +74,17 @@ function getNodes(req, res) {
     return
   }
 
+  var max = smoment()
+  max.moment.subtract(30, 'days')
+
+  if (options.date.moment.diff(max.moment) < 0) {
+    errorResponse({
+      error: 'date must be less than 30 days ago',
+      code: 400
+    })
+    return
+  }
+
   if (isNaN(options.limit)) {
     options.limit = 200
 

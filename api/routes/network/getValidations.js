@@ -34,7 +34,7 @@ var getValidations = function(req, res) {
   }
 
   var max = smoment()
-  max.moment.subtract(3, 'months')
+  max.moment.subtract(30, 'days')
 
   if (options.start.moment.diff(max.moment) < 0) {
     options.start = max
