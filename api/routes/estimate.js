@@ -107,7 +107,7 @@ function getRate(base) {
       if (err) {
         reject(err)
 
-      } else if (res[0] && moment().diff(res[0].date, 'minutes') < 60) {
+      } else if (res[0] && moment().diff(res[0].date, 'minutes') < 120) {
         resolve(res[0])
 
       } else {
