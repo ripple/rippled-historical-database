@@ -200,11 +200,11 @@ function getIndex(options, rate) {
 
         } else {
           rows.push({
-            open: (row.open * rate).toPrecision(6),
-            high: (row.high * rate).toPrecision(6),
-            low: (row.low * rate).toPrecision(6),
-            close: (row.close * rate).toPrecision(6),
-            vwap: (row.vwap * rate).toPrecision(6),
+            open: row.open ? (row.open * rate).toPrecision(6) : 0,
+            high: row.high ? (row.high * rate).toPrecision(6) : 0,
+            low: row.low ? (row.low * rate).toPrecision(6) : 0,
+            close: row.close ? (row.close * rate).toPrecision(6) : 0,
+            vwap: row.vwap ? (row.vwap * rate).toPrecision(6) : 0,
             volume: row.volume,
             counter_volume: (row.usd_volume * rate).toString(),
             count: Number(row.count || 0),
