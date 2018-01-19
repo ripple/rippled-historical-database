@@ -8,7 +8,7 @@
   },
   "scripts": {
     "postinstall": "node install.js",
-    "pretest": "node_modules/.bin/mocha --ui tdd -R spec test/setup.removeTables.js test/setup.createTables.js test/setup.importLedgers.js --logLevel 3",
+    "pretest": "node_modules/.bin/mocha --ui tdd -R spec test/setup.js --logLevel 3",
     "test": "node_modules/.bin/mocha --ui tdd -R spec test/setup.api.js test/test.*.js --logLevel 0",
     "lint": "if ! [ -f eslintrc ]; then curl -o eslintrc 'https://raw.githubusercontent.com/ripple/javascript-style-guide/es6/eslintrc' >> eslintrc; fi; eslint -c eslintrc --rule {no-var:0} $(git --no-pager diff --name-only -M100% --diff-filter=AM --relative origin/HEAD | grep \".js$\")",
     "start": "nodemon api/index.js"
@@ -39,6 +39,7 @@
     "request-promise": "^2.0.0",
     "ripple-address-codec": "2.0.1",
     "ripple-binary-codec": "0.1.12",
+    "ripple-hbase-client": "0.1.5",
     "ripple-lib": "0.17.6",
     "ripple-lib-transactionparser": "0.6.0",
     "serve-favicon": "^2.3.0",

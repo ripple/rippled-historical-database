@@ -3,6 +3,10 @@
   "logLevel": 2,
   "hbase": {
     "prefix": "",
+    "hosts": ["hbase"],
+    "timeout": 60000,
+    "max_sockets": 1,
+    "min_sockets": 1,
     "servers": [
       {
         "host": "hbase",

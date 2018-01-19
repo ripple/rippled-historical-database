@@ -1,7 +1,16 @@
+/* eslint no-unused-vars:0 */
+'use strict'
 var config = require('../config')
 config.file('defaults', __dirname + '/test_config.json')
 
 var assert = require('assert')
+var Rest = require('../lib/hbase/hbase-rest');
+var restConfig = config.get('hbase-rest');
+
+restConfig.prefix = config.get('hbase:prefix');
+
+var rest = new Rest(restConfig);
+
 var Parser = require('../lib/ledgerParser')
 var Rest = require('../lib/hbase/hbase-rest')
 var Promise = require('bluebird')
@@ -26,11 +35,37 @@ var stats;
 var aggPayments;
 var aggFees;
 
-aggAccountPayments = new accountPaymentsAggregation()
-aggFees = new feesAggregation()
-stats = new statsAggregation()
+var aggAccountPayments = new accountPaymentsAggregation()
+var aggFees = new feesAggregation()
+var stats = new statsAggregation()
 
-describe('import ledgers', function(done) {
+describe('hbase setup', function(done) {
+  before(function() {
+    this.timeout(30000)
+    console.log('remove ledger tables')
+    return rest.removeTables('ledgers')
+    .then(() => {
+      console.log('remove validations tables')
+      return rest.removeTables('validations')
+    })
+    .catch(err => {
+      console.log('err', err)
+    })
+  })
+  
+  before(function() {
+    this.timeout(30000)
+    console.log('init ledger tables')
+    return rest.initTables('ledgers')
+    .then(() => {
+      console.log('init validations tables')
+      return rest.initTables('validations')
+    })
+    .catch(err => {
+      console.log('err', err)
+    })
+  }) 
+
   it('should save ledgers into hbase', function(done) {
     this.timeout(60000);
     Promise.map(files, function(filename) {
@@ -78,7 +113,7 @@ describe('import ledgers', function(done) {
   });
 
   it('should aggregate network fees', function(done) {
-    this.timeout(7000);
+    this.timeout(10000);
     Promise.map(fees, function(feeSummary) {
       return aggFees.handleFeeSummary(feeSummary);
     })
@@ -142,7 +177,7 @@ describe('import ledgers', function(done) {
   });
 
   it('should aggregate payments', function(done) {
-    this.timeout(4000);
+    this.timeout(7000);
     var currencies = {}
     var counter = 0
 
@@ -155,7 +190,7 @@ describe('import ledgers', function(done) {
           issuer: p.issuer,
         });
       }
-
+      
       currencies[key].add(p, function(err) {
         if (++counter === payments.length) {
           done()

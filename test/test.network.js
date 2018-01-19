@@ -1479,11 +1479,10 @@ describe('network - top currencies', function() {
  */
 
 describe('network - topology', function() {
-  it('should update node geolocation', function(done) {
+  it('should update node geolocation', function() {
     this.timeout(15000)
 
-    geo.geolocateNodes()
-    .then(done)
+    return geo.geolocateNodes()
     .catch(e => {
       assert.ifError(e)
     })

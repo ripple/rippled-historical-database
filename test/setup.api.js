@@ -9,6 +9,7 @@ var request = require('request')
 var port = config.get('port') || 7112
 var server
 
+
 server = new Server({
   postgres: undefined,
   port: port,
@@ -19,8 +20,7 @@ server = new Server({
   }
 })
 
-describe('server setup', function() {
-
+describe('API tests', function(done) {  
   it('should handle duplicate query params', function(done) {
     var url = 'http://localhost:' + port + '/v2/accounts/' +
         'rpjZUBy92h6worVCYERZcVCzgzgmHb17Dx/payments?type=sent&type=sent'
@@ -36,7 +36,7 @@ describe('server setup', function() {
   })
 
   it('should set default cache control', function(done) {
-    var url = 'http://localhost:' + port + '/v2/ledgers'
+    var url = 'http://localhost:' + port + '/v2/accounts'
     request({
       url: url,
       json: true

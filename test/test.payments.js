@@ -114,7 +114,7 @@ describe('payments API endpoint', function() {
   //there will not be any aggregates to be found
   it('should should get aggregate payments', function(done) {
     var url = 'http://localhost:' + port + '/v2/payments/XRP'
-
+    
     request({
       url: url,
       json: true,

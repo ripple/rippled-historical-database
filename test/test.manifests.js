@@ -237,9 +237,9 @@ describe('manifests', function(done) {
     });
   });
 
-  it('should remove master key from cache when revoked', function(done) {
+  it('should remove master key from cache when revoked', function() {
 
-    manifests.handleManifest({
+    return manifests.handleManifest({
       signing_key: 'n9LRZXPh1XZaJr5kVpdciN76WCCcb5ZRwjvHywd4Vc4fxyfGEDJA',
       master_key: 'nHU5wPBpv1kk3kafS2ML2GhyoGJuHhPP4fCa2dwYUjMT5wR8Dk5B',
       seq: 4,
@@ -262,7 +262,6 @@ describe('manifests', function(done) {
       });
     }).then((rows) => {
       assert.strictEqual(rows.length, 0);
-      done();
     });
   });
 

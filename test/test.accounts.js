@@ -220,7 +220,7 @@ describe('accounts API endpoint', function() {
   });
 
   it('should return an error if an account is not found', function(done) {
-    var account = 'zzz';
+    var account = 'zzza';
     var url = 'http://localhost:' + port + '/v2/accounts/' + account;
 
     request({
