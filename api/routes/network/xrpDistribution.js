@@ -50,18 +50,25 @@ function getXrpDistribution(req, res) {
     descending: options.descending
   },
   function(err, resp) {
-
+    const rows = []
+    
     if (err) {
       errorResponse(err);
     } else {
 
       resp.rows.forEach(function(r) {
-        r.date = smoment(r.date).format();
-        delete r.rowkey;
-        delete r.currency;
+        rows.push({
+          date: smoment(r.date).format(),
+          total: r.total,
+          distributed: r.distributed,
+          undistributed: r.undistributed
+        })
       });
 
-      successResponse(resp);
+      successResponse({
+        rows: rows,
+        marker: resp.marker
+      });
     }
   });
 

@@ -51,7 +51,7 @@ describe('setup mock data', function() {
   })
 })
 
-describe('XRP Index API endpoint', function() {
+describe.skip('XRP Index API endpoint', function() {
   it('should should get XRP index data', function(done) {
     const url = 'http://localhost:' + port + '/v2/xrp_index'
     request({
@@ -303,7 +303,7 @@ describe('XRP Index API endpoint', function() {
 })
 
 
-describe('XRP Index Ticker API endpoint', function() {
+describe.skip('XRP Index Ticker API endpoint', function() {
   it('should should get XRP index data', function(done) {
     const url = 'http://localhost:' + port + '/v2/xrp_index/ticker'
     const fields = [
