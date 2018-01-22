@@ -61,7 +61,9 @@ function getXrpDistribution(req, res) {
           date: smoment(r.date).format(),
           total: r.total,
           distributed: r.distributed,
-          undistributed: r.undistributed
+          undistributed: r.undistributed,
+          circulating: r.circulating,
+          escrowed: r.escrowed,
         })
       });
 
