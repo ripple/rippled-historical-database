@@ -1519,7 +1519,7 @@ describe('network - topology', function() {
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(body.node_count, 1)
       assert.strictEqual(body.link_count, 1)
-      assert.strictEqual(body.nodes[0].city, 'Montréal')
+      assert.strictEqual(body.nodes[0].timezone, 'America/Montreal')
       done()
     })
   })
@@ -1533,7 +1533,6 @@ describe('network - topology', function() {
       json: true
     },
     function(err, res, body) {
-      assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(body.count, 1)
       assert.strictEqual(body.nodes[0].city, undefined)
@@ -1553,7 +1552,7 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(body.count, 1)
-      assert.strictEqual(body.nodes[0].city, 'Montréal')
+      assert.strictEqual(body.nodes[0].timezone, 'America/Montreal')
       done()
     })
   })
