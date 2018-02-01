@@ -51,7 +51,7 @@ function getXrpDistribution(req, res) {
   },
   function(err, resp) {
     const rows = []
-    
+
     if (err) {
       errorResponse(err);
     } else {
@@ -61,7 +61,8 @@ function getXrpDistribution(req, res) {
           date: smoment(r.date).format(),
           total: r.total,
           distributed: r.distributed,
-          undistributed: r.undistributed
+          undistributed: r.undistributed,
+          escrowed: r.escrowed
         })
       });
 
