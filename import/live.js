@@ -1,14 +1,8 @@
 
 var config = require('../config/import.config');
 var Logger = require('../lib/logger');
-var Importer = require('../lib/ripple-importer');
-var HBase = require('./client');
-var hbase = new HBase();
-
-var live = new Importer({
-  ripple: config.get('ripple'),
-  logLevel: config.get('logLevel')
-});
+var importer = require('../lib/ripple-importer');
+var hbase = require('./client');
 
 var log = new Logger({
   scope: 'live import',
@@ -18,11 +12,11 @@ var log = new Logger({
 
 
 //start import stream
-live.liveStream();
+importer.liveStream();
 
 log.info('Saving Ledgers to HBase');
 
-live.on('ledger', function(ledger) {
+importer.on('ledger', function(ledger) {
   hbase.saveLedger(ledger, function(err, resp) {
     if (err) {
       log.error(err);
