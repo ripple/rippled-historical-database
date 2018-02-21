@@ -14,6 +14,7 @@ fi
 
 if [ "$1" = "restart" ] || [ "$1" = "start" ]; then
   echo "compiling package..."
+  rm -r target
   mvn clean compile
   mvn package
 

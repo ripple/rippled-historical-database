@@ -373,15 +373,21 @@
     ],
     "domain": "ripula.co.uk"
   }, {
-    "name": "Mr. Ripple",
+    "name": "Mr. Exchange",
     "start_date":"2014-10-05",
     "accounts": [{
       "address": "rB3gZey7VWHYRqJHLoHDEJXJ2pEPNieKiS",
       "currencies": {
         "JPY" : { "featured" : true },
-        "BTC" : { "featured" : false },
-        "LTC" : { "featured" : false },
-        "STR" : { "featured" : false }
+        "BTC" : { "featured" : true },
+        "LTC" : { "featured" : true },
+        "STR" : { "featured" : true },
+        "BCC" : { "featured" : false },
+        "ETH" : { "featured" : true },
+        "ETC" : { "featured" : true },
+        "ADA" : { "featured" : true },
+        "DOG" : { "featured" : true },
+        "REP" : { "featured" : true }
       }
     }],
     "hotwallets": [],

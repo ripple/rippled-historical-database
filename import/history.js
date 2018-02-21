@@ -1,5 +1,5 @@
 var config   = require('../config');
-var Importer = require('../lib/ripple-importer');
+var importer = require('../lib/ripple-importer');
 var Logger   = require('../lib/logger');
 var hbase    = require('../lib/hbase');
 var Parser   = require('../lib/ledgerParser');
@@ -11,11 +11,7 @@ var GENESIS_LEDGER = config.get('genesis_ledger') || 1;
 var EPOCH_OFFSET   = 946684800;
 
 var HistoricalImport = function () {
-  this.importer = new Importer({
-    ripple : config.get('ripple'),
-    logLevel: config.get('logLevel') || 0,
-    logFile: config.get('logFile')
-  });
+  this.importer = importer;
 
   this.count    = 0;
   this.total    = 0;
@@ -31,8 +27,6 @@ var HistoricalImport = function () {
   var self = this;
   var stopIndex;
   var cb;
-
-  hbaseOptions.logLevel = 2;
 
  /**
   * handle ledgers from the importer
