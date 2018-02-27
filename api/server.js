@@ -124,8 +124,8 @@ function Server(options) {
   app.get('/v2/stats/:family/:metric', routes.stats)
   app.get('/v2/maintenance/:domain', routes.maintenance)
   app.get('/v2/estimate', routes.estimate)
-  //app.get('/v2/xrp_index', routes.xrpIndex)
-  //app.get('/v2/xrp_index/ticker', routes.xrpIndexTicker)
+  app.get('/v2/xrp_index', routes.xrpIndex)
+  app.get('/v2/xrp_index/ticker', routes.xrpIndexTicker)
 
   // index page
   app.get('/', map.generate)
