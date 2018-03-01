@@ -9,6 +9,7 @@ var routes = require('./routes')
 var map = require('./apiMap')
 var json2csv = require('nice-json2csv')
 var favicon = require('serve-favicon')
+var rateLimitMiddleware = require('../lib/rateLimit').middleware
 
 /**
  * filterDuplicateQueryParams
@@ -60,6 +61,7 @@ function Server(options) {
   app.use(favicon(__dirname + '/favicon.png'))
   app.use(compression())
   app.use(setCacheControl)
+  app.use(rateLimitMiddleware)
 
   app.get('/v2/health/:aspect?', routes.checkHealth)
   app.get('/v2/gateways/:gateway?', routes.gateways.Gateways)

@@ -17,5 +17,12 @@
   "ripple": {
     "server": "wss://localhost:443"
   },
-  "validators-config": "./test/validators.config.json"
+  "validators-config": "./test/validators.config.json",
+  "rateLimit": {
+    "max": 5,
+    "duration": 1000
+  },
+  "redis": {
+    "host": "redis"
+  }
 }
