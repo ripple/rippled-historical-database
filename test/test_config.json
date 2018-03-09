@@ -20,7 +20,9 @@
   "validators-config": "./test/validators.config.json",
   "rateLimit": {
     "max": 5,
-    "duration": 1000
+    "duration": 1000,
+    "whitelist": ["0.0.0.0","1.1.1.1"],
+    "blacklist": ["1.1.1.1","2.2.2.2"]
   },
   "redis": {
     "host": "redis"

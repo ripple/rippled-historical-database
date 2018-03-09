@@ -1,8 +1,12 @@
-
 const config = require('../config')
+config.file('defaults', __dirname + '/test_config.json')
+
 const assert = require('assert')
 const request = require('request-promise')
-const port = config.get('port') || 7112
+const Server = require('../api/server')
+const hbase = require('../lib/hbase');
+const port = 7222
+const server = new Server({ port })
 
 function doRequest(id, full) {
   return request({
@@ -16,6 +20,20 @@ function doRequest(id, full) {
 }
 
 describe('rate limit', function() {
+  it('setup mock server', function() {
+    return hbase.putRow({
+      table: 'control',
+      rowkey: 'rate_limit',
+      columns: {
+        max: 5,
+        duration: 1000,
+        "whitelist": ["0.0.0.0","1.1.1.1"],
+        "blacklist": ["1.1.1.1","2.2.2.2"]
+      }
+    }).then(() => {
+        require('../lib/rateLimit').updateConfig();
+    })
+  })
 
   it('succeed if limit not reached', function() {
     return doRequest(undefined, true)
@@ -69,9 +87,32 @@ describe('rate limit', function() {
     }
 
     return Promise.all(tasks)
-    .then(assert)
+    .then(Promise.reject)
     .catch(err => {
       return doRequest('different-ip')
+    })
+  })
+
+  it('blacklist by IP', function() {
+    return doRequest('2.2.2.2')
+    .then(Promise.reject)
+    .catch(err => {
+      assert.strictEqual(err.error.error, 'This IP has been banned');
+    })
+  })
+
+  it('whitelist by IP', function() {
+    return doRequest('0.0.0.0', true)
+    .then(resp => {
+      assert.strictEqual(resp.headers['x-ratelimit-remaining'], undefined)
+    })
+  })
+
+  it('prioritize blacklist over whitelist', function() {
+    return doRequest('1.1.1.1')
+    .then(Promise.reject)
+    .catch(err => {
+      assert.deepEqual(err.error, { error: 'This IP has been banned'});
     })
   })
 })

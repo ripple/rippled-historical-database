@@ -33,4 +33,14 @@
   },
   "recipients": ["user@example.com"],
   "rippleds_url": "https://data.ripple.com/v2/network/topology/nodes"
+  "rateLimit": {
+    "max": 60,
+    "duration": 60000,
+    "whitelist": [],
+    "blacklist": []
+  }
+  "redis": {
+    "host": "localhost",
+    "port": "6379"
+  }
 }
