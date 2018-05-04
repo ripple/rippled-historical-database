@@ -19,20 +19,97 @@ const intervals = [
   '1day'
 ]
 
+const DATE_FORMAT = 'YYYYMMDDHHmmss';
+const MAX_TIME = 99999999999999;
+const invertTimestamp = timestamp => MAX_TIME - timestamp;
+const getInverseTimestamp = date => MAX_TIME - Number(date.format(DATE_FORMAT));
+
+const formatResults = (data, rates) => {
+  const rows = [];
+
+  data.rows.forEach((row, i) => {
+    const rate = rates[i];
+    if (row.midpoint) {
+      rows.push({
+        price: (row.midpoint * rate).toPrecision(6),
+        volume: row.volume,
+        counter_volume: (row.volume * row.midpoint * rate).toString(),
+        count: Number(row.count || 0),
+        date: row.date
+      })
+
+    } else {
+      rows.push({
+        open: row.open && (row.open * rate).toPrecision(6),
+        high: row.high && (row.high * rate).toPrecision(6),
+        low: row.low && (row.low * rate).toPrecision(6),
+        close: row.close && (row.close * rate).toPrecision(6),
+        vwap: row.vwap && (row.vwap * rate).toPrecision(6),
+        volume: row.volume,
+        counter_volume: (row.usd_volume * rate).toString(),
+        count: Number(row.count || 0),
+        date: row.date
+      })
+    }
+  });
+
+  return {
+    rows,
+    marker: data.marker
+  };
+}
+
+const getRates = (data, currency) => {
+  const tasks = [];
+
+  data.rows.forEach(row => {
+    const { rowkey } = row;
+    const timestamp = invertTimestamp(rowkey.split('|')[1]);
+    tasks.push(getFXRate({ currency, timestamp }));
+  });
+
+  return Promise.all(tasks);
+};
+
+const getFXRate = options => {
+  const { currency, timestamp } = options;
+  const base = `USD|${currency}|`;
+
+  if (currency === 'USD') {
+    return Promise.resolve(1);
+  }
+
+  return new Promise((resolve, reject) => {
+    hbase
+      .getScan({
+        table: 'forex_rates',
+        startRow: `${base}${timestamp}`,
+        stopRow: `${base}`,
+        columns: ['d:rate'],
+        descending: true,
+        excludeMarker: true,
+        limit: 1
+      }, (err, resp) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve((resp[0] ? parseFloat(resp[0].rate) : 0));
+        }
+      });
+  });
+};
+
+
 module.exports = function(req, res) {
   return validate(req.query)
   .then(options => {
-    return getRate(options.currency)
-    .then(rate => {
-      if (!rate) {
-        return Promise.reject({
-          error: 'exchange rate unavailable',
-          code: 400
-        })
-      }
-
-      return getIndex(options, rate)
-    })
+    return getIndex(options)
+    .then(data => {
+      return getRates(data, options.currency)
+      .then(rates => {
+        return formatResults(data, rates);
+      });
+    });
   })
   .then(result => {
 
@@ -43,8 +120,6 @@ module.exports = function(req, res) {
     res.send({
       result: 'success',
       count: result.rows.length,
-      fx_rate: result.rate !== 1 ?
-        result.rate.toString() : undefined,
       rows: result.rows,
       marker: result.marker
     })
@@ -57,47 +132,6 @@ module.exports = function(req, res) {
     })
   })
 }
-
-/**
- * getInverseTimestamp
- */
-
-function getInverseTimestamp(date) {
-  return 99999999999999 - Number(date.format('YYYYMMDDHHmmss'))
-}
-
-/**
- * getRate
- */
-
-function getRate(currency) {
-
-  if (currency === 'USD') {
-    return Promise.resolve(1)
-  }
-
-  return new Promise((resolve, reject) => {
-    hbase.getScan({
-      table: 'forex_rates',
-      startRow: 'USD|' + currency,
-      stopRow: 'USD|' + currency + '|z',
-      descending: true,
-      limit: 1
-    }, (err, res) => {
-      if (err) {
-        reject(err)
-
-
-      } else if (res[0] && moment().diff(res[0].date, 'minutes') < 120) {
-        resolve(Number(res[0].rate))
-
-      } else {
-        resolve()
-      }
-    })
-  })
-}
-
 
 /**
  * validate
@@ -139,15 +173,15 @@ function validate(params) {
   if (isNaN(options.limit)) {
     options.limit = 200;
 
-  } else if (options.limit > 1000) {
-    options.limit = 1000;
+  } else if (options.limit > 400) {
+    options.limit = 400;
   }
 
   return Promise.resolve(options)
 }
 
 /**
- * getBook
+ * getIndex
  */
 
 function getIndex(options, rate) {
@@ -184,40 +218,9 @@ function getIndex(options, rate) {
     function(err, resp) {
       if (err) {
         reject(err)
-        return
+      } else {
+        resolve(resp)
       }
-
-      const rows = []
-      resp.rows.forEach(row => {
-        if (row.midpoint) {
-          rows.push({
-            price: (row.midpoint * rate).toPrecision(6),
-            volume: row.volume,
-            counter_volume: (row.volume * row.midpoint * rate).toString(),
-            count: Number(row.count || 0),
-            date: row.date
-          })
-
-        } else {
-          rows.push({
-            open: row.open ? (row.open * rate).toPrecision(6) : 0,
-            high: row.high ? (row.high * rate).toPrecision(6) : 0,
-            low: row.low ? (row.low * rate).toPrecision(6) : 0,
-            close: row.close ? (row.close * rate).toPrecision(6) : 0,
-            vwap: row.vwap ? (row.vwap * rate).toPrecision(6) : 0,
-            volume: row.volume,
-            counter_volume: (row.usd_volume * rate).toString(),
-            count: Number(row.count || 0),
-            date: row.date
-          })
-        }
-      })
-
-      resolve({
-        marker: resp.marker,
-        rows: rows,
-        rate: rate
-      })
     })
   })
 }
