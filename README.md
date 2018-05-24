@@ -1,16 +1,13 @@
-[![Circle CI](https://circleci.com/gh/ripple/rippled-historical-database.svg?style=svg)](https://circleci.com/gh/ripple/rippled-historical-database)
+# Ripple Data API v2
 
-Ripple Data API v2
-==================
-
-The Ripple Data API v2 provides access to information about changes in the Ripple Consensus Ledger, including transaction history and processed analytical data. This information is stored in a dedicated database, which frees `rippled` servers to keep fewer historical ledger versions. The Data API v2 also acts as data source for applications such as [Ripple Charts](https://www.ripplecharts.com/) and [ripple.com](https://www.ripple.com).
+The Ripple Data API v2 provides access to information about changes in the XRP Ledger, including transaction history and processed analytical data. This information is stored in a dedicated database, which frees `rippled` servers to keep fewer historical ledger versions. The Data API v2 also acts as data source for applications such as [XRP Charts](https://xrpcharts.ripple.com/) and [ripple.com](https://www.ripple.com).
 
 Ripple provides a live instance of the Data API with as complete a transaction record as possible at the following address:
 
 [**https://data.ripple.com**](https://data.ripple.com)
 
 
-## More Information ##
+## More Information
 The Ripple Data API v2 replaces the Historical Database v1 and the [Charts API](https://github.com/ripple/ripple-data-api/).
 
 * [API Methods](#api-method-reference)
@@ -26,9 +23,10 @@ The Ripple Data API v2 replaces the Historical Database v1 and the [Charts API](
 [v2.0.8]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.0.8
 [v2.1.0]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.1.0
 [v2.2.0]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.2.0
+[v2.3.0]: https://github.com/ripple/rippled-historical-database/releases/tag/v2.3.0
 
 
-# API Method Reference #
+# API Method Reference
 
 The Data API v2 provides a REST API with the following methods:
 
@@ -68,7 +66,7 @@ Account Methods:
 * [Get Account Transaction Stats - `GET /v2/accounts/{:address}/stats/transactions`](#get-account-transaction-stats)
 * [Get Account Value Stats - `GET /v2/accounts/{:address}/stats/value`](#get-account-value-stats)
 
-Gateway Information Methods:
+External Information Methods:
 
 * [Get All Gateways - `GET /v2/gateways`](#get-all-gateways)
 * [Get Gateway - `GET /v2/gateways/{:gateway}`](#get-gateway)
@@ -90,7 +88,7 @@ Validation Network Methods:
 * [Get Validator Validations - `GET /v2/network/validators/{:pubkey}/validations`](#get-validator-validations)
 * [Get Single Validator Reports - `GET /v2/network/validators/{:pubkey}/reports`](#get-single-validator-reports)
 * [Get Daily Validator Reports - `GET /v2/network/validator_reports`](#get-daily-validator-reports)
-* [Get Rippled Versions - `GET /v2/network/rippled_versions`](#get-rippled-versions)
+* [Get rippled Versions - `GET /v2/network/rippled_versions`](#get-rippled-versions)
 
 Health Checks:
 
@@ -100,12 +98,12 @@ Health Checks:
 * [Validations ETL Health Check - `GET /v2/health/validations_etl`](#health-check-validations-etl)
 
 
-## Get Ledger ##
+## Get Ledger
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/getLedger.js "Source")
 
 Retrieve a specific Ledger by hash, index, date, or latest validated.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -117,7 +115,7 @@ GET /v2/ledgers/{:identifier}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-ledger)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-ledger)
 
 This method requires the following URL parameters:
 
@@ -133,7 +131,7 @@ Optionally, you can provide the following query parameters:
 | `binary` | Boolean | If `true`, include all transactions from this ledger as hex-formatted binary data. (If provided, overrides `transactions`.) |
 | `expand` | Boolean | If `true`, include all transactions from this ledger as nested JSON objects. (If provided, overrides `binary` and `transactions`.) |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -142,7 +140,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `result` | String | The value `success` indicates that this is a successful response. |
 | `ledger` | [Ledger object](#ledger-objects) | The requested ledger. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -172,14 +170,14 @@ Response:
 
 
 
-## Get Ledger Validations ##
+## Get Ledger Validations
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/getLedger.js "Source")
 
 Retrieve a any validations recorded for a specific ledger hash.  This dataset includes ledger versions that are outside the validated ledger chain. _(New in [v2.2.0][])_
 
 **Note:** The Data API does not have a comprehensive record of all validations. The response only includes data that the Data API has recorded. Some ledger versions, especially older ledgers, may have no validations even if they were validated by consensus.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -191,7 +189,7 @@ GET /v2/ledgers/{:ledger_hash}/validations
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-ledger-validations)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-ledger-validations)
 
 This method requires the following URL parameters:
 
@@ -207,7 +205,7 @@ Optionally, you can provide the following query parameters:
 | `marker`     | String  | [Pagination](#pagination) key from previously returned response. |
 | `format`     | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -220,7 +218,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `validations` | Array of [Validation Objects][] | All known validation votes for the ledger version. |
 
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -262,14 +260,14 @@ Response:
 
 
 
-## Get Ledger Validation ##
+## Get Ledger Validation
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/getLedger.js "Source")
 
 Retrieve a validation vote recorded for a specific ledger hash by a specific validator.  This dataset includes ledger versions that are outside the validated ledger chain. _(New in [v2.2.0][])_
 
 **Note:** The Data API does not have a comprehensive record of all validations. The response only includes data that the Data API has recorded. Some ledger versions, especially older ledgers, may have no validations even if they were validated by consensus.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -281,7 +279,7 @@ GET /v2/ledgers/{:ledger_hash}/validations/{:pubkey}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-ledger-validation)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-ledger-validation)
 
 This method requires the following URL parameters:
 
@@ -292,7 +290,7 @@ This method requires the following URL parameters:
 
 This request takes no query parameters.
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body containing a **[Validation Object][]** with the following additional field:
 
@@ -300,7 +298,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body containi
 |--------|-------|-------------|
 | `result` | String | The value `success` indicates that this is a successful response. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -326,12 +324,12 @@ Response:
 
 
 
-## Get Transaction ##
+## Get Transaction
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/getTransactions.js "Source")
 
 Retrieve a specific transaction by its identifying hash.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -343,7 +341,7 @@ GET /v2/transactions/{:hash}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-transaction)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-transaction)
 
 This method requires the following URL parameters:
 
@@ -357,7 +355,7 @@ Optionally, you can provide the following query parameters:
 |-------|-------|-------------|
 | `binary` | Boolean | If `true`, return transaction data in binary format, as a hex string. Otherwise, return transaction data as nested JSON. Defaults to false. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -366,7 +364,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `result` | String | The value `success` indicates that this is a successful response. |
 | `transaction` | [Transaction object](#transaction-objects) | The requested transaction. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -434,12 +432,12 @@ Response (trimmed for size):
 
 
 
-## Get Transactions ##
+## Get Transactions
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/getTransactions.js "Source")
 
 Retrieve transactions by time
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -451,7 +449,7 @@ GET /v2/transactions/
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-transactions)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-transactions)
 
 Optionally, you can provide the following query parameters:
 
@@ -460,13 +458,13 @@ Optionally, you can provide the following query parameters:
 | `start` | String - [Timestamp][]  | Filter results to this time and later. |
 | `end` | String - [Timestamp][]  | Filter results to this time and earlier. |
 | `descending` | Boolean | If true, return results in reverse chronological order. Defaults to false. |
-| `type` | String | Filter transactions to a specific [transaction type](https://ripple.com/build/transactions/). |
-| `result` | String | Filter transactions for a specific [transaction result](https://ripple.com/build/transactions/#transaction-results). |
+| `type` | String | Filter transactions to a specific [transaction type](https://developers.ripple.com/transaction-types.html). |
+| `result` | String | Filter transactions for a specific [transaction result](https://developers.ripple.com/transaction-results.html). |
 | `binary` | Boolean | If true, return transactions in binary form. Defaults to false. |
 | `limit` | Integer | Maximum results per page. Defaults to 20. Cannot be more than 100. |
 | `marker` | String | [Pagination](#pagination) marker from a previous response. |
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -476,7 +474,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `marker` | String | (May be omitted) Pagination marker. |
 | `transactions` | Array of [Transaction object](#transaction-objects) | The requested transactions. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -591,14 +589,14 @@ Response:
 
 
 
-## Get Payments ##
+## Get Payments
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/getPayments.js "Source")
 
 Retrieve Payments over time, where Payments are defined as `Payment` type transactions where the sender of the transaction is not also the destination. _(New in [v2.0.4][])_
 
 Results can be returned as individual payments, or aggregated to a specific list of intervals if currency and issuer are provided.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -616,7 +614,7 @@ GET /v2/payments/{:currency}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-payments)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-payments)
 
 This method uses the following URL parameters:
 
@@ -637,7 +635,7 @@ Optionally, you can provide the following query parameters:
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -649,7 +647,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `payments` | Array of [Payment Objects][], or array of aggregate objects. | The requested payments. |
 
 
-##### Aggregate Results #####
+##### Aggregate Results
 
 If the request specifies a `currency` and an `interval`, the result includes objects summarizing activity over a specific time period instead of listing individual payments. <!-- STYLE_OVERRIDE: time period --> Each interval summary object has the following fields:
 
@@ -662,7 +660,7 @@ If the request specifies a `currency` and an `interval`, the result includes obj
 | `total_amount` | Number | The amount of the `currency` delivered during this interval. |
 | `average_amount` | Number | The average amount of currency delivered by a single payment during this interval. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -744,12 +742,12 @@ Response:
 
 
 
-## Get Exchanges ##
+## Get Exchanges
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/getExchanges.js "Source")
 
 Retrieve Exchanges for a given currency pair over time.  Results can be returned as individual exchanges or aggregated to a specific list of intervals
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -761,7 +759,7 @@ GET /v2/exchanges/{:base}/{:counter}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-exchanges)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-exchanges)
 
 This method requires the following URL parameters:
 
@@ -779,12 +777,12 @@ Optionally, you can provide the following query parameters:
 | `interval` | String | Aggregation interval: `1minute`, `5minute`, `15minute`, `30minute`, `1hour`, `2hour`, `4hour`, `1day`, `3day`, `7day`, or `1month`. Defaults to non-aggregated results. |
 | `descending` | Boolean | If true, return results in reverse chronological order. |
 | `reduce` | Boolean | Aggregate all individual results. Defaults to false. |
-| `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1,000. |
+| `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 20,000 if `reduce` is true. Otherwise cannot be more than 1,000. |
 | `marker` | String | [Pagination](#pagination) key from previously returned response. |
 | `autobridged` | Boolean | If true, filter results to autobridged exchanges only. |
 | `format` | String | Format of returned results: `csv` or `json`. Defaults to `json` |
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -794,7 +792,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
 | `exchanges` | Array of [Exchange Objects][] | The requested exchanges. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -876,12 +874,12 @@ Response:
 
 
 
-## Get Exchange Rates ##
+## Get Exchange Rates
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/getExchangeRate.js "Source")
 
 Retrieve an exchange rate for a given currency pair at a specific time.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -893,7 +891,7 @@ GET /v2/exchange_rates/{:base}/{:counter}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-exchange-rates)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-exchange-rates)
 
 This method requires the following URL parameters:
 
@@ -911,7 +909,7 @@ Optionally, you can provide the following query parameters:
 | `strict` | Boolean | If false, allow rates derived from less than 10 exchanges. Defaults to true. |
 
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -923,7 +921,7 @@ All exchange rates are calcuated by converting the base currency and counter cur
 
 The rate is derived from the volume weighted average over the calendar day specified, averaged with the volume weighted average of the last 50 trades within the last 14 days.
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -944,12 +942,12 @@ Response:
 
 
 
-## Normalize ##
+## Normalize
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/normalize.js "Source")
 
 Convert an amount from one currency and issuer to another, using the network exchange rates.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -961,7 +959,7 @@ GET /v2/normalize
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#normalize)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#normalize)
 
 You must provide at least some of the following query parameters:
 
@@ -976,7 +974,7 @@ You must provide at least some of the following query parameters:
 | `strict` | Boolean | If `true`, do not use exchange rates that are determined by less than 10 exchanges. Defaults to `true`. |
 
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -988,7 +986,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 
 All exchange rates are calculating by converting both currencies to XRP.
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -1011,12 +1009,12 @@ Response:
 
 
 
-## Get Daily Reports ##
+## Get Daily Reports
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/reports.js "Source")
 
 Retrieve per account per day aggregated payment summaries
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -1028,7 +1026,7 @@ GET /v2/reports/{:date}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-daily-reports)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-daily-reports)
 
 This method uses the following URL parameter:
 
@@ -1046,7 +1044,7 @@ Optionally, you can provide the following query parameters:
 | `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
 | `marker` | String  | [Pagination](#pagination) key from previously returned response. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -1060,7 +1058,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 
 **Caution:** This method may return a very large amount of data (more than 1 megabyte), which may cause poor performance in your client application.
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -1175,12 +1173,12 @@ Response (trimmed for size):
 
 
 
-## Get Stats ##
+## Get Stats
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/stats.js "Source")
 
-Retrieve statistics about transaction activity in the Ripple Consensus Ledger, divided into intervals of time.
+Retrieve statistics about transaction activity in the XRP Ledger, divided into intervals of time.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -1192,7 +1190,7 @@ GET /v2/stats
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-stats)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-stats)
 
 Optionally, you can provide the following query parameters:
 
@@ -1208,17 +1206,17 @@ Optionally, you can provide the following query parameters:
 | `descending` | Boolean | If true, return results in reverse chronological order. Defaults to false. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-##### Families and Metrics #####
+##### Families and Metrics
 
 The `family` and `metrics` query parameters provide a way to filter results to a specific subset of all metrics available for transactions in any given interval. Each metric is tied to a specific family, as follows:
 
 | Family | Included Metrics | Meaning |
 |--------|------------------|---------|
-| `type` | All Ripple [transaction types](https://ripple.com/build/transactions/), including `Payment`, `AccountSet`, `OfferCreate`, and others. | Number of transactions of the given type that occurred during the interval. |
-| `result` | All [transaction result codes](https://ripple.com/build/transactions/#transaction-results) (string codes, not the numeric codes), including `tesSUCCESS`, `tecPATH_DRY`, and many others. | Number of transactions that resulted in the given code during the interval. |
+| `type` | All XRP Ledger [transaction types](https://developers.ripple.com/transaction-formats.html), including `Payment`, `AccountSet`, `OfferCreate`, and others. | Number of transactions of the given type that occurred during the interval. |
+| `result` | All [transaction result codes](https://developers.ripple.com/transaction-results.html) (string codes, not the numeric codes), including `tesSUCCESS`, `tecPATH_DRY`, and many others. | Number of transactions that resulted in the given code during the interval. |
 | `metric` | Data-API defined Special Transaction Metrics. | (Varies) |
 
-##### Special Transaction Metrics #####
+##### Special Transaction Metrics
 
 The Data API derives the following values for every interval. These metrics are part of the `metric` family.
 
@@ -1233,7 +1231,7 @@ The Data API derives the following values for every interval. These metrics are 
 
 If any of the metrics have a value of 0, they are omitted from the results.
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -1243,7 +1241,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
 | `stats` | Array of stats objects | The requested stats. Omits metrics with a value of 0, and intervals that have no nonzero metrics. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -1280,12 +1278,12 @@ Response:
 
 
 
-## Get Capitalization ##
+## Get Capitalization
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/capitalization.js "Source")
 
 Get the total amount of a single currency issued by a single issuer, also known as the [market capitalization](https://en.wikipedia.org/wiki/Market_capitalization). _(New in [v2.0.4][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -1297,7 +1295,7 @@ GET /v2/capitaliztion/{:currency}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-capitalization)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-capitalization)
 
 This method requires the following URL parameters:
 
@@ -1322,7 +1320,7 @@ Optionally, you can provide the following query parameters:
 If the request omits both `start` and `end`, the API returns only the most recent sample.
 
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -1341,7 +1339,7 @@ Each **issuer capitalization object** has the following fields:
 | `date` | String - [Timestamp][] | The start time of the interval this object represents. |
 | `amount` | [String - Number][] | The total amount of currency issued by the issuer as of the start of this interval. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -1406,12 +1404,12 @@ Response:
 
 
 
-## Get Active Accounts ##
+## Get Active Accounts
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/activeAccounts.js "Source")
 
 Get information on which accounts are actively trading in a specific currency pair. _(New in [v2.0.4][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -1423,7 +1421,7 @@ GET /v2/active_accounts/{:base}/{:counter}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-active-accounts)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-active-accounts)
 
 This method requires the following URL parameters:
 
@@ -1441,7 +1439,7 @@ Optionally, you can provide the following query parameters:
 | `include_exchanges` | Boolean | Include individual exchanges for each account in the results. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -1468,7 +1466,7 @@ Each "Account Trading Object" describes the activity of a single account during 
 | `counter_volume` | Number | The total volume of the counter currency the account bought and sold in this period. |
 | `count` | Number | The total number of exchanges the account made during this period. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -1558,14 +1556,14 @@ Response:
 
 
 
-## Get Exchange Volume ##
+## Get Exchange Volume
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getMetric.js "Source")
 
 Get aggregated exchange volume for a given time period. _(New in [v2.0.4][])_
 
 The API returns results in units of a single _display currency_ rather than many different currencies. The conversion uses standard rates to and from XRP.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -1577,7 +1575,7 @@ GET /v2/network/exchange_volume
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-exchange-volume)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-exchange-volume)
 
 Optionally, you can provide the following query parameters:
 
@@ -1586,21 +1584,21 @@ Optionally, you can provide the following query parameters:
 | `start` | String - [Timestamp][]  | Start time of query range. Defaults to the start of the most recent interval. |
 | `end` | String - [Timestamp][]  | End time of query range. Defaults to the end of the most recent interval. |
 | `interval` | String  | Aggregation interval - valid intervals are `day`, `week`, or `month`. Defaults to `day`. |
-| `live` | String - 'day', 'hour', 'minute' | Period for live updating spot data.  Defaults to 'day', ignored if `interval` is specified |
+| `live` | String | Return a live rolling window of this length of time. Valid values are `day`, `hour`, or `minute`. Ignored if `interval` is provided. _(New in [v2.3.0][])_ |
 | `exchange_currency` | String - [Currency Code][] | Normalize all amounts to use this as a display currency. If not XRP, `exchange_issuer` is also required. Defaults to XRP. |
 | `exchange_issuer` | String - [Address][] | Normalize results to the specified `currency` issued by this issuer. |
 | `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
 | `marker` | String  | [Pagination](#pagination) key from previously returned response. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
 |--------|-------|-------------|
 | `result` | String | The value `success` indicates that this is a successful response. |
 | `count` | Integer | Number of results returned. |
-| `rows` | Array of exchange [Volume Objects][] | Exchange volumes for each interval in the requested time period. (By default, this method only returns the most recent interval.) |
+| `rows` | Array of exchange [Volume Objects][] | Exchange volumes for each interval in the requested time period. (By default, this array contains only the most recent complete interval. If `live` is specified and `interval` isn't, this array contains the specified rolling window instead.) |
 
 Each object in the `components` array of the Volume Objects represent the volume of exchanges in a market between two currencies, and has the following fields:
 
@@ -1613,7 +1611,7 @@ Each object in the `components` array of the Volume Objects represent the volume
 | `counter` | Object | The `currency` and `issuer` of the counter currency of this market. There is no `issuer` for XRP. |
 | `converted_amount` | Number | The total amount of volume in the market, converted to the display currency. _(Before [v2.1.0][], this was `convertedAmount`.)_ |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -1708,14 +1706,14 @@ Response:
 
 
 
-## Get Payment Volume ##
+## Get Payment Volume
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getMetric.js "Source")
 
 Get aggregated payment volume for a given time period. _(New in [v2.0.4][])_
 
 The API returns results in units of a single _display currency_ rather than many different currencies. The conversion uses standard rates to and from XRP.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -1727,7 +1725,7 @@ GET /v2/network/payment_volume
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-payment-volume)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-payment-volume)
 
 Optionally, you can provide the following query parameters:
 
@@ -1736,21 +1734,21 @@ Optionally, you can provide the following query parameters:
 | `start` | String - [Timestamp][]  | Start time of query range. Defaults to the start of the most recent interval. |
 | `end` | String - [Timestamp][]  | End time of query range. Defaults to the end of the most recent interval. |
 | `interval` | String  | Aggregation interval - valid intervals are `day`, `week`, or `month`. Defaults to `day`. |
-| `live` | String - 'day', 'hour', 'minute' | Period for live updating spot data.  Defaults to 'day', ignored if `interval` is specified |
+| `live` | String | Return a live rolling window of this length of time. Valid values are `day`, `hour`, or `minute`. Ignored if `interval` is provided. _(New in [v2.3.0][])_ |
 | `exchange_currency` | String - [Currency Code][] | Normalize all amounts to use this as a display currency. If not XRP, `exchange_issuer` is also required. Defaults to XRP. |
 | `exchange_issuer` | String - [Address][] | Normalize results to the specified `currency` issued by this issuer. |
 | `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
 | `marker` | String  | [Pagination](#pagination) key from previously returned response. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
 |--------|-------|-------------|
 | `result` | String | The value `success` indicates that this is a successful response. |
 | `count` | Integer | Number of results returned. |
-| `rows` | Array of payment [Volume Objects][] | Payment volumes for each interval in the requested time period. (By default, this method only returns the most recent interval.) |
+| `rows` | Array of payment [Volume Objects][] | Payment volumes for each interval in the requested time period. (By default, this array contains only the most recent interval. If `live` is specified and `interval` isn't, this array contains the specified rolling window instead.) |
 
 Each object in the `components` array of the Volume Objects represent the volume of payments for one currencies and issuer, and has the following fields:
 
@@ -1763,7 +1761,7 @@ Each object in the `components` array of the Volume Objects represent the volume
 | `rate` | Number | The exchange rate between this currency and the display currency. |
 | `converted_amount` | Number | Total payment volume for this currency, converted to the display currency. _(Before [v2.1.0][], this was `convertedAmount`.)_ |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -1839,14 +1837,14 @@ Response:
 
 
 
-## Get Issued Value ##
+## Get Issued Value
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getMetric.js "Source")
 
 Get the total value of all currencies issued by major gateways over time. By default, returns only the most recent measurement. _(New in [v2.0.4][])_
 
 The API returns results in units of a single _display currency_ rather than many different currencies. The conversion uses standard rates to and from XRP.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -1858,7 +1856,7 @@ GET /v2/network/issued_value
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-issued-value)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-issued-value)
 
 Optionally, you can provide the following query parameters:
 
@@ -1872,7 +1870,7 @@ Optionally, you can provide the following query parameters:
 | `marker` | String  | [Pagination](#pagination) key from previously returned response. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -1888,11 +1886,11 @@ Each Issued Value Object represents the total value issued at one point in time,
 |--------|-------|-------------|
 | `components` | Array of Objects | The data on individual issuers that was used to assemble this total. |
 | `exchange` | Object | Indicates the display currency used, as with fields `currency` and (except for XRP) `issuer`. All amounts are normalized by first converting to XRP, and then to the display currency specified in the request. |
-| `exchangeRate` | Number | The exchange rate to the displayed currency from XRP.
+| `exchange_rate` | Number | The exchange rate to the displayed currency from XRP.
 | `time` | String - [Timestamp][] | When this data was measured. |
 | `total` | Number | Total value of all issued assets at this time, in units of the display currency. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -1948,9 +1946,7 @@ Response:
 ```
 
 
-
-
-## Get External Markets ##
+## Get External Markets
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/externalMarkets.js "Source")
 
 Get aggregated exchange volume from a list of off ledger exchanges for a specified rolling interval.
@@ -1969,7 +1965,7 @@ GET /v2/network/external_markets
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-external-markets)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-external-markets)
 
 Optionally, you can provide the following query parameters:
 
@@ -2073,13 +2069,12 @@ Response:
 
 
 
-
-## Get XRP Distribution ##
+## Get XRP Distribution
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/xrpDistribution.js "Source")
 
 Get information on the total amount of XRP in existence and in circulation, by weekly intervals. _(New in [v2.2.0][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2091,7 +2086,7 @@ GET /v2/network/xrp_distribution
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-xrp-distribution)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-xrp-distribution)
 
 Optionally, you can provide the following query parameters:
 
@@ -2104,7 +2099,7 @@ Optionally, you can provide the following query parameters:
 | `descending` | Boolean | If true, return results in reverse chronological order. Defaults to false. |
 | `format`     | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -2123,7 +2118,7 @@ Each Distribution Object has the following fields:
 | `undistributed` | String | Aggregate amount of XRP held by Ripple (the company). |
 | `distributed` | String | Aggregate amount of XRP held by others. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -2152,13 +2147,13 @@ Response:
 
 
 
-## Get Top Currencies ##
+## Get Top Currencies
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/topCurrencies.js "Source")
 
-Returns the top currencies on the Ripple Consensus Ledger, ordered from highest rank to lowest. The ranking is determined by the volume and count of transactions and the number of unique counterparties. By default, returns results for the 30-day rolling window ending on the current date. You can specify a date to get results for the 30-day window ending on that date. _(New in [v2.1.0][])_
+Returns the top currencies on the XRP Ledger, ordered from highest rank to lowest. The ranking is determined by the volume and count of transactions and the number of unique counterparties. By default, returns results for the 30-day rolling window ending on the current date. You can specify a date to get results for the 30-day window ending on that date. _(New in [v2.1.0][])_
 
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2176,7 +2171,7 @@ GET /v2/network/top_currencies/{:date}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-top-currencies)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-top-currencies)
 
 This method uses the following URL parameter:
 
@@ -2191,7 +2186,7 @@ Optionally, you can provide the following query parameters:
 | `limit`  | Integer | Maximum results per page. Defaults to 1000. Cannot be more than 1000. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -2207,14 +2202,14 @@ Each Top Currency Object has the following fields:
 | Field  | Value | Description |
 |--------|-------|-------------|
 | `currency` | String - [Currency Code][] | The currency this object describes. |
-| `issuer` | String - [Address][] | The Ripple address that issues this currency. |
+| `issuer` | String - [Address][] | The XRP Ledger address that issues this currency. |
 | `avg_exchange_count` | [String - Number][] | Daily average number of [exchanges](#exchange-objects) |
 | `avg_exchange_volume` | [String - Number][] | Daily average volume of exchanges, normalized to XRP |
 | `avg_payment_count` | [String - Number][] | Daily average number of [payments](#payment-objects) |
 | `avg_payment_volume` | [String - Number][] | Daily average volume of payments, normalized to XRP |
 | `issued_value` | [String - Number][] | Total amount of this currency issued by this issuer, normalized to XRP |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -2255,12 +2250,12 @@ Response:
 
 
 
-## Get Top Markets ##
+## Get Top Markets
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/topMarkets.js "Source")
 
-Returns the top exchange markets on the Ripple Consensus Ledger, ordered from highest rank to lowest. The rank is determined by the number and volume of exchanges and the number of counterparties participating. By default, returns top markets for the 30-day rolling window ending on the current date. You can specify a date to get results for the 30-day window ending on that date. _(New in [v2.1.0][])_
+Returns the top exchange markets on the XRP Ledger, ordered from highest rank to lowest. The rank is determined by the number and volume of exchanges and the number of counterparties participating. By default, returns top markets for the 30-day rolling window ending on the current date. You can specify a date to get results for the 30-day window ending on that date. _(New in [v2.1.0][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2278,7 +2273,7 @@ GET /v2/network/top_markets/{:date}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-top-markets)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-top-markets)
 
 This method uses the following URL parameter:
 
@@ -2293,7 +2288,7 @@ Optionally, you can provide the following query parameters:
 | `limit`  | Integer | Maximum results per page. Defaults to 1000. Cannot be more than 1000. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -2309,15 +2304,15 @@ Each Top Market object has the following fields:
 | Field  | Value | Description |
 |--------|-------|-------------|
 | `base_currency` | String - [Currency Code][] | The base currency for this market. |
-| `base_issuer` | String - [Address][] | (Omitted if `base_currency` is XRP) The Ripple address that issues the base currency. |
+| `base_issuer` | String - [Address][] | (Omitted if `base_currency` is XRP) The XRP Ledger address that issues the base currency. |
 | `counter_currency` | String - [Currency Code][] | The counter currency for this market. |
-| `counter_issuer` | String - [Address][] | (Omitted if `counter_currency` is XRP) The Ripple address that issues the counter currency. |
+| `counter_issuer` | String - [Address][] | (Omitted if `counter_currency` is XRP) The XRP Ledger address that issues the counter currency. |
 | `avg_base_volume` | String | Daily average volume in terms of the base currency. |
 | `avg_counter_volume` | String | Daily average volume in terms of the counter currency. |
 | `avg_exchange_count` | String | Daily average number of [exchanges](#exchange-objects) |
 | `avg_volume` | String | Daily average volume, normalized to XRP |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -2359,12 +2354,12 @@ Response:
 
 
 
-## Get Transaction Costs ##
+## Get Transaction Costs
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getFees.js "Source")
 
-Returns [transaction cost](https://ripple.com/build/transaction-cost/) stats per ledger, hour, or day.  The data shows the average, minimum, maximum, and total transaction costs paid for the given interval or ledger. _(New in [v2.2.0][])_
+Returns [transaction cost](https://developers.ripple.com/transaction-cost.html) stats per ledger, hour, or day.  The data shows the average, minimum, maximum, and total transaction costs paid for the given interval or ledger. _(New in [v2.2.0][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2376,7 +2371,7 @@ GET /v2/network/fees
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-transaction-costs)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-transaction-costs)
 
 Optionally, you can provide the following query parameters:
 
@@ -2390,7 +2385,7 @@ Optionally, you can provide the following query parameters:
 | `marker`   | String  | [Pagination](#pagination) key from previously returned response. |
 | `format`   | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -2413,7 +2408,7 @@ Each Fee Summary object has the following fields:
 | `date` | String - [Timestamp][] | The start time of this interval (time intervals), or the close time of this ledger (`ledger` interval). |
 | `ledger_index` | Integer - [Ledger Index][] | (Only present in `ledger` interval) The ledger this object describes. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -2461,12 +2456,12 @@ Response:
 
 
 
-## Get Fee Stats ##
+## Get Fee Stats
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getFeeStats.js "Source")
 
 Returns snapshots of the metrics derived from rippled's fee command. _(New in [v2.4.0][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2478,7 +2473,7 @@ GET /v2/network/fee_stats
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-fee-stats)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-fee-stats)
 
 Optionally, you can provide the following query parameters:
 
@@ -2492,7 +2487,7 @@ Optionally, you can provide the following query parameters:
 | `marker`   | String  | [Pagination](#pagination) key from previously returned response. |
 | `format`   | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -2516,7 +2511,7 @@ Each Fee Summary object has the following fields:
 | `minimum_fee` | Number | Minimum fee for inclusion in any ledger. |
 | `open_ledger_fee` | Cost threshold for inclusion in the ledger open at the time of the snapshot |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -2561,13 +2556,13 @@ Response:
 
 
 
-## Get Topology ##
+## Get Topology
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getTopology.js "Source")
 
 Get known `rippled` servers and peer-to-peer connections between them. _(New in [v2.2.0][])_
 
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2579,7 +2574,7 @@ GET /v2/network/topology
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-topology)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-topology)
 
 Optionally, you can provide the following query parameters:
 
@@ -2588,7 +2583,7 @@ Optionally, you can provide the following query parameters:
 | `date` | String - [Timestamp][]  | Date and time for historical query. By default, uses the most recent data available. |
 | `verbose` | Boolean | If `true`, include additional details about each server where available. Defaults to `false`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -2601,7 +2596,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `nodes` | Array of [Server Objects][] | Details of `rippled` servers in the peer-to-peer network. |
 | `links` | Array of [Link Objects][] | Network connections between `rippled` servers in the peer-to-peer network. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -2666,12 +2661,12 @@ Response:
 
 
 
-## Get Topology Nodes ##
+## Get Topology Nodes
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getNodes.js "Source")
 
 Get known `rippled` nodes. (This is a subset of the data returned by the [Get Topology method](#get-topology).) _(New in [v2.2.0][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2683,7 +2678,7 @@ GET /v2/network/topology/nodes
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-topology-nodes)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-topology-nodes)
 
 Optionally, you can provide the following query parameters:
 
@@ -2693,7 +2688,7 @@ Optionally, you can provide the following query parameters:
 | `verbose` | Boolean | If `true`, return full details for each server. Defaults to `false`. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -2704,7 +2699,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `count` | Integer | Number of `rippled` servers described. |
 | `nodes` | Array of [Server Objects][] | Details of the `rippled` servers in the topology. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -2757,12 +2752,12 @@ Response:
 
 
 
-## Get Topology Node ##
+## Get Topology Node
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getNodes.js "Source")
 
 Get information about a single `rippled` server by its [node public key](#public-keys) (not validator public key). _(New in [v2.2.0][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2774,7 +2769,7 @@ GET /v2/network/topology/nodes/{:pubkey}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-topology-node)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-topology-node)
 
 This method requires the following URL parameters:
 
@@ -2784,7 +2779,7 @@ This method requires the following URL parameters:
 
 This method takes no query parameters.
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with a **[Server Object][]** in the response with the following additional field:
 
@@ -2792,7 +2787,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with a *
 |--------|-------|-------------|
 | `result` | String | The value `success` indicates that this is a successful response. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -2829,12 +2824,12 @@ Response:
 
 
 
-## Get Topology Links ##
+## Get Topology Links
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getLinks.js "Source")
 
 Get information on peer-to-peer connections between `rippled` servers. (This is a subset of the data returned by the [Get Topology method](#get-topology).) _(New in [v2.2.0][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2846,7 +2841,7 @@ GET /v2/network/topology/links
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-topology-links)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-topology-links)
 
 Optionally, you can provide the following query parameters:
 
@@ -2855,7 +2850,7 @@ Optionally, you can provide the following query parameters:
 | `date`   | String - [Timestamp][]  | Date and time for historical query. Defaults to most recent data available. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -2866,7 +2861,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `count`  | Integer | Number of links returned. |
 | `links`  | Array of [Link Objects][] | Links between `rippled` servers. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -2894,13 +2889,13 @@ Response:
 
 
 
-## Get Validator ##
+## Get Validator
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getValidators.js "Source")
 
-Get details of a single validator in the [consensus network](https://ripple.com/knowledge_center/the-ripple-ledger-consensus-process/). _(New in [v2.2.0][])_
+Get details of a single validator in the [consensus network](https://developers.ripple.com/consensus.html). _(New in [v2.2.0][])_
 
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2924,7 +2919,7 @@ Optionally, you can provide the following query parameters:
 |--------|---------|-------------|
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -2934,9 +2929,9 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `last_datetime`  | Integer | The last reported validation vote signed by this validator. |
 | `validation_public_key` | String - Base-58 [Public Key][] | This validator's validator public key. |
 | `domain` | String | (May be omitted) The DNS domain associated with this validator. |
-| `domain_state` | String | The value `verified` indicates that this validator has a [verified domain](https://ripple.com/build/rippled-setup/#domain-verification) controlled by the same operator as the validator. The value `AccountDomainNotFound` indicates that the "Account Domain" part of Domain Verification is not set up properly. The value `RippleTxtNotFound` indicates that the ripple.txt step of Domain Verification is not set up properly. |
+| `domain_state` | String | The value `verified` indicates that this validator has a [verified domain](https://developers.ripple.com/run-rippled-as-a-validator.html#domain-verification) controlled by the same operator as the validator. The value `AccountDomainNotFound` indicates that the "Account Domain" part of Domain Verification is not set up properly. The value `RippleTxtNotFound` indicates that the ripple.txt step of Domain Verification is not set up properly. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -2959,13 +2954,13 @@ Response:
 
 
 
-## Get Validators ##
+## Get Validators
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getValidators.js "Source")
 
 Get a list of known validators. _(New in [v2.2.0][])_
 
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -2977,7 +2972,7 @@ GET /v2/network/validators
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-validators)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-validators)
 
 Optionally, you can provide the following query parameters:
 
@@ -2985,7 +2980,7 @@ Optionally, you can provide the following query parameters:
 |--------|---------|-------------|
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -2996,7 +2991,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `validation_public_key` | String - Base-58 [Public Key][] | Validator public key of this validator. |
 
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3017,14 +3012,14 @@ Response:
 
 
 
-## Get Validator Validations ##
+## Get Validator Validations
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getValidations.js "Source")
 
 Retrieve validation votes signed by a specified validator, including votes for ledger versions that are outside the main ledger chain. _(New in [v2.2.0][])_
 
 **Note:** The Data API does not have a comprehensive record of all validations. The response only includes data that the Data API has recorded. Some ledger versions, especially older ledgers, may have no validations even if they were validated by consensus.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3036,7 +3031,7 @@ GET /v2/network/validators/{:pubkey}/validations
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-validator-validations)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-validator-validations)
 
 This method requires the following URL parameters:
 
@@ -3054,7 +3049,7 @@ Optionally, you can provide the following query parameters:
 | `marker`     | String  | [Pagination](#pagination) key from previously returned response. |
 | `format`     | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -3066,7 +3061,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `validations` | Array of [Validation Objects][] | The requested validations. |
 
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3116,14 +3111,14 @@ Response:
 
 
 
-## Get Validations ##
+## Get Validations
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getValidations.js "Source")
 
 Retrieve validation votes, including votes for ledger versions that are outside the main ledger chain. _(New in [v2.2.0][])_
 
 **Note:** The Data API does not have a comprehensive record of all validations. The response only includes data that the Data API has recorded. Some ledger versions, especially older ledgers, may have no validations even if they were validated by consensus.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3135,7 +3130,7 @@ GET /v2/network/validations
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-validations)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-validations)
 
 Optionally, you can provide the following query parameters:
 
@@ -3148,7 +3143,7 @@ Optionally, you can provide the following query parameters:
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 | `descending` | Boolean | If `true`, return results sorted with earliest first. Otherwise, return oldest results first. Defaults to `false`.
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -3159,7 +3154,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
 | `validations` | Array of [Validation Objects][] | The requested validation votes. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3209,12 +3204,12 @@ Response:
 
 
 
-## Get Single Validator Reports ##
+## Get Single Validator Reports
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getValidatorReports.js "Source")
 
 Get a single validator's validation vote stats for 24-hour intervals.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3226,7 +3221,7 @@ GET /v2/network/validators/{:pubkey}/reports
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-single-validator-reports)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-single-validator-reports)
 
 This method requires the following URL parameters:
 
@@ -3242,7 +3237,7 @@ Optionally, you can provide the following query parameters:
 | `end` | String - [Timestamp][]  | End date and time for historical query. Defaults to most recent data available. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -3259,12 +3254,12 @@ Each member in the `validators` array is a Single Validator Report Object with d
 | `date` | String - [Timestamp][] | The start time of the date this object describes. |
 | `total_ledgers` | Integer | Number of ledger hashes for which this validator submitted validation votes. If this number is much lower than other validators in the same time period, that could mean the validator had downtime. |
 | `main_net_agreement` | [String - Number][] | The fraction of consensus-validated production network ledger versions for which this validator voted in this interval. `"1.0"` indicates 100% agreement. |
-| `main_net_ledgers` | Integer | Number of consensus-validated [production network](https://ripple.com/build/rippled-setup/#parallel-networks) ledger versions this validator voted for. |
-| `alt_net_agreement` | [String - Number][] | The fraction of the consensus-validated [Test Network](https://ripple.com/build/rippled-setup/#parallel-networks) ledger versions this validator voted for. `"1.0"` indicates 100% agreement. |
-| `alt_net_ledgers` | Integer | Number of consensus-validated [Test Network](https://ripple.com/build/rippled-setup/#parallel-networks) ledger versions this validator voted for. |
+| `main_net_ledgers` | Integer | Number of consensus-validated [production network](https://developers.ripple.com/parallel-networks.html) ledger versions this validator voted for. |
+| `alt_net_agreement` | [String - Number][] | The fraction of the consensus-validated [Test Network](https://developers.ripple.com/parallel-networks.html) ledger versions this validator voted for. `"1.0"` indicates 100% agreement. |
+| `alt_net_ledgers` | Integer | Number of consensus-validated [Test Network](https://developers.ripple.com/parallel-networks.html) ledger versions this validator voted for. |
 | `other_ledgers` | Integer | Number of other ledger versions this validator voted for. If this number is high, that could indicate that this validator was running non-standard or out-of-date software. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3306,12 +3301,12 @@ Response:
 
 
 
-## Get Daily Validator Reports ##
+## Get Daily Validator Reports
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getValidatorReports.js "Source")
 
 Get a validation vote stats and validator information for all known validators in a 24-hour period.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3323,7 +3318,7 @@ GET /v2/network/validator_reports
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-daily-validator-reports)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-daily-validator-reports)
 
 Optionally, you can provide the following query parameters:
 
@@ -3332,7 +3327,7 @@ Optionally, you can provide the following query parameters:
 | `date` | String - [Timestamp][]  | Date and time to query. By default, uses the most recent data available. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -3350,15 +3345,15 @@ Daily Validator Report Object fields:
 | `date` | String - [Timestamp][] | The start time of the date this object describes. |
 | `total_ledgers` | Integer | Number of ledger indexes for which this validator submitted validation votes. If this number is much lower than other validators in the same time period, that could mean the validator had downtime. |
 | `main_net_agreement` | [String - Number][] | The fraction of consensus-validated production network ledger versions for which this validator voted in this interval. `"1.0"` indicates 100% agreement. |
-| `main_net_ledgers` | Integer | Number of consensus-validated [production network](https://ripple.com/build/rippled-setup/#parallel-networks) ledger versions this validator voted for. |
-| `alt_net_agreement` | [String - Number][] | The fraction of the consensus-validated [Test Network](https://ripple.com/build/rippled-setup/#parallel-networks) ledger versions this validator voted for. `"1.0"` indicates 100% agreement. |
-| `alt_net_ledgers` | Integer | Number of consensus-validated [Test Network](https://ripple.com/build/rippled-setup/#parallel-networks) ledger versions this validator voted for. |
+| `main_net_ledgers` | Integer | Number of consensus-validated [production network](https://developers.ripple.com/parallel-networks.html) ledger versions this validator voted for. |
+| `alt_net_agreement` | [String - Number][] | The fraction of the consensus-validated [Test Network](https://developers.ripple.com/parallel-networks.html) ledger versions this validator voted for. `"1.0"` indicates 100% agreement. |
+| `alt_net_ledgers` | Integer | Number of consensus-validated [Test Network](https://developers.ripple.com/parallel-networks.html) ledger versions this validator voted for. |
 | `other_ledgers` | Integer | Number of other ledger versions this validator voted for. If this number is high, that could indicate that this validator was running non-standard or out-of-date software. |
 | `last_datetime`  | Integer | The last reported validation vote signed by this validator. |
 | `domain` | String | (May be omitted) The DNS domain associated with this validator. |
-| `domain_state` | String | The value `verified` indicates that this validator has a [verified domain](https://ripple.com/build/rippled-setup/#domain-verification) controlled by the same operator as the validator. The value `AccountDomainNotFound` indicates that the "Account Domain" part of Domain Verification is not set up properly. The value `RippleTxtNotFound` indicates that the ripple.txt step of Domain Verification is not set up properly. |
+| `domain_state` | String | The value `verified` indicates that this validator has a [verified domain](https://developers.ripple.com/run-rippled-as-a-validator.html#domain-verification) controlled by the same operator as the validator. The value `AccountDomainNotFound` indicates that the "Account Domain" part of Domain Verification is not set up properly. The value `RippleTxtNotFound` indicates that the ripple.txt step of Domain Verification is not set up properly. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3407,13 +3402,12 @@ Response:
 ```
 
 
-
-## Get Rippled Versions ##
+## Get rippled Versions
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getVersions.js "Source")
 
-Get current Rippled versions
+Reports the latest versions of `rippled` available from the official Ripple Yum repositories. _(New in [v2.3.0][].)_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3425,28 +3419,28 @@ GET /v2/network/rippled_versions
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-rippled-versions)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-rippled-versions)
 
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
-| Field  | Value | Description |
-|--------|-------|-------------|
-| `result` | String | The value `success` indicates that the body represents a successful response. |
-| `count`  | Integer | Number of reports returned. |
-| `rows` | Array of Rippled Versions Objects | Date, Repo, and corresponding version number. |
+| Field    | Value                    | Description                           |
+|:---------|:-------------------------|:--------------------------------------|
+| `result` | String                   | The value `success` indicates that the body represents a successful response. |
+| `count`  | Integer                  | Number of rows returned.              |
+| `rows`   | Array of Version Objects | Description of the latest `rippled` version in each repository. |
 
-Rippled Versions Object fields:
+Each Version Object contains the following fields:
 
-| Field  | Value | Description |
-|--------|-------|-------------|
-| `date` | String - [Timestamp][] | Date of record for the specific repo. |
-| `repo` | String | Name of the repo. |
-| `version` | String | Version string of the repo. |
+| Field     | Value                  | Description                            |
+|:----------|:-----------------------|:---------------------------------------|
+| `date`    | String - [Timestamp][] | The date this `rippled` version was released. |
+| `repo`    | String                 | The Yum repository where this `rippled` is available. The `stable` repository has the latest production version. Other versions are for development and testing. |
+| `version` | String                 | The version string for this version of `rippled`. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3459,23 +3453,23 @@ Response:
 ```
 200 OK
 {
-  result: "success",
-  count: 3,
-  rows: [
+  "result": "success",
+  "count": 3,
+  "rows": [
     {
-      date: "2016-06-24T00:00:00Z",
-      repo: "nightly",
-      version: "0.32.0-rc2"
+      "date": "2016-06-24T00:00:00Z",
+      "repo": "nightly",
+      "version": "0.32.0-rc2"
     },
     {
-      date: "2016-06-24T00:00:00Z",
-      repo: "stable",
-      version: "0.32.0"
+      "date": "2016-06-24T00:00:00Z",
+      "repo": "stable",
+      "version": "0.32.0"
     },
     {
-      date: "2016-06-24T00:00:00Z",
-      repo: "unstable",
-      version: "0.32.0-rc1"
+      "date": "2016-06-24T00:00:00Z",
+      "repo": "unstable",
+      "version": "0.32.0-rc1"
     }
   ]
 }
@@ -3483,12 +3477,12 @@ Response:
 
 
 
-## Get All Gateways ##
+## Get All Gateways
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/gateways.js "Source")
 
 Get information about [known gateways](https://github.com/ripple/rippled-historical-database/blob/v2.0.4/api/gateways/gateways.json). _(New in [v2.0.4][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3500,11 +3494,11 @@ GET /v2/gateways/
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-all-gateways)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-all-gateways)
 
 This method takes no query parameters.
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body.
 
@@ -3513,12 +3507,12 @@ Each field in the top level JSON object is a [Currency Code][]. The content of e
 | Field    | Value   | Description |
 |----------|---------|-------------|
 | `name` | String  | A human-readable proper name for the gateway. |
-| `account` | String - [Address][] | The [issuing address](https://ripple.com/build/issuing-operational-addresses/) of this currency. |
+| `account` | String - [Address][] | The [issuing address](https://developers.ripple.com/issuing-and-operational-addresses.html) of this currency. |
 | `featured` | Boolean | Whether this gateway is considered a "featured" issuer of the currency. Ripple decides which gateways to feature based on responsible business practices, volume, and other measures. |
 | `label` | String  | (May be omitted) Only provided when the [Currency Code][] is a 40-character hexadecimal value. This is an alternate human-readable name for the currency issued by this gateway.
-| `assets` | Array of Strings | Graphics filenames available for this gateway, if any. (Mostly, these are logos used by Ripple Charts.) |
+| `assets` | Array of Strings | Graphics filenames available for this gateway, if any. (Mostly, these are logos used by XRP Charts.) |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3579,13 +3573,13 @@ Response:
 
 
 
-## Get Gateway ##
+## Get Gateway
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/gateways.js "Source")
 
 <!-- STYLE_OVERRIDE: gateway, gateways -->
 Get information about a specific gateway from [the Data API's list of known gateways](https://github.com/ripple/rippled-historical-database/blob/v2.0.4/api/gateways/gateways.json). _(New in [v2.0.4][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3597,7 +3591,7 @@ GET /v2/gateways/{:gateway}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-gateway)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-gateway)
 
 This method requires the following URL parameters:
 
@@ -3607,7 +3601,7 @@ This method requires the following URL parameters:
 
 This method takes no query parameters.
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -3615,20 +3609,20 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 |-------------|--------|-------------|
 | `name` | String | Human-readable name of the gateway. |
 | `start_date` | String - [Timestamp][] | The approximate date of the first time exchanges for this gateway's currencies appeared in the ledger. |
-| `accounts` | Array | A list of [issuing addresses](https://ripple.com/build/issuing-operational-addresses/) used by this gateway. (Gateways may use different issuing accounts for different currencies.) |
-| `hotwallets` | Array of [Address][]es | This gateway's [operational addresses](https://ripple.com/build/issuing-operational-addresses/). |
+| `accounts` | Array | A list of [issuing addresses](https://developers.ripple.com/issuing-and-operational-addresses.html) used by this gateway. (Gateways may use different issuing accounts for different currencies.) |
+| `hotwallets` | Array of [Address][]es | This gateway's [operational addresses](https://developers.ripple.com/issuing-and-operational-addresses.html). |
 | `domain` | String | The domain name where this gateway does business. Typically the gateway hosts a [`ripple.txt`](https://wiki.ripple.com/Ripple.txt) there. |
 | `normalized` | String | A normalized version of the `name` field suitable for including in URLs. |
-| `assets` | Array of Strings | Graphics filenames available for this gateway, if any. (Mostly, these are logos used by Ripple Charts.) |
+| `assets` | Array of Strings | Graphics filenames available for this gateway, if any. (Mostly, these are logos used by XRP Charts.) |
 
 Each object in the `accounts` field array has the following fields:
 
 | Field      | Value  | Description |
 |------------|--------|-------------|
-| `address` | String | The [issuing address](https://ripple.com/build/issuing-operational-addresses/) used by this gateway. |
+| `address` | String | The [issuing address](https://developers.ripple.com/issuing-and-operational-addresses.html) used by this gateway. |
 | `currencies` | Object | Each field in this object is a [Currency Code][] corresponding to a currency issued from this address. Each value is an object with a `featured` boolean indicating whether that currency is featured. Ripple decides which currencies and gateways to feature based on responsible business practices, volume, and other measures. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3671,13 +3665,13 @@ Response:
 
 
 
-## Get Currency Image ##
+## Get Currency Image
 
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/gateways.js#L199 "Source")
 
 Retrieve vector icons for various currencies. _(New in [v2.0.4][])_
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3695,10 +3689,10 @@ This method requires the following URL parameter:
 |-------|-------|-------------|
 | `currencyimage` | String | An image file for a currency, such as `xrp.svg`. See [the source code](https://github.com/ripple/rippled-historical-database/tree/develop/api/gateways/currencyAssets) for a list of available images. |
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a **Content-Type** header of `image/svg+xml` to indicate that the contents are XML representing a file in [SVG format](https://en.wikipedia.org/wiki/Scalable_Vector_Graphics).
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3733,12 +3727,12 @@ Content-Type: image/svg+xml
 
 
 
-## Get Accounts ##
+## Get Accounts
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accounts.js "Source")
 
-Retrieve information about the creation of new accounts in the Ripple Consensus Ledger.
+Retrieve information about the creation of new accounts in the XRP Ledger.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3750,7 +3744,7 @@ GET /v2/accounts
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-accounts)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-accounts)
 
 Optionally, you can provide the following query parameters:
 
@@ -3766,7 +3760,7 @@ Optionally, you can provide the following query parameters:
 | `reduce` | Boolean | Return a count of results only. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -3776,7 +3770,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
 | `accounts` | Array | If the request used the `interval` query parameter, each member of the array is an interval object. Otherwise, this field is an array of [account creation objects](#account-creation-objects). |
 
-##### Interval Objects #####
+##### Interval Objects
 
 If the request uses the `interval` query parameter, the response has an array of interval objects, each of which represents the number of accounts created during a single interval. Interval objects have the following fields:
 
@@ -3785,7 +3779,7 @@ If the request uses the `interval` query parameter, the response has an array of
 | `date` | String - [Timestamp] | When this interval starts. (The length of the interval is determined by the request.) |
 | `count` | Number | How many accounts were created in this interval. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3830,12 +3824,12 @@ Response:
 ```
 
 
-## Get Account ##
+## Get Account
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/getAccount.js "Source")
 
 Get creation info for a specific ripple account
 
-#### Request Format ####
+#### Request Format
 
 
 <!-- MULTICODE_BLOCK_START -->
@@ -3848,15 +3842,15 @@ GET /v2/accounts/{:address}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-account)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-account)
 
 This method requires the following URL parameters:
 
 | Field     | Value  | Description |
 |-----------|--------|-------------|
-| `address` | String | Ripple address to query. |
+| `address` | String | XRP Ledger address to query. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -3865,7 +3859,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `result` | String | The value `success` indicates that this is a successful response. |
 | `account` | Object - [Account Creation](#account-creation-objects) | The requested account. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3892,10 +3886,10 @@ Response:
 
 
 
-## Get Account Balances ##
+## Get Account Balances
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accountBalances.js "Source")
 
-Get all balances held or owed by a specific Ripple account.
+Get all balances held or owed by a specific XRP Ledger account.
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3907,13 +3901,13 @@ GET /v2/accounts/{:address}/balances
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-account-balances)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-account-balances)
 
 This method requires the following URL parameters:
 
 | Field     | Value  | Description |
 |-----------|--------|-------------|
-| `address` | String | Ripple address to query. |
+| `address` | String | XRP Ledger address to query. |
 
 Optionally, you can provide the following query parameters:
 
@@ -3927,7 +3921,7 @@ Optionally, you can provide the following query parameters:
 | `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be greater than 400, but you can use the value `all` to return all results. (Caution: When using limit=all to retrieve very many results, the request may time out. For large issuers, there can be several tens of thousands of results.) |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -3939,7 +3933,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
 | `balances` | Array of [Balance Object][]s | The requested balances. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -3977,12 +3971,12 @@ Response:
 ```
 
 
-## Get Account Orders ##
+## Get Account Orders
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accountOrders.js "Source")
 
 Get orders in the order books, placed by a specific account. This does not return orders that have already been filled.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -3994,13 +3988,13 @@ GET /v2/account/{:address}/orders
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-account-orders)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-account-orders)
 
 This method requires the following URL parameters:
 
 | Field    | Value  | Description |
 |----------|--------|-------------|
-| `address` | String - [Address][] | Ripple address to query. |
+| `address` | String - [Address][] | XRP Ledger address to query. |
 
 Optionally, you can provide the following query parameters:
 
@@ -4014,7 +4008,7 @@ Optionally, you can provide the following query parameters:
 
 If none of `ledger_index`, `ledger_hash`, or `date` are specified, the API uses the most current data available.
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -4034,11 +4028,11 @@ Each order object has the following fields:
 | `specification.quantity` | [Balance Object][] | The maximum amount of the base currency this order would buy or sell (depending on the direction). This value decreases as the order gets partially filled. |
 | `specification.totalPrice` | [Balance Object][] | The maximum amount of the counter currency the order can spend or gain to buy or sell the base currency. This value decreases as the order gets partially filled. |
 | `properties` | Object | Details of how the order was placed. |
-| `properties.maker` | String - [Address][] | The Ripple account that placed the order. |
+| `properties.maker` | String - [Address][] | The XRP Ledger account that placed the order. |
 | `properties.sequence` | Number | The sequence number of the transaction that placed this order. |
 | `properties.makerExchangeRate` | [String - Number][] | The exchange rate from the point of view of the account that submitted the order. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -4103,12 +4097,12 @@ Response:
 
 
 
-## Get Account Transaction History ##
+## Get Account Transaction History
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accountTransactions.js "Source")
 
 Retrieve a history of transactions that affected a specific account. This includes all transactions the account sent, payments the account received, and payments that rippled through the account.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -4120,13 +4114,13 @@ GET /v2/accounts/{:address}/transactions
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-account-transaction-history)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-account-transaction-history)
 
 This method requires the following URL parameters:
 
 | Field    | Value  | Description |
 |----------|--------|-------------|
-| :address | String - [Address][] | Ripple address to query. |
+| :address | String - [Address][] | XRP Ledger address to query. |
 
 
 Optionally, you can provide the following query parameters:
@@ -4137,16 +4131,17 @@ Optionally, you can provide the following query parameters:
 | `end` | String - [Timestamp][]  | End time of query range. Defaults to the current date. |
 | `min_sequence` | String  | Minimum sequence number to query. |
 | `max_sequence` | String  | Max sequence number to query. |
-| `type` | String  | Restrict results to a specified [transaction type](https://ripple.com/build/transactions/) |
-| `result` | String  | Restrict results to specified transaction result. |
+| `type` | String  | Restrict results to a specified [transaction type](https://developers.ripple.com/transaction-types.html) |
+| `result` | String  | Restrict results to a specified [transaction result](https://developers.ripple.com/transaction-results.html). |
 | `binary` | Boolean | Return results in binary format. |
 | `descending` | Boolean | If true, return results in reverse chronological order. Defaults to false. |
 | `limit` | Integer | Maximum results per page. Defaults to 20. Cannot be more than 1,000. |
 | `marker` | String  | [Pagination](#pagination) key from previously returned response. |
 
-**Note:** This method cannot return CSV format; only JSON results are supported for raw RCL transactions.
+**Note:** This method cannot return CSV format; only JSON results are supported for raw XRP Ledger transactions.
 
-#### Response Format ####
+
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -4157,7 +4152,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
 | `transactions` | Array of [transaction objects](#transaction-objects) | All transactions matching the request. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -4234,12 +4229,12 @@ Response:
 
 
 
-## Get Transaction By Account And Sequence ##
+## Get Transaction By Account And Sequence
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accountTxSeq.js "Source")
 
 Retrieve a specifc transaction originating from a specified account
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -4251,13 +4246,13 @@ GET /v2/accounts/{:address}/transactions/{:sequence}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-transaction-by-account-and-sequence)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-transaction-by-account-and-sequence)
 
 This method requires the following URL parameters:
 
 | Field      | Value   | Description |
 |------------|---------|-------------|
-| `address`  | String  | Ripple address to query. |
+| `address`  | String  | XRP Ledger address to query. |
 | `sequence` | Integer | Transaction sequence number. |
 
 
@@ -4268,7 +4263,7 @@ Optionally, you can provide the following query parameters:
 | `binary` | Boolean | If `true`, return transaction in binary format. Defaults to `false`. |
 
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -4277,7 +4272,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `result` | String | The value `success` indicates that this is a successful response. |
 | `transaction` | [transaction object](#transaction-objects) | The requested transaction. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -4303,12 +4298,12 @@ Response:
 
 
 
-## Get Account Payments ##
+## Get Account Payments
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accountPayments.js "Source")
 
 Retrieve a payments for a specified account
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -4320,13 +4315,13 @@ GET /v2/accounts/{:address}/payments
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-account-payments)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-account-payments)
 
 This method requires the following URL parameters:
 
 | Field     | Value  | Description |
 |-----------|--------|-------------|
-| `address` | String | Ripple address to query. |
+| `address` | String | XRP Ledger address to query. |
 
 
 Optionally, you can provide the following query parameters:
@@ -4346,7 +4341,7 @@ Optionally, you can provide the following query parameters:
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
@@ -4357,7 +4352,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
 | `payments` | Array of [payment objects][] | All payments matching the request. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -4409,12 +4404,12 @@ Response:
 
 
 
-## Get Account Exchanges ##
+## Get Account Exchanges
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accountExchanges.js "Source")
 
 Retrieve Exchanges for a given account over time.
 
-#### Request Format ####
+#### Request Format
 
 There are two variations on this method:
 
@@ -4434,13 +4429,13 @@ GET /v2/accounts/{:address}/exchanges/{:base}/{:counter}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-account-exchanges-all)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-account-exchanges-all)
 
 This method requires the following URL parameters:
 
 | Field     | Value  | Description |
 |-----------|--------|-------------|
-| `address` | String | Ripple address to query. |
+| `address` | String | XRP Ledger address to query. |
 | `base`    | String | Base currency of the pair, as a [Currency Code][], followed by `+` and the issuer [Address][] unless it's XRP. |
 | `counter` | String | Counter currency of the pair, as a [Currency Code][], followed by `+` and the issuer [Address][] unless it's XRP. |
 
@@ -4457,7 +4452,7 @@ Optionally, you can provide the following query parameters:
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -4467,7 +4462,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
 | `exchanges` | Array of [Exchange Objects][] | The requested exchanges. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -4529,12 +4524,12 @@ Response:
 
 
 
-## Get Account Balance Changes ##
+## Get Account Balance Changes
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accountBalanceChanges.js "Source")
 
 Retrieve Balance changes for a given account over time.
 
-#### Request Format ####
+#### Request Format
 
 <!-- MULTICODE_BLOCK_START -->
 
@@ -4546,13 +4541,13 @@ GET /v2/accounts/{:address}/balance_changes/
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-account-balance-changes)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-account-balance-changes)
 
 This method requires the following URL parameters:
 
 | Field     | Value  | Description |
 |-----------|--------|-------------|
-| `address` | String | Ripple address to query. |
+| `address` | String | XRP Ledger address to query. |
 
 
 Optionally, you can provide the following query parameters:
@@ -4569,7 +4564,7 @@ Optionally, you can provide the following query parameters:
 | `format` | String  | Format of returned results: `csv` or`json`. Defaults to `json`. |
 
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -4579,7 +4574,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
 | `exchanges` | Array of [balance change descriptors][] | The requested balance changes. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -4634,7 +4629,7 @@ Response:
 
 
 
-## Get Account Reports ##
+## Get Account Reports
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accountReports.js "Source")
 
 Retrieve daily summaries of payment activity for an account.
@@ -4655,13 +4650,13 @@ GET /v2/accounts/{:address}/reports/{:date}
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-account-reports-by-day)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-account-reports-by-day)
 
 This method requires the following URL parameters:
 
 | Field     | Value  | Description |
 |-----------|--------|-------------|
-| `address` | String | Ripple address to query. |
+| `address` | String | XRP Ledger address to query. |
 | `date`    | String | (Optional) UTC date for single report. If omitted, use the `start` and `end` query parameters. |
 
 
@@ -4677,7 +4672,7 @@ Optionally, you can provide the following query parameters:
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -4686,7 +4681,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `count` | Integer | Number of reports in the `reports` field. |
 | `reports` | Array of [Reports Objects][] | Daily summaries of account activity for the given account and date range. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -4747,7 +4742,7 @@ Response:
 
 
 
-## Get Account Transaction Stats ##
+## Get Account Transaction Stats
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accountStats.js "Source")
 
 Retrieve daily summaries of transaction activity for an account. _(New in [v2.1.0][].)_
@@ -4762,13 +4757,13 @@ GET /v2/accounts/{:address}/stats/transactions
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-account-transaction-stats)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-account-transaction-stats)
 
 This method requires the following URL parameters:
 
 | Field     | Value  | Description |
 |-----------|--------|-------------|
-| `address` | String | Ripple address to query. |
+| `address` | String | XRP Ledger address to query. |
 
 
 Optionally, you can provide the following query parameters:
@@ -4783,7 +4778,7 @@ Optionally, you can provide the following query parameters:
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -4798,10 +4793,10 @@ Each Transaction Stats Object has the following fields:
 |--------|-------|-------------|
 | `date` | String - [Timestamp][] | This object describes activity on this date. |
 | `transaction_count` | Integer | The total number of transactions sent by the account on this date. |
-| `result` | Object | Map of [transaction result codes](https://ripple.com/build/transactions/#transaction-results), indicating how many of each result code occurred in the transactions sent by this account on this date. |
-| `type` | Object | Map of [transaction types](https://ripple.com/build/transactions/), indicating how many of each transaction type the account sent on this date. |
+| `result` | Object | Map of [transaction result codes](https://developers.ripple.com/transaction-results.html), indicating how many of each result code occurred in the transactions sent by this account on this date. |
+| `type` | Object | Map of [transaction types](https://developers.ripple.com/transaction-formats.html), indicating how many of each transaction type the account sent on this date. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -4846,7 +4841,7 @@ Response:
 
 
 
-## Get Account Value Stats ##
+## Get Account Value Stats
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/accountStats.js "Source")
 
 Retrieve daily summaries of transaction activity for an account. _(New in [v2.1.0][].)_
@@ -4861,13 +4856,13 @@ GET /v2/accounts/{:address}/stats/value
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#get-account-value-stats)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-account-value-stats)
 
 This method requires the following URL parameters:
 
 | Field     | Value  | Description |
 |-----------|--------|-------------|
-| `address` | String | Ripple address to query. |
+| `address` | String | XRP Ledger address to query. |
 
 
 Optionally, you can provide the following query parameters:
@@ -4882,7 +4877,7 @@ Optionally, you can provide the following query parameters:
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 
-#### Response Format ####
+#### Response Format
 A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
 
 | Field  | Value | Description |
@@ -4899,7 +4894,7 @@ Each Value Stats Object has the following fields:
 | `value` | [String - Number][] | The total of all currency held by this account, normalized to XRP. |
 | `balance_change_count` | Number | The number of times the account's balance changed on this date. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -4933,7 +4928,7 @@ Response:
 
 
 
-## Health Check - API ##
+## Health Check - API
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/checkHealth.js "Source")
 
 Check the health of the API service.
@@ -4948,7 +4943,7 @@ GET /v2/health/api
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#api-health-check)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#api-health-check)
 
 Optionally, you can provide the following query parameters:
 
@@ -4957,7 +4952,7 @@ Optionally, you can provide the following query parameters:
 | `threshold` | Integer  | Consider the API unhealthy if the database does not respond within this amount of time, in seconds. Defaults to 5 seconds. |
 | `verbose` | Boolean | If true, return a JSON response with data points. By default, return an integer value only. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**.
 
@@ -4976,7 +4971,7 @@ If the request specifies `verbose=true` in the query parameters, the response bo
 | `response_time` | String - Human-readable time | The actual response time of the database. |
 | `response_time_threshold` | String - Human-readable time | The maximum response time to be considered healthy. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -4996,7 +4991,7 @@ Response:
 ```
 
 
-## Health Check - Ledger Importer ##
+## Health Check - Ledger Importer
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/checkHealth.js "Source")
 
 Check the health of the Ledger Importer Service.
@@ -5011,7 +5006,7 @@ GET /v2/health/importer
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#importer-health-check)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#importer-health-check)
 
 Optionally, you can provide the following query parameters:
 
@@ -5021,7 +5016,7 @@ Optionally, you can provide the following query parameters:
 | `threshold2` | Integer | Consider the Importer unhealthy if more than this amount of time, in seconds, has elapsed since the latest ledger of any kind was imported. Defaults to 60 seconds. |
 | `verbose` | Boolean | If true, return a JSON response with data points. By default, return an integer value only. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**.
 
@@ -5044,7 +5039,7 @@ If the request specifies `verbose=true` in the query parameters, the response bo
 | `valildation_gap` | String - Human-readable time | Difference between the close time of the last imported validated ledger and the current time. |
 | `validation_gap_threshold` | String - Human-readable time | Maximum validation gap to be considered healthy. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -5068,7 +5063,7 @@ Response:
 
 
 
-## Health Check - Nodes ETL ##
+## Health Check - Nodes ETL
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/checkHealth.js "Source")
 
 Check the health of the Topology Nodes Extract, Transform, Load (ETL) Service.
@@ -5083,7 +5078,7 @@ GET /v2/health/nodes_etl
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#nodes-etl-health-check)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#nodes-etl-health-check)
 
 Optionally, you can provide the following query parameters:
 
@@ -5092,7 +5087,7 @@ Optionally, you can provide the following query parameters:
 | `threshold` | Integer | Consider the service unhealthy if more than this amount of time, in seconds, has elapsed since the latest data was imported. Defaults to 120 seconds. |
 | `verbose`   | Boolean | If `true`, return a JSON response with data points. By default, return an integer value only. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**.
 
@@ -5113,7 +5108,7 @@ If the request specifies `verbose=true` in the query parameters, the response bo
 | `gap_threshold` | String - Human-readable time | Maximum gap to be considered healthy. |
 | `message` | String | Description of the reason for a non-zero score, if applicable. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -5134,7 +5129,7 @@ Response:
 
 
 
-## Health Check - Validations ETL ##
+## Health Check - Validations ETL
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/checkHealth.js "Source")
 
 Check the health of the Validations Extract, Transform, Load (ETL) Service.
@@ -5149,7 +5144,7 @@ GET /v2/health/validations_etl
 
 <!-- MULTICODE_BLOCK_END -->
 
-[Try it! >](https://ripple.com/build/data-api-tool/#validations-etl-health-check)
+[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#validations-etl-health-check)
 
 Optionally, you can provide the following query parameters:
 
@@ -5158,7 +5153,7 @@ Optionally, you can provide the following query parameters:
 | `threshold` | Integer | Consider the service unhealthy if more than this amount of time, in seconds, has elapsed since the latest data was imported. Defaults to 120 seconds. |
 | `verbose`   | Boolean | If true, return a JSON response with data points. By default, return an integer value only. |
 
-#### Response Format ####
+#### Response Format
 
 A successful response uses the HTTP code **200 OK**. By default, the response body is an **integer health value only**.
 
@@ -5178,7 +5173,7 @@ If the request specifies `verbose=true` in the query parameters, the response bo
 | `gap_threshold` | String - Human-readable time | Maximum gap to be considered healthy. |
 | `message` | String | Description of the reason for a non-zero score, if applicable. |
 
-#### Example ####
+#### Example
 
 Request:
 
@@ -5200,26 +5195,24 @@ Response:
 
 
 
-# API Conventions #
+# API Conventions
 
-## Basic Types ##
+## Basic Types
 
 As a REST API, the Data API v2 uses [JSON](http://json.org/)'s native datatypes to represent API fields, with some special cases.
 
-### Numbers and Precision ###
+### Numbers and Precision
 [String - Number]: #numbers-and-precision
 
-Currency amounts in Ripple require more precision than most native number types, so the Data API v2 uses the String type to represent some values.
-
-Within the String value, the numbers are serialized in the same way as native JSON numbers:
+XRP Ledger APIs generally use strings, rather than native JSON numbers, to represent numeric amounts of currency for both XRP and issued currencies. This protects against a loss of precision when using JSON parsers, which may automatically try to represent all JSON numbers in a floating-point format. Within the String value, the numbers are serialized in the same way as native JSON numbers:
 
 * Base-10.
 * Non-zero-prefaced.
 * May contain `.` as a decimal point. For example, ½ is represented as `0.5`. (American style, not European)
-* May contain `E` or `e` to indicate being raised to a power of 10. For example, `1.2E5` is equivalent to `120000`.
+* May contain `E` or `e` to indicate being raised to a power of 10 (scientific notation). For example, `1.2E5` is equivalent to 1.2×10<sup>5</sup>, or `120000`.
 * No comma (`,`) characters are used.
 
-The precision for amounts of **non-XRP currency** in Ripple is as follows:
+The precision for amounts of **non-XRP currency** in the XRP Ledger is as follows:
 
 * Minimum nonzero absolute value: `1000000000000000e-96`
 * Maximum value: `9999999999999999e80`
@@ -5234,40 +5227,30 @@ The precision for amounts of **non-XRP currency** in Ripple is as follows:
 
 In other words, XRP has the same precision as a 64-bit unsigned integer where each unit is equivalent to 0.000001 XRP.
 
-### Addresses ###
+### Addresses
 [Address]: #addresses
 
-Ripple Accounts are identified by a base-58 Ripple Address, which is derived from the account's master public key. An address is represented as a String in JSON, with the following characteristics:
+Accounts in the XRP Ledger are identified by a base58 XRP Ledger Address. The address is derived from the account's master [public key](https://en.wikipedia.org/wiki/Public-key_cryptography), which is in turn derived from a secret key. An address is represented as a string in JSON and has the following characteristics:
 
 * Between 25 and 35 characters in length
 * Starts with the character `r`
+* Uses alphanumeric characters, excluding the number "`0`" capital letter "`O`", capital letter "`I`", and lowercase letter "`l`"
 * Case-sensitive
-* [Base-58](https://wiki.ripple.com/Encodings) encoded using only the following characters: `rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz` That's alphanumeric characters, excluding zero (`0`), capital O (`O`), capital I (`I`), and lowercase L (`l`).
-* Contains error-checking that makes it unlikely that a randomly-generated string is a valid address.
-
-#### Special Addresses ####
-[ACCOUNT_ONE]: #special-addresses
-[ACCOUNT_ZERO]: #special-addresses
-
-Some addresses have special meaning, or historical uses, in the Ripple Consensus Ledger. In many cases, these are "black hole" addresses, meaning the address is not derived from a known secret key. Since it is almost impossible to guess a secret key from only an address, any XRP possessed by those addresses is lost forever.
-
-| Address                     | Name | Meaning | Black Hole? |
-|-----------------------------|------|---------|-------------|
-| rrrrrrrrrrrrrrrrrrrrrhoLvTp | ACCOUNT\_ZERO | An address that is the base-58 encoding of the value `0`. In peer-to-peer communications, `rippled` uses this address as the issuer for XRP. | Yes |
-| rrrrrrrrrrrrrrrrrrrrBZbvji  | ACCOUNT\_ONE | An address that is the base-58 encoding of the value `1`. In the ledger, [RippleState entries](https://ripple.com/build/ledger-format/#ripplestate) use this address as a placeholder for the issuer of a trust line balance. | Yes |
-| rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh | The genesis account | When `rippled` starts a new genesis ledger from scratch (for example, in stand-alone mode), this account holds all the XRP. This address is generated from the seed value "masterpassphrase" which is [hard-coded](https://github.com/ripple/rippled/blob/94ed5b3a53077d815ad0dd65d490c8d37a147361/src/ripple/app/ledger/Ledger.cpp#L184). | No |
-| rrrrrrrrrrrrrrrrrNAMEtxvNvQ | Ripple Name reservation black-hole | In the past, Ripple asked users to send XRP to this account to reserve Ripple Names.| Yes |
-| rrrrrrrrrrrrrrrrrrrn5RM1rHd | NaN Address | Previous versions of [ripple-lib](https://github.com/ripple/ripple-lib) generated this address when base-58 encoding the value [NaN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN). | Yes |
+* Includes a 4-byte checksum so that the probability of generating a valid address from random characters is approximately 1 in 2^32
 
 
-### Public Keys ###
+For more information, see [Accounts](https://developers.ripple.com/accounts.html).
+
+
+
+### Public Keys
 [Public Key]: #public-keys
 
-The Ripple Consensus Ledger (RCL) uses public keys to verify cryptographic signatures in several places:
+The XRP Ledger uses public keys to verify cryptographic signatures in several places:
 
-* To authorize transactions, a public key is attached to the transaction. The public key must be mathematically associated with the sending Ripple address or the sender's regular key address.
+* To authorize transactions, a public key is attached to the transaction. The public key must be mathematically associated with the sending XRP Ledger address or the sender's regular key address.
 * To secure peer-to-peer communications between `rippled` servers. This uses a "node public key" that the server generates randomly when it starts with an empty database.
-* To sign validation votes as part of the consensus process. This uses a "validator public key" that the server operator [defines in the config file](https://ripple.com/build/rippled-setup/#validator-setup).
+* To sign validation votes as part of the consensus process. This uses a "validator public key" that the server operator [defines in the config file](https://developers.ripple.com/run-rippled-as-a-validator.html).
 
 Validator public keys and node public keys use the exact same format.
 
@@ -5275,24 +5258,24 @@ Public keys can be represented in hexadecimal or in base-58. In hexadecimal, all
 
 In base-58 format, validator public keys and node public keys always start with the character `n`, commonly followed by the character `9`. A validator public key in base-58 format can be up to 53 characters long. Example node public key: `n9Mxf6qD4J55XeLSCEpqaePW4GjoCR5U1ZeGZGJUCNe3bQa4yQbG`.
 
-Ripple addresses are mathematically associated with a public key. This public key is rarely encoded in base-58, but when it is, it starts with the character `a`.
+XRP Ledger addresses are mathematically associated with a public key. This public key is rarely encoded in base-58, but when it is, it starts with the character `a`.
 
 
-### Hashes ###
+### Hashes
 [Hash]: #hashes
 
-Many objects in Ripple, particularly transactions and ledgers, are uniquely identified by a 256-bit hash value. This value is typically calculated as a "SHA-512Half", which calculates a [SHA-512](http://dx.doi.org/10.6028/NIST.FIPS.180-4) hash from some contents, then takes the first 64 characters of the hexadecimal representation. Since the hash of an object is derived from the contents in a way that is extremely unlikely to produce collisions, two objects with the same hash can be considered the same.
+Many objects in the XRP Ledger, particularly transactions and ledgers, are uniquely identified by a 256-bit hash value. This value is typically calculated as a "SHA-512Half", which calculates a [SHA-512](http://dx.doi.org/10.6028/NIST.FIPS.180-4) hash from some contents, then takes the first 64 characters of the hexadecimal representation. Since the hash of an object is derived from the contents in a way that is extremely unlikely to produce collisions, two objects with the same hash can be considered the same.
 
-A Ripple hash value has the following characteristics:
+An XRP Ledger hash value has the following characteristics:
 
 * Exactly 64 characters in length
 * [Hexadecimal](https://en.wikipedia.org/wiki/Hexadecimal) character set: 0-9 and A-F.
 * Typically written in upper case.
 
-**Note:** SHA-512Half has similar security to the officially-defined _SHA-512/256_ hash function. However, Ripple's usage predates SHA-512/256 and is also easier to implement on top of an existing SHA-512 function. (As of this writing, SHA-512 support in cryptographic libraries is much more common than for SHA-512/256.)
+**Note:** SHA-512Half has similar security to the officially-defined _SHA-512/256_ hash function. However, the XRP Ledger's usage predates SHA-512/256 and is also easier to implement on top of an existing SHA-512 function. (As of this writing, SHA-512 support in cryptographic libraries is much more common than for SHA-512/256.)
 
 
-### Timestamps ###
+### Timestamps
 [Timestamp]: #timestamps
 
 All dates and times are written in ISO 8601 Timestamp Format, using UTC. This format is summarized as:
@@ -5309,7 +5292,7 @@ All dates and times are written in ISO 8601 Timestamp Format, using UTC. This fo
 
 (As of [v2.0.4][], the offset `+00:00` is no longer used.)
 
-### Ledger Index ###
+### Ledger Index
 [Ledger Index]: #ledger-index
 
 A ledger index is a 32-bit unsigned integer used to identify a ledger. The ledger index is also known as the ledger's sequence number. The very first ledger was ledger index 1, and each new ledger has a ledger index 1 higher than that of the ledger immediately before it.
@@ -5320,25 +5303,24 @@ The ledger index indicates the order of the ledgers; the [Hash][] value identifi
 * There may be multiple closed ledger versions competing to be validated by consensus. These ledger versions have the same sequence number but different contents (and different hashes). Only one of these closed ledgers can become validated.
 * A current ledger's contents change over time, which would cause its hash to change, even though its ledger index number stays the same. The hash of a ledger is not calculated until the ledger is closed.
 
-### Account Sequence ###
+### Account Sequence
 [Sequence Number]: #account-sequence
 
 A Sequence number is a 32-bit unsigned integer used to identify a transaction or Offer relative to a specific account.
 
-Every [account object in the Ripple Consensus Ledger](https://ripple.com/build/ledger-format/#accountroot) has a Sequence number, which starts at 1. For a transaction to be relayed to the network and possibly included in a validated ledger, it must have a `Sequence` field that matches the sending account's current `Sequence` number. An account's Sequence field is incremented whenever a transaction from that account is included in a validated ledger (regardless of whether the transaction succeeded or failed). This preserves the order of transactions submitted by an account, and differentiates transactions that would otherwise be the same.
+Every [account in the XRP Ledger](https://developers.ripple.com/accounts.html) has a Sequence number, which starts at 1. For a transaction to be relayed to the network and possibly included in a validated ledger, it must have a `Sequence` field that matches the sending account's current `Sequence` number. An account's Sequence field is incremented whenever a transaction from that account is included in a validated ledger (regardless of whether the transaction succeeded or failed). This preserves the order of transactions submitted by an account, and differentiates transactions that would otherwise be the same.
 
-Every [Offer node in the Ripple Consensus Ledger](https://ripple.com/build/ledger-format/#offer) is marked with the sending `Account` [Address][] and the `Sequence` value of the [OfferCreate transaction](https://ripple.com/build/transactions/#offercreate) that created it. These two fields, together, uniquely identify the Offer.
+Every [Offer in the XRP Ledger's decentralized exchange](https://developers.ripple.com/offers.html) is marked with the sending `Account` [Address][] and the `Sequence` value of the [OfferCreate transaction](https://developers.ripple.com/offercreate.html) that created it. These two fields, together, uniquely identify the Offer.
 
-### Currency Code ###
+### Currency Code
 [Currency Code]: #currency-code
 
-There are two kinds of currency code in the Ripple Consensus Ledger:
+There are two kinds of currency code in the XRP Ledger:
 
 * Three-character currency code. We recommend using all-uppercase [ISO 4217 Currency Codes](http://www.xe.com/iso4217.php). However, any combination of the following characters is permitted: all uppercase and lowercase letters, digits, as well as the symbols `?`, `!`, `@`, `#`, `$`, `%`, `^`, `&`, `*`, `<`, `>`, `(`, `)`, `{`, `}`, `[`, `]`, and <code>&#124;</code>. The currency code `XRP` (all-uppercase) is reserved for XRP and cannot be used by issued currencies.
-* 160-bit hexadecimal values, such as `0158415500000000C1F76FF6ECB0BAC600000000`, according to Ripple's internal [Currency Format](https://wiki.ripple.com/Currency_format). This representation is uncommon.
+* 160-bit hexadecimal values, such as `0158415500000000C1F76FF6ECB0BAC600000000`, according to the XRP Ledger's internal [Currency Format](https://developers.ripple.com/currency-formats.html). This representation is uncommon.
 
-
-## Pagination ##
+## Pagination
 
 Many queries may return more data than is reasonable to return in a single HTTP response. The Data API uses a "limit and marker" system to control how much is returned in a single response ("page") and to query for additional content.
 
@@ -5348,21 +5330,21 @@ When a query has additional objects that are not contained in the current respon
 
 When a `marker` is or would be present, the response contains a [`Link` header](https://tools.ietf.org/html/rfc5988#section-5) with `rel="next"`. This is a full URL to the next page of results. You can use this to paginate over results when the response is in `csv` format instead of `json`. _(New in [v2.0.4][])_
 
-## Transaction Objects ##
+## Transaction Objects
 
 Transactions have two formats - a compact "binary" format where the defining fields of the transaction are encoded as strings of hex, and an expanded format where the defining fields of the transaction are nested as complete JSON objects.
 
-### Full JSON Format ###
+### Full JSON Format
 
 | Field | Value | Description |
 |-------|-------|-------------|
 | `hash`  | String - [Hash][] | An identifying hash value unique to this transaction, as a hex string. |
 | `date`  | String - [Timestamp][] | The time when this transaction was included in a validated ledger. |
 | `ledger_index` | Number - [Ledger Index][] | The sequence number of the ledger that included this ledger. |
-| `tx`    | Object | The fields of this transaction object, as defined by the [Transaction Format](https://ripple.com/build/transactions/) |
+| `tx`    | Object | The fields of this transaction object, as defined by the [Transaction Format](https://developers.ripple.com/transaction-formats.html) |
 | `meta`  | Object | Metadata about the results of this transaction. |
 
-### Binary Format ###
+### Binary Format
 
 | Field | Value | Description |
 |-------|-------|-------------|
@@ -5372,7 +5354,7 @@ Transactions have two formats - a compact "binary" format where the defining fie
 | `tx`    | String | The binary data that represents this transaction, as a hexadecimal string. |
 | `meta`  | String | The binary data that represents this transaction's metadata, as a hex string. |
 
-## Ledger Objects ##
+## Ledger Objects
 
 A "ledger" is one version of the shared global ledger. Each ledger object has the following fields:
 
@@ -5390,13 +5372,13 @@ A "ledger" is one version of the shared global ledger. Each ledger object has th
 
 **Note:** Ledger close times are approximate, typically rounded to about 10 seconds. Two ledgers could have the same `close_time` values, when their actual close times were several seconds apart. The sequence number (`ledger_index`) of the ledger makes it unambiguous which ledger closed first.
 
-### Genesis Ledger ###
+### Genesis Ledger
 
-Due to a mishap early in Ripple's history, ledgers 1 through 32569 were lost. Thus, ledger #32570 is the earliest ledger available anywhere. For purposes of the Data API v2, ledger #32570 is considered the _genesis ledger_.
+Due to a mishap early in the XRP Ledger's history, ledgers 1 through 32569 were lost. Thus, ledger #32570 is the earliest ledger available anywhere. For purposes of the Data API v2, ledger #32570 is considered the _genesis ledger_.
 
-## Account Creation Objects ##
+## Account Creation Objects
 
-An account creation object represents the action of creating an account in the Ripple Consensus Ledger. There are two variations, depending on whether the account was already present in ledger 32570, the earliest ledger available. Accounts that were already present in ledger 32570 are termed _genesis accounts_.
+An account creation object represents the action of creating an account in the XRP Ledger. There are two variations, depending on whether the account was already present in ledger 32570, the earliest ledger available. Accounts that were already present in ledger 32570 are termed _genesis accounts_.
 
 | Field | Value | Description |
 |-------|-------|-------------|
@@ -5410,10 +5392,10 @@ An account creation object represents the action of creating an account in the R
 | `genesis_index` | Number - [Sequence Number][] | (Genesis accounts only) The transaction sequence number of the account as of ledger #32570. |
 
 
-## Exchange Objects ##
+## Exchange Objects
 [Exchange Objects]: #exchange-objects
 
-An exchange object represents an actual exchange of currency, which can occur in the Ripple Consensus Ledger as the result of executing either an OfferCreate transaction or a Payment transaction. In order for currency to actually change hands, there must be a previously-unfilled Offer previously placed in the ledger with an OfferCreate transaction.
+An exchange object represents an actual exchange of currency, which can occur in the XRP Ledger as the result of executing either an OfferCreate transaction or a Payment transaction. In order for currency to actually change hands, there must be a previously-unfilled Offer previously placed in the ledger with an OfferCreate transaction.
 
 A single transaction can cause several exchanges to occur. In this case, the sender of the transaction is the taker for all the exchanges, but each exchange has a different provider, currency pair, or both.
 
@@ -5440,7 +5422,7 @@ A single transaction can cause several exchanges to occur. In this case, the sen
 | `tx_type` | String | The type of transaction that executed this exchange, either `Payment` or `OfferCreate`. |
 
 
-## Reports Objects ##
+## Reports Objects
 [Reports Objects]: #reports-objects
 
 Reports objects show the activity of a given account over a specific interval of time, typically a day. Reports have the following fields:
@@ -5460,7 +5442,7 @@ Reports objects show the activity of a given account over a specific interval of
 | `total_value_received` | [String - Number][] | Sum value of all payments to this account, normalized to XRP (as closely as possible). |
 | `total_value_sent` | [String - Number][] | Sum value of all payments from this account, normalized to XRP (as closely as possible).
 
-## Payment Summary Objects ##
+## Payment Summary Objects
 [Payment Summary Objects]: #payment-summary-objects
 
 A Payment Summary Object contains a reduced amount of information about a single payment from the perspective of either the sender or receiver of that payment.
@@ -5474,10 +5456,10 @@ A Payment Summary Object contains a reduced amount of information about a single
 | `type` | String | Either `sent` or `received`, indicating whether the perspective account is sender or receiver of this transaction. |
 
 
-## Payment Objects ##
+## Payment Objects
 [Payment Objects]: #payment-objects
 
-In the Data API, a Payment Object represents an event where one account sent value to another account. This mostly lines up with Ripple transactions of the `Payment` [transaction type](https://ripple.com/build/transactions/), except that the Data API does not consider a transaction to be a payment if the sending `Account` and the `Destination` account are the same, or if the transaction failed.
+In the Data API, a Payment Object represents an event where one account sent value to another account. This mostly lines up with XRP Ledger transactions of the `Payment` [transaction type](https://developers.ripple.com/transaction-types.html), except that the Data API does not consider a transaction to be a payment if the sending `Account` and the `Destination` account are the same, or if the transaction failed.
 
 Payment objects have the following fields:
 
@@ -5488,8 +5470,8 @@ Payment objects have the following fields:
 | `destination_balance_changes` | Array | Array of [balance change objects][], indicating all changes made to the `destination` account's balances. |
 | `source_balance_changes` | Array | Array of [balance change objects][], indicating all changes to the `source` account's balances (except the XRP transaction cost). |
 | `transaction_cost` | [String - Number][] | The amount of XRP spent by the `source` account on the transaction cost. (Prior to [v2.0.4][], this parameter was called `fee`.) |
-| `destination_tag` | Integer | (May be omitted) A [destination tag](https://ripple.com/build/gateway-guide/#source-and-destination-tags) specified in this payment. |
-| `source_tag` | Integer | (May be omitted) A [source tag](https://ripple.com/build/gateway-guide/#source-and-destination-tags) specified in this payment. |
+| `destination_tag` | Integer | (May be omitted) A [destination tag](https://developers.ripple.com/become-an-xrp-ledger-gateway.html#source-and-destination-tags) specified in this payment. |
+| `source_tag` | Integer | (May be omitted) A [source tag](https://developers.ripple.com/become-an-xrp-ledger-gateway.html#source-and-destination-tags) specified in this payment. |
 | `currency` | String - [Currency Code][] | The currency that the `destination` account received. |
 | `destination` | String - [Address][] | The account that received the payment. |
 | `executed_time` | String - [Timestamp][] | The time the ledger that included this payment closed. |
@@ -5499,13 +5481,13 @@ Payment objects have the following fields:
 | `tx_hash` | String - [Hash][] | The identifying hash of the transaction that caused the payment. |
 
 
-## Balance Objects and Balance Change Objects ##
+## Balance Objects and Balance Change Objects
 [balance change objects]: #balance-objects-and-balance-change-objects
 [Balance Object]: #balance-objects-and-balance-change-objects
 
-Balance objects represent an Ripple account's balance in a specific currency with a specific counterparty at a single point in time. Balance change objects represent a change to such balances that occurs in transaction execution.
+Balance objects represent an XRP Ledger account's balance in a specific currency with a specific counterparty at a single point in time. Balance change objects represent a change to such balances that occurs in transaction execution.
 
-A single Ripple transaction may cause changes to balances with several counterparties, as well as changes to XRP.
+A single XRP Ledger transaction may cause changes to balances with several counterparties, as well as changes to XRP.
 
 Balance objects and Balance Change objects have the same format, with the following fields:
 
@@ -5516,7 +5498,7 @@ Balance objects and Balance Change objects have the same format, with the follow
 | `value` | [String - Number][] | The amount of the `currency` that the associated account gained or lost. In balance change objects, this value can be positive (for amounts gained) or negative (for amounts lost). In balance objects, this value can be positive (for amounts the counterparty owes the account) or negative (for amounts owed to the counterparty). |
 
 
-## Balance Change Descriptors ##
+## Balance Change Descriptors
 [Balance Change Descriptors]: #balance-change-descriptors
 
 Balance Change Descriptors are objects that describe and analyze a single balance change that occurs in transaction execution. They represent the same events as [balance change objects][], but in greater detail.
@@ -5536,7 +5518,7 @@ Balance Change Descriptors have the following fields:
 | `ledger_index` | Number - [Ledger Index][] | The sequence number of the ledger that included the transaction that executed this balance change. |
 | `tx_hash` | String - [Hash][] | The identifying hash of the transaction that executed this balance change. |
 
-### Change Types ###
+### Change Types
 
 The following values are valid for the `change_type` field of a Balance Change Descriptor:
 
@@ -5547,7 +5529,7 @@ The following values are valid for the `change_type` field of a Balance Change D
 | `payment_source` | This balance change reflects currency that was spent in a payment. |
 | `exchange` | This balance change reflects currency that was traded for other currency, or the same currency from a different issuer. This can occur in the middle of payment execution as well as from offers. |
 
-## Volume Objects ##
+## Volume Objects
 [Volume Objects]: #volume-objects
 
 Volume objects represent the total volumes of money moved, in either payments or exchanges, during a given period.
@@ -5556,18 +5538,18 @@ Volume objects represent the total volumes of money moved, in either payments or
 |--------|-------|-------------|
 | `components` | Array of Objects | The data that was used to assemble this total. For payment volume, each object represents payments in a particular currency and issuer. For exchange volume, each object represents a market between two currencies. |
 | `count` | Number | The total number of exchanges in this period. |
-| `endTime` | String - [Timestamp][] | The end time of this interval. |
+| `end_time` | String - [Timestamp][] | The end time of this interval. |
 | `exchange` | Object | Indicates the display currency used, as with fields `currency` and (except for XRP) `issuer`. All amounts are normalized by first converting to XRP, and then to the display currency specified in the request. |
-| `exchangeRate` | Number | The exchange rate to the displayed currency from XRP.
-| `startTime` | String - [Timestamp][] | The start of this period. |
+| `exchange_rate` | Number | The exchange rate to the displayed currency from XRP.
+| `start_time` | String - [Timestamp][] | The start of this period. |
 | `total` | Number | Total volume of all recorded exchanges in the period. |
 
 
-## Server Objects ##
+## Server Objects
 [Server Object]: #server-objects
 [Server Objects]: #server-objects
 
-A "Server Object" describes one `rippled` server in the Ripple peer-to-peer network. Server objects are returned by the [Get Topology](#get-topology), [Get Toplogy Nodes](#get-topology-nodes), and [Get Topology Node](#get-topology-node) methods. The Data API collects reported network topology approximately every 30 seconds using the [peer crawler](https://ripple.com/build/rippled-apis/#peer-crawler).
+A "Server Object" describes one `rippled` server in the XRP Ledger peer-to-peer network. Server objects are returned by the [Get Topology](#get-topology), [Get Toplogy Nodes](#get-topology-nodes), and [Get Topology Node](#get-topology-node) methods. The Data API collects reported network topology approximately every 30 seconds using the [peer crawler](https://developers.ripple.com/peer-protocol.html#peer-crawler).
 
 Server objects have the following fields, with some only appearing if the request specified a verbose response:
 
@@ -5577,7 +5559,7 @@ Server objects have the following fields, with some only appearing if the reques
 | `version` | String | The `rippled` version of this server, when it was last asked. |
 | `uptime` | Integer | Number of seconds this server has been connected to the network. |
 | `ip` | String | (May be omitted) IP address of the node (may be omitted) |
-| `port` | Integer | (May be omitted) Port where this server speaks the [`rippled` Peer Protocol](https://ripple.com/build/rippled-apis/#peer-protocol). |
+| `port` | Integer | (May be omitted) Port where this server speaks the [`rippled` Peer Protocol](https://developers.ripple.com/peer-protocol.html). |
 | `inbound_count` | Integer | (May be omitted) Number of inbound peer-to-peer connections to this server. |
 | `inbound_added` | String | (May be omitted) Number of new inbound peer-to-peer connections since the last measurement.  |
 | `inbound_dropped` | String | (May be omitted) Number of inbound peer-to-peer connections dropped since the last measurement. |
@@ -5597,7 +5579,7 @@ Server objects have the following fields, with some only appearing if the reques
 | `org` | String | (Verbose only) The organization that owns this server's public IP address. |
 
 
-## Link Objects ##
+## Link Objects
 [Link Object]: #link-objects
 [Link Objects]: #link-objects
 
@@ -5609,13 +5591,13 @@ A Link Object represents a peer-to-peer network connection between two `rippled`
 | `target` | String - Base-58 [Public Key][] | The node public key of the `rippled` receiving the incoming connection. |
 
 
-## Validation Objects ##
+## Validation Objects
 [Validation Object]: #validation-objects
 [Validation Objects]: #validation-objects
 
 A Validation Object represents one vote from a validator to mark a ledger version as validated. (A ledger is only validated by the consensus process if a quorum of trusted validators votes for the same exact ledger version.)
 
-**Note:** The Data API retain only about 6 months of validation vote data.
+**Note:** The Data API keeps only about 6 months of validation vote data.
 
 A Validation Object has the following fields:
 
@@ -5631,13 +5613,13 @@ A Validation Object has the following fields:
 
 
 
-# Running the Historical Database #
+# Running the Historical Database
 
 You can also serve the Data API v2 from your own instance of the Historical Database software, and populate it with transactions from your own `rippled` instance. This is useful if you do not want to depend on Ripple to run the historical database indefinitely, or you want access to historical transactions from within your own intranet.
 
-## Installation ##
+## Installation
 
-### Dependencies ###
+### Dependencies
 
 The Historical Database requires the following software installed first:
 
@@ -5648,7 +5630,7 @@ The Historical Database requires the following software installed first:
 
 Version 2 of the Historical Database requires HBase instead of [PostgreSQL](http://www.postgresql.org/). Postgres support is deprecated.
 
-### Installation Process ###
+### Installation Process
 
 To install the Data API v2:
 
@@ -5672,7 +5654,7 @@ Reports, stats, and aggregated exchange data needs more processing before the AP
 
 At this point, the Data API is installed. See [Services](#services) for the different components that you can run.
 
-### Tests ###
+### Tests
 
 Dependencies:
 
@@ -5681,10 +5663,10 @@ Dependencies:
 ```
 $ docker-compose build
 $ docker-compose up -d hbase
-$ docker-compose run webapp npm test
+$ docker-compose run --rm webapp npm test
 ```
 
-### Services ###
+### Services
 
 The `rippled` Historical Database consists of several processes that can be run separately.
 
@@ -5696,7 +5678,7 @@ The `rippled` Historical Database consists of several processes that can be run 
     Command:  `npm start` (restarts the server automatically when source files change),
     or `node api/server.js` (start once)
 
-## Importing Data ##
+## Importing Data
 
 In order to retrieve data from the `rippled` Historical Database, you must first populate it with data. Broadly speaking, there are two ways this can happen:
 
@@ -5706,7 +5688,7 @@ In order to retrieve data from the `rippled` Historical Database, you must first
 
 In all cases, keep in mind that the integrity of the data is only as good as the original source. If you retrieve data from a public server, you are assuming that the operator of that server is trustworthy. If you load from a database dump, you are assuming that the provider of the dump has not corrupted or tampered with the data.
 
-### Live Ledger Importer ###
+### Live Ledger Importer
 
 The Live Ledger Importer is a service that connects to a `rippled` server using the WebSocket API, and listens for ledger close events. Each time a new ledger is closed, the Importer requests the latest validated ledger. Although this process has some fault tolerance built in to prevent ledgers from being skipped, the Importer may still miss ledgers.
 
@@ -5721,7 +5703,7 @@ Example usage:
 $ node import/live
 ```
 
-### Backfiller ###
+### Backfiller
 
 The Backfiller retrieves old ledgers from a `rippled` instance by moving backwards in time. You can optionally provide start and stop indexes to retrieve a specific range of ledgers, by their sequence number.
 
@@ -5729,7 +5711,7 @@ The `--startIndex` parameter defines the most-recent ledger to retrieve. The Bac
 
 The `--stopIndex` parameter defines the oldest ledger to retrieve. The Backfiller stops after it retrieves this ledger. If omitted, the Backfiller continues as far back as possible. Because backfilling goes from most recent to least recent, the stop index should be a smaller than the start index.
 
-**Caution:** The Backfiller is best for filling in relatively short histories of transactions. Importing a complete history of all Ripple transactions using the Backfiller could take weeks. If you want a full history, we recommend acquiring a database dump with early transctions, and importing it directly. For the public server, Ripple (the company) used the internal SQLite database from an offline `rippled` to populate its historical databases with the early transactions, then used the Backfiller to catch up to date after the import finished.
+**Caution:** The Backfiller is best for filling in relatively short histories of transactions. Importing a complete history of all XRP Ledger transactions using the Backfiller could take weeks. If you want a full history, we recommend acquiring a database dump with early transctions, and importing it directly. For the public server, Ripple (the company) used the internal SQLite database from an offline `rippled` to populate its historical databases with the early transactions, then used the Backfiller to catch up to date after the import finished.
 
 Example usage:
 
