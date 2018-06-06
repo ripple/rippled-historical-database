@@ -126,9 +126,9 @@ module.exports = function(req, res) {
   })
   .catch(err => {
     log.error(err.error || err)
-    res.status(err.code || 500).json({
+    res.status(isNaN(err.code) ? 500 : err.code).json({
       result: 'error',
-      message: err.error || err
+      message: 'unable to get XRP index data'
     })
   })
 }
