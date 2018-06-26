@@ -1,0 +1,54 @@
+{
+  "nodes": [
+    {
+      "host": "169.44.60.105",
+      "in": 49,
+      "out": 29,
+      "pubkey_node": "n9LKATbwprxwHPuQpJC2oJjkKZXHPaCjHUskDSBgvDTrTWQLnMwr",
+      "hostid": "BRAG",
+      "server_state": "full",
+      "ledgers": "32570-39565885",
+      "latency": 1,
+      "load_factor": 1,
+      "peers": 78,
+      "quorum": 12,
+      "version": "1.0.1",
+      "uptime": 582223,
+      "done": true
+    },
+    {
+      "host": "54.212.236.161",
+      "port": "51235",
+      "pubkey_node": "n9MR8WCUhNLtdVTw4Lc4KaKMLHb7pxfYriQVi6SZ9xUvC6Ni2w59",
+      "version": "1.0.1",
+      "uptime": 577726,
+      "in": 108,
+      "out": 20,
+      "done": true,
+      "hostid": "DUTY",
+      "server_state": "full",
+      "ledgers": "36809062-39565886",
+      "latency": 1,
+      "load_factor": 1,
+      "peers": 128,
+      "quorum": 12
+    },
+    {
+      "host": "198.11.206.4",
+      "port": 51235,
+      "pubkey_node": "n9KcmEKTW3ggFgTjNMVkJwJ5R8RhQZeacYLTVgWFcnwheniS7zGA",
+      "version": "1.0.1",
+      "uptime": 105222,
+      "in": 39,
+      "out": 92,
+      "done": true
+    }
+  ],
+  "connections": [
+    "n9LKATbwprxw>n9KcmEKTW3gg",
+    "n9LKATbwprxw>n9MR8WCUhNLt",
+    "n9KcmEKTW3gg>n9MR8WCUhNLt"
+  ],
+  "end": "2018-06-22 16:00:27.575Z",
+  "start": "2018-06-22 16:00:13.413Z"
+}

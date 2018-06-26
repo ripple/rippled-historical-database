@@ -58,7 +58,7 @@ const getBatch = () => {
     last = stop
   }
 
-  console.log(`checking ledgers ${index}-${last}`);
+  console.log(`${moment.utc().format()} checking ledgers ${index}-${last}`);
   while(i--) {
     if (index < stop) {
       tasks.push(getLedger(index++));
