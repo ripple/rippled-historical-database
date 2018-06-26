@@ -9,7 +9,6 @@ var smoment = require('../lib/smoment')
 var utils = require('./utils')
 
 var hbase = require('../lib/hbase')
-var geolocation = require('../lib/validations/geolocation')
 var saveVersions = require('../scripts/saveVersions')
 var mockExchangeVolume = require('./mock/exchange-volume.json')
 var mockExchangeVolumeHour = require('./mock/exchange-volume-live-hour.json')
@@ -19,9 +18,7 @@ var mockIssuedValue = require('./mock/issued-value.json')
 var mockXrpDistribution = require('./mock/xrp-distribution.json')
 var mockTopCurrencies = require('./mock/top-currencies.json')
 var mockTopMarkets = require('./mock/top-markets.json')
-var mockTopologyNodes = require('./mock/topology-nodes.json')
-var mockTopologyLinks = require('./mock/topology-links.json')
-var mockTopologyInfo = require('./mock/topology-info.json')
+var mockCrawl = require('./mock/topology-crawl.json')
 var mockFeeStats = require('./mock/fee-stats.json')
 var mockExternalHour = require('./mock/external-markets-hour.json')
 var mockExternalDay = require('./mock/external-markets-day.json')
@@ -30,15 +27,52 @@ var mockExternal7Day = require('./mock/external-markets-7day.json')
 var mockExternal30Day = require('./mock/external-markets-30day.json')
 var port = config.get('port') || 7111
 
-
-var geo = geolocation({
-  table: config.get('hbase:prefix') + 'node_state',
-  columnFamily: 'd'
-})
-
 var now = Date.now()
-var today = smoment(moment(now))
+var today = smoment(moment(now));
+var old = smoment('2016-03-18T22:31:33Z');
 
+const formatKey = 'YYYYMMDDHHmmss';
+const timeInfinity = 99999999999999;
+const getInverseTimestamp = date => (timeInfinity - Number(smoment(date).format(formatKey))).toString();
+
+const geolocation = {
+  n9KcmEKTW3ggFgTjNMVkJwJ5R8RhQZeacYLTVgWFcnwheniS7zGA: {
+    'g:lat': 37.3394,
+    'g:long': -121.895,
+    'g:country': 'United States',
+    'g:region': 'California',
+    'g:city': 'San Jose',
+    'g:postal_code': '95141',
+    'g:country_code': 'US',
+    'g:region_code': 'CA',
+    'g:timezone': 'America/Los_Angeles',
+    'g:isp': 'SoftLayer Technologies Inc.'
+  },
+  n9LKATbwprxwHPuQpJC2oJjkKZXHPaCjHUskDSBgvDTrTWQLnMwr: {
+    'g:lat': 37.751,
+    'g:long': -97.822,
+    'g:country': 'United States',
+    'g:region': undefined,
+    'g:city': undefined,
+    'g:postal_code': undefined,
+    'g:country_code': 'US',
+    'g:region_code': undefined,
+    'g:timezone': undefined,
+    'g:isp': 'SoftLayer Technologies Inc.'
+  },
+  n9MR8WCUhNLtdVTw4Lc4KaKMLHb7pxfYriQVi6SZ9xUvC6Ni2w59: {
+    'g:lat': 45.8696,
+    'g:long': -119.688,
+    'g:country': 'United States',
+    'g:region': 'Oregon',
+    'g:city': 'Boardman',
+    'g:postal_code': '97818',
+    'g:country_code': 'US',
+    'g:region_code': 'OR',
+    'g:timezone': 'America/Los_Angeles',
+    'g:isp': 'Amazon.com, Inc.'
+  }
+}
 /**
  * setup
  */
@@ -145,45 +179,27 @@ describe('setup mock data', function() {
       }))
     })
 
-    var parts = mockTopologyNodes[0].rowkey.split('+')
-    var range = now + '_' + now
+    rows.push(hbase.putRow({
+      table: 'network_crawls',
+      rowkey: getInverseTimestamp(today),
+      columns: Object.assign({}, mockCrawl, { start: today.format() })
+    }))
 
-    mockTopologyNodes[0].rowkey = range + '+' + parts[1]
-    parts = mockTopologyLinks[0].rowkey.split('+')
-    mockTopologyLinks[0].rowkey = range + '+' + parts[1]
-    mockTopologyInfo[0].rowkey = range
+    rows.push(hbase.putRow({
+      table: 'network_crawls',
+      rowkey: getInverseTimestamp(old),
+      columns: Object.assign({}, mockCrawl, {
+        start: old.format(),
+        nodes: mockCrawl.nodes.slice(0, 2),
+        connections: mockCrawl.connections.slice(0, 1)
+      })
+    }))
 
-    mockTopologyNodes.forEach(function(r) {
-      rows.push(hbase.putRow({
-        table: 'crawl_node_stats',
-        rowkey: r.rowkey,
-        columns: r
-      }))
-
+    mockCrawl.nodes.forEach(d => {
       rows.push(hbase.putRow({
         table: 'node_state',
-        rowkey: r.pubkey,
-        columns: {
-          ipp: r.ipp || 'not_present',
-          version: r.version,
-          city: 'San Francisco'
-        }
-      }))
-    })
-
-    mockTopologyLinks.forEach(function(r) {
-      rows.push(hbase.putRow({
-        table: 'connections',
-        rowkey: r.rowkey,
-        columns: r
-      }))
-    })
-
-    mockTopologyInfo.forEach(function(r) {
-      rows.push(hbase.putRow({
-        table: 'crawls',
-        rowkey: r.rowkey,
-        columns: r
+        rowkey: d.pubkey_node,
+        columns: Object.assign({}, d, geolocation[d.pubkey_node])
       }))
     })
 
@@ -1479,16 +1495,6 @@ describe('network - top currencies', function() {
  */
 
 describe('network - topology', function() {
-  it('should update node geolocation', function(done) {
-    this.timeout(15000)
-
-    geo.geolocateNodes()
-    .then(done)
-    .catch(e => {
-      assert.ifError(e)
-    })
-  })
-
   it('should get topology nodes and links', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/network/topology/'
@@ -1500,8 +1506,8 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.node_count, 1)
-      assert.strictEqual(body.link_count, 1)
+      assert.strictEqual(body.node_count, 3)
+      assert.strictEqual(body.link_count, 3)
       assert.strictEqual(body.nodes[0].city, undefined)
       done()
     })
@@ -1518,9 +1524,9 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.node_count, 1)
-      assert.strictEqual(body.link_count, 1)
-      assert.strictEqual(body.nodes[0].city, 'Montréal')
+      assert.strictEqual(body.node_count, 3)
+      assert.strictEqual(body.link_count, 3)
+      assert.strictEqual(body.nodes[0].country, 'United States')
       done()
     })
   })
@@ -1536,7 +1542,7 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.count, 1)
+      assert.strictEqual(body.count, 3)
       assert.strictEqual(body.nodes[0].city, undefined)
       done()
     })
@@ -1553,8 +1559,8 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.count, 1)
-      assert.strictEqual(body.nodes[0].city, 'Montréal')
+      assert.strictEqual(body.count, 3)
+      assert.strictEqual(body.nodes[0].country, 'United States')
       done()
     })
   })
@@ -1570,13 +1576,13 @@ describe('network - topology', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.count, 1)
+      assert.strictEqual(body.count, 3)
       done()
     })
   })
 
   it('should get a single topology node', function(done) {
-    var pubkey = 'n94Extku8HiQVY8fcgxeot4bY7JqK2pNYfmdnhgf6UbcmgucHFY8'
+    var pubkey = 'n9KcmEKTW3ggFgTjNMVkJwJ5R8RhQZeacYLTVgWFcnwheniS7zGA'
     var url = 'http://localhost:' + port +
         '/v2/network/topology/nodes/' + pubkey
 
@@ -1588,7 +1594,7 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(body.node_public_key, pubkey)
-      assert.strictEqual(body.city, 'San Francisco')
+      assert.strictEqual(body.city, 'San Jose')
       done()
     })
   })
@@ -1606,8 +1612,8 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.node_count, 9)
-      assert.strictEqual(body.link_count, 5)
+      assert.strictEqual(body.node_count, 2)
+      assert.strictEqual(body.link_count, 1)
       done()
     })
   })
@@ -1625,7 +1631,7 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.count, 9)
+      assert.strictEqual(body.count, 2)
       done()
     })
   })
@@ -1643,7 +1649,7 @@ describe('network - topology', function() {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
       assert.strictEqual(body.date, '2016-03-18T22:31:33Z')
-      assert.strictEqual(body.count, 5)
+      assert.strictEqual(body.count, 1)
       done()
     })
   })
@@ -1794,3 +1800,48 @@ describe('network - topology', function() {
     })
   })
 })
+
+describe('health check - Nodes ETL', function() {
+  const baseURL = 'http://localhost:' + port + '/v2/health';
+
+  it('should check health', function(done) {
+    request({
+      url: baseURL + '/nodes_etl'
+    },
+    function(err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body, '0');
+      done();
+    });
+  });
+
+  it('should check health (verbose)', function(done) {
+    request({
+      url: baseURL + '/nodes_etl?verbose=true',
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.score, 0);
+      assert.strictEqual(body.message, undefined);
+      done();
+    });
+  });
+
+  it('should use custom threshold', function(done) {
+    request({
+      url: baseURL + '/nodes_etl?verbose=true&threshold=Infinity',
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err);
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(body.score, 0);
+      assert.strictEqual(body.gap_threshold, 'Infinity');
+      done();
+    });
+  });
+});
+

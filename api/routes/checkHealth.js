@@ -71,11 +71,10 @@ function checkHealth(req, res) {
    */
 
   function nodeHealthCheck() {
-    hbase.getTopologyInfo()
-    .then(function(info) {
+    hbase.getTopologyNodes()
+    .then(function(data) {
 
-      var parts = info ? info.rowkey.split('_') : undefined
-      var gap = info ? (Date.now() - parts[0]) / 1000 : Infinity
+      var gap = (Date.now() - moment(data.date).unix() * 1000) / 1000;
       var score = gap <= t1 ? 0 : 1
 
       if (verbose) {
