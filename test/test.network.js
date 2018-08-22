@@ -37,40 +37,40 @@ const getInverseTimestamp = date => (timeInfinity - Number(smoment(date).format(
 
 const geolocation = {
   n9KcmEKTW3ggFgTjNMVkJwJ5R8RhQZeacYLTVgWFcnwheniS7zGA: {
-    'g:lat': 37.3394,
-    'g:long': -121.895,
-    'g:country': 'United States',
-    'g:region': 'California',
-    'g:city': 'San Jose',
-    'g:postal_code': '95141',
-    'g:country_code': 'US',
-    'g:region_code': 'CA',
-    'g:timezone': 'America/Los_Angeles',
-    'g:isp': 'SoftLayer Technologies Inc.'
+    'f:lat': 37.3394,
+    'f:long': -121.895,
+    'f:country': 'United States',
+    'f:region': 'California',
+    'f:city': 'San Jose',
+    'f:postal_code': '95141',
+    'f:country_code': 'US',
+    'f:region_code': 'CA',
+    'f:timezone': 'America/Los_Angeles',
+    'f:isp': 'SoftLayer Technologies Inc.'
   },
   n9LKATbwprxwHPuQpJC2oJjkKZXHPaCjHUskDSBgvDTrTWQLnMwr: {
-    'g:lat': 37.751,
-    'g:long': -97.822,
-    'g:country': 'United States',
-    'g:region': undefined,
-    'g:city': undefined,
-    'g:postal_code': undefined,
-    'g:country_code': 'US',
-    'g:region_code': undefined,
-    'g:timezone': undefined,
-    'g:isp': 'SoftLayer Technologies Inc.'
+    'f:lat': 37.751,
+    'f:long': -97.822,
+    'f:country': 'United States',
+    'f:region': undefined,
+    'f:city': undefined,
+    'f:postal_code': undefined,
+    'f:country_code': 'US',
+    'f:region_code': undefined,
+    'f:timezone': undefined,
+    'f:isp': 'SoftLayer Technologies Inc.'
   },
   n9MR8WCUhNLtdVTw4Lc4KaKMLHb7pxfYriQVi6SZ9xUvC6Ni2w59: {
-    'g:lat': 45.8696,
-    'g:long': -119.688,
-    'g:country': 'United States',
-    'g:region': 'Oregon',
-    'g:city': 'Boardman',
-    'g:postal_code': '97818',
-    'g:country_code': 'US',
-    'g:region_code': 'OR',
-    'g:timezone': 'America/Los_Angeles',
-    'g:isp': 'Amazon.com, Inc.'
+    'f:lat': 45.8696,
+    'f:long': -119.688,
+    'f:country': 'United States',
+    'f:region': 'Oregon',
+    'f:city': 'Boardman',
+    'f:postal_code': '97818',
+    'f:country_code': 'US',
+    'f:region_code': 'OR',
+    'f:timezone': 'America/Los_Angeles',
+    'f:isp': 'Amazon.com, Inc.'
   }
 }
 /**
