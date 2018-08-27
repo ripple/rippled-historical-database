@@ -3616,12 +3616,10 @@ Optionally, you can provide the following query parameters:
 |------------|---------|-------------|
 | `start` | String - [Timestamp][]  | Start time of query range. |
 | `end` | String - [Timestamp][]  | End time of query range. |
-| `interval` | String  | Aggregation interval (`hour`,`day`,`week`). If omitted, return individual accounts. Not compatible with the `parent` parameter. |
 | `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1,000. |
 | `marker` | String  | [Pagination](#pagination) key from previously returned response. |
 | `descending` | Boolean | If true, return results in reverse chronological order. Defaults to false. |
 | `parent` | String  | Filter results to children of the specified parent account. Not compatible with the `interval` parameter. |
-| `reduce` | Boolean | Return a count of results only. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 #### Response Format
@@ -3632,16 +3630,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `result` | String | The value `success` indicates that this is a successful response. |
 | `count` | Integer | Number of accounts returned. |
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
-| `accounts` | Array | If the request used the `interval` query parameter, each member of the array is an interval object. Otherwise, this field is an array of [account creation objects](#account-creation-objects). |
-
-##### Interval Objects
-
-If the request uses the `interval` query parameter, the response has an array of interval objects, each of which represents the number of accounts created during a single interval. Interval objects have the following fields:
-
-| Field  | Value | Description |
-|--------|-------|-------------|
-| `date` | String - [Timestamp] | When this interval starts. (The length of the interval is determined by the request.) |
-| `count` | Number | How many accounts were created in this interval. |
+| `accounts` | Array | An array of [account creation objects](#account-creation-objects). |
 
 #### Example
 

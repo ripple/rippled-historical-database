@@ -124,30 +124,6 @@ describe('accounts API endpoint', function() {
     }, done);
   });
 
-  it('get aggregated accounts created', function(done) {
-    var url = 'http://localhost:' + port + '/v2/accounts';
-
-    request({
-      url: url,
-      json: true,
-      qs: {
-        interval: 'hour'
-      }
-    },
-    function(err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 200);
-      assert.strictEqual(typeof body, 'object');
-      assert.strictEqual(body.result, 'success');
-      assert.strictEqual(body.accounts.length, body.count);
-      assert.strictEqual(body.accounts.length, 3);
-      assert.strictEqual(body.accounts[0].date, '2013-06-11T20:00:00Z');
-      assert.strictEqual(body.accounts[1].date, '2013-10-25T10:00:00Z');
-      assert.strictEqual(body.accounts[0].count, 9);
-      assert.strictEqual(body.accounts[1].count, 3);
-      done();
-    });
-  });
 
   it('should get reduced accounts created', function(done) {
     var url = 'http://localhost:' + port + '/v2/accounts';
@@ -272,47 +248,6 @@ describe('accounts API endpoint', function() {
       assert.strictEqual(typeof body, 'object');
       assert.strictEqual(body.result, 'error');
       assert.strictEqual(body.message, 'invalid end date format');
-      done();
-    });
-  });
-
-  it('should return an error for an invalid interval', function(done) {
-    var url = 'http://localhost:' + port + '/v2/accounts';
-
-    request({
-      url: url,
-      json: true,
-      qs: {
-        interval: 'months',
-      }
-    },
-    function (err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(typeof body, 'object');
-      assert.strictEqual(body.result, 'error');
-      assert.strictEqual(body.message, 'invalid interval');
-      done();
-    });
-  });
-
-  it('should return an error for interval and reduce', function(done) {
-    var url = 'http://localhost:' + port + '/v2/accounts';
-
-    request({
-      url: url,
-      json: true,
-      qs: {
-        interval: 'week',
-        reduce: true
-      }
-    },
-    function (err, res, body) {
-      assert.ifError(err);
-      assert.strictEqual(res.statusCode, 400);
-      assert.strictEqual(typeof body, 'object');
-      assert.strictEqual(body.result, 'error');
-      assert.strictEqual(body.message, 'cannot use reduce with interval');
       done();
     });
   });

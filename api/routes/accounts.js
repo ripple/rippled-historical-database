@@ -4,8 +4,7 @@ var Logger = require('../../lib/logger');
 var log = new Logger({scope: 'accounts'});
 var smoment = require('../../lib/smoment');
 var utils = require('../../lib/utils');
-var hbase = require('../../lib/hbase')
-var intervals = ['hour', 'day', 'week'];
+var hbase = require('../../lib/hbase');
 
 /**
  * Accounts
@@ -20,10 +19,8 @@ var Accounts = function (req, res, next) {
       start: smoment(req.query.start || '2013-01-01'),
       end: smoment(req.query.end),
       marker: req.query.marker,
-      interval: req.query.interval,
       limit: Number(req.query.limit || 200),
       descending: (/true/i).test(req.query.descending) ? true : false,
-      reduce: (/true/i).test(req.query.reduce) ? true : false,
       parent: req.query.parent,
       format: (req.query.format || 'json').toLowerCase()
     };
@@ -32,15 +29,6 @@ var Accounts = function (req, res, next) {
       return {error: 'invalid start date format', code: 400};
     } else if (!opts.end) {
       return {error: 'invalid end date format', code: 400};
-    }
-
-
-    if (opts.interval && intervals.indexOf(opts.interval) === -1) {
-      return {error: 'invalid interval', code: 400};
-    } else if (opts.interval && opts.reduce) {
-      return {error: 'cannot use reduce with interval', code: 400};
-    } else if (opts.interval && opts.parent) {
-      return {error: 'cannot use parent with interval', code: 400};
     }
 
     if (isNaN(opts.limit)) {
@@ -86,19 +74,8 @@ var Accounts = function (req, res, next) {
       utils.addLinkHeader(req, res, resp.marker);
     }
 
-    // reduced, csv
-    if (options.reduce && options.format === 'csv') {
-      res.csv([{count: resp}], 'accounts-count.csv');
-
-    // reduced json
-    } else if (options.reduce) {
-      res.json({
-        result: 'success',
-        count: resp
-      });
-
     // csv
-    } else if (options.format === 'csv') {
+    if (options.format === 'csv') {
       res.csv(resp.rows, 'accounts.csv');
 
     // json
@@ -124,10 +101,6 @@ var Accounts = function (req, res, next) {
     var accounts = [];
     if (err || !resp) {
       errorResponse(err);
-    } else if (options.reduce) {
-      successResponse(resp.rows[0]);
-    } else if (options.interval) {
-      successResponse(resp);
     } else {
       resp.rows.forEach(function(row) {
         accounts.push({
