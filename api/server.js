@@ -67,7 +67,6 @@ function Server(options) {
   app.get('/v2/gateways/:gateway?', routes.gateways.Gateways)
   app.get('/v2/gateways/:gateway/assets/:filename?', routes.gateways.Assets)
   app.get('/v2/currencies/:currencyAsset?', routes.gateways.Currencies)
-  app.get('/v2/capitalization/:currency', routes.capitalization)
   app.get('/v2/active_accounts/:base/:counter', routes.activeAccounts)
   app.get('/v2/network/exchange_volume', routes.network.exchangeVolume)
   app.get('/v2/network/payment_volume', routes.network.paymentVolume)

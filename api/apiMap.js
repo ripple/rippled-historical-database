@@ -89,11 +89,6 @@ function generateMap(url) {
         route: '/v2/exchanges/{:base}/{:counter}',
         example: url + '/exchanges/XRP/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
       }, {
-        action: 'Get Capitalization',
-        route: '/v2/capitalization/{:currency+issuer}',
-        example: url + '/capitalization/' +
-          'USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
-      }, {
         action: 'Get Active Accounts',
         route: '/v2/active_accounts/{:base}/{:counter}',
         example: url + '/active_accounts/XRP/' +
