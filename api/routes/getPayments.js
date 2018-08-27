@@ -4,7 +4,6 @@ var Logger = require('../../lib/logger')
 var log = new Logger({scope: 'payments'})
 var smoment = require('../../lib/smoment')
 var utils = require('../../lib/utils')
-var intervals = ['day', 'week', 'month']
 var validator = require('ripple-address-codec')
 var hbase = require('../../lib/hbase')
 
@@ -13,7 +12,6 @@ function getPayments(req, res) {
   var options = {
     start: smoment(req.query.start || 0),
     end: smoment(req.query.end),
-    interval: req.query.interval,
     descending: (/true/i).test(req.query.descending) ? true : false,
     limit: Number(req.query.limit || 200),
     marker: req.query.marker,
@@ -97,22 +95,10 @@ function getPayments(req, res) {
     errorResponse({error: 'invalid end date format', code: 400})
     return
 
-  } else if (options.interval &&
-             intervals.indexOf(options.interval) === -1) {
-    errorResponse({error: 'invalid interval', code: 400})
-    return
-
   } else if (options.currency &&
              options.currency !== 'XRP' &&
             !options.issuer) {
     errorResponse({error: 'issuer is required', code: 400})
-    return
-
-  } else if (options.interval && !options.currency) {
-    errorResponse({
-      error: 'currency is required for aggregated payments',
-      code: 400
-    })
     return
   }
 
@@ -131,25 +117,11 @@ function getPayments(req, res) {
 
     resp.rows.forEach(function(r) {
       delete r.rowkey
-      if (options.interval) {
-        r.start = smoment(r.date).format()
-        r.total_amount = r.amount.toString()
-        r.average_amount = r.average.toString()
-        delete r.date
-        delete r.amount
-        delete r.average
-
-        if (r.issuer === '') {
-          delete r.issuer
-        }
-
-      } else {
-        r.executed_time = smoment(r.executed_time).format()
-        r.transaction_cost = r.fee
-        delete r.fee
-        delete r.rowkey
-        delete r.client
-      }
+      r.executed_time = smoment(r.executed_time).format()
+      r.transaction_cost = r.fee
+      delete r.fee
+      delete r.rowkey
+      delete r.client
     })
 
     successResponse(resp)

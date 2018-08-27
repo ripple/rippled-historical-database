@@ -111,29 +111,6 @@ describe('payments API endpoint', function() {
     }, done)
   })
 
-  //there will not be any aggregates to be found
-  it('should should get aggregate payments', function(done) {
-    var url = 'http://localhost:' + port + '/v2/payments/XRP'
-
-    request({
-      url: url,
-      json: true,
-      qs: {
-        interval : 'day',
-      }
-    },
-    function (err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.payments.length, 4)
-      assert.strictEqual(body.payments[0].count, 12)
-      done()
-    })
-  })
-
-
   it('should return an error for an invalid start date', function(done) {
     var url = 'http://localhost:' + port + '/v2/payments'
 
@@ -170,27 +147,6 @@ describe('payments API endpoint', function() {
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'error')
       assert.strictEqual(body.message, 'invalid end date format')
-      done()
-    })
-  })
-
-
-  it('should return an error for an invalid interval', function(done) {
-    var url = 'http://localhost:' + port + '/v2/payments'
-
-    request({
-      url: url,
-      json: true,
-      qs: {
-        interval: '3weeks',
-      }
-    },
-    function (err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 400)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'error')
-      assert.strictEqual(body.message, 'invalid interval')
       done()
     })
   })

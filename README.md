@@ -628,7 +628,6 @@ Optionally, you can provide the following query parameters:
 |------------|---------|-------------|
 | `start` | String - [Timestamp][]  | Filter results to this time and later. |
 | `end` | String - [Timestamp][]  | Filter results to this time and earlier. |
-| `interval` | String  | If provided and `currency` is also specified, return results aggregated into intervals of the specified length instead of individual payments. Valid intervals are `day`, `week`, or `month`. |
 | `descending` | Boolean | If true, return results in reverse chronological order. Defaults to false. |
 | `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
 | `marker` | String  | [Pagination](#pagination) key from previously returned response. |
@@ -644,21 +643,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `result` | String | The value `success` indicates that this is a successful response. |
 | `count` | Integer | Number of payments returned. |
 | `marker` | String | (May be omitted) [Pagination](#pagination) marker. |
-| `payments` | Array of [Payment Objects][], or array of aggregate objects. | The requested payments. |
-
-
-##### Aggregate Results
-
-If the request specifies a `currency` and an `interval`, the result includes objects summarizing activity over a specific time period instead of listing individual payments. <!-- STYLE_OVERRIDE: time period --> Each interval summary object has the following fields:
-
-| Field  | Value | Description |
-|--------|-------|-------------|
-| `count` | Number | The number of payments that occurred during this interval. |
-| `currency` | String - Currency Code | This summary describes payments that delivered the specified currency. |
-| `issuer` | String - Address | (Omitted for XRP) This summary describes payments that delivered the currency issued by this address. |
-| `start` | String - [Timestamp][] | The start time of this interval. |
-| `total_amount` | Number | The amount of the `currency` delivered during this interval. |
-| `average_amount` | Number | The average amount of currency delivered by a single payment during this interval. |
+| `payments` | Array of [Payment Objects][] | The requested payments. |
 
 #### Example
 
