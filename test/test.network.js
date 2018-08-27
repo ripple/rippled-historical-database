@@ -864,29 +864,6 @@ describe('network - exchange volume', function() {
     })
   })
 
-  it('get historical exchange volume', function(done) {
-    var start = '2015-01-14T00:00'
-    var end = '2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/exchange_volume' +
-        '?start=' + start +
-        '&end=' + end
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 1)
-      assert.strictEqual(body.rows[0].count, 46933)
-      done()
-    })
-  })
-
   it('get exchange volume with exchange currency', function(done) {
     var currency = 'BTC'
     var issuer = 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q'
@@ -949,50 +926,6 @@ describe('network - exchange volume', function() {
       assert.strictEqual(typeof body, 'object')
       assert.strictEqual(body.result, 'error')
       assert.strictEqual(body.message, 'XRP cannot have an issuer')
-      done()
-    })
-  })
-
-  it('should error on invalid start date', function(done) {
-    var start = 'x2015-01-14T00:00'
-    var end = '2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/exchange_volume' +
-        '?start=' + start +
-        '&end=' + end
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 400)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'error')
-      assert.strictEqual(body.message, 'invalid start date format')
-      done()
-    })
-  })
-
-  it('should error on invalid end date', function(done) {
-    var start = '2015-01-14T00:00'
-    var end = 'x2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/exchange_volume' +
-        '?start=' + start +
-        '&end=' + end
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 400)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'error')
-      assert.strictEqual(body.message, 'invalid end date format')
       done()
     })
   })
@@ -1103,92 +1036,6 @@ describe('network - payment volume', function() {
       assert.strictEqual(body.result, 'success')
       assert.strictEqual(body.count, 1)
       assert.strictEqual(body.rows[0].count, 9716)
-      done()
-    })
-  })
-})
-
-
-describe('network - issued value', function() {
-  it('get live issued_value', function(done) {
-    var url = 'http://localhost:' + port +
-        '/v2/network/issued_value'
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 1)
-      assert.strictEqual(body.rows[0].total, '1673555846.5357773')
-      done()
-    })
-  })
-
-
-  it('get historical issued value', function(done) {
-    var start = '2015-01-14T00:00'
-    var end = '2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/issued_value' +
-        '?start=' + start +
-        '&end=' + end
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'success')
-      assert.strictEqual(body.count, 1)
-      assert.strictEqual(body.rows[0].total, '1673555846.5357773')
-      done()
-    })
-  })
-
-  it('should error on interval provided', function(done) {
-    var start = '2015-01-14T00:00'
-    var end = '2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/issued_value' +
-        '?start=' + start +
-        '&end=' + end + '&interval=day'
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 400)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'error')
-      assert.strictEqual(body.message, 'interval cannot be used')
-      done()
-    })
-  })
-
-  it('should include a link header when marker is present', function(done) {
-    var url = 'http://localhost:' + port +
-        '/v2/network/issued_value?start=2013&limit=1'
-    var linkHeader = '<' + url +
-      '&marker=issued_value|20150114000000>; rel="next"'
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(res.headers.link, linkHeader)
       done()
     })
   })

@@ -1566,14 +1566,9 @@ Optionally, you can provide the following query parameters:
 
 | Field    | Value   | Description |
 |----------|---------|-------------|
-| `start` | String - [Timestamp][]  | Start time of query range. Defaults to the start of the most recent interval. |
-| `end` | String - [Timestamp][]  | End time of query range. Defaults to the end of the most recent interval. |
-| `interval` | String  | Aggregation interval - valid intervals are `day`, `week`, or `month`. Defaults to `day`. |
-| `live` | String | Return a live rolling window of this length of time. Valid values are `day`, `hour`, or `minute`. Ignored if `interval` is provided. _(New in [v2.3.0][])_ |
+| `live` | String | Return a live rolling window of this length of time. Valid values are `day`, `hour`, or `minute`. _(New in [v2.3.0][])_ |
 | `exchange_currency` | String - [Currency Code][] | Normalize all amounts to use this as a display currency. If not XRP, `exchange_issuer` is also required. Defaults to XRP. |
 | `exchange_issuer` | String - [Address][] | Normalize results to the specified `currency` issued by this issuer. |
-| `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
-| `marker` | String  | [Pagination](#pagination) key from previously returned response. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 #### Response Format
@@ -1716,14 +1711,9 @@ Optionally, you can provide the following query parameters:
 
 | Field    | Value   | Description |
 |----------|---------|-------------|
-| `start` | String - [Timestamp][]  | Start time of query range. Defaults to the start of the most recent interval. |
-| `end` | String - [Timestamp][]  | End time of query range. Defaults to the end of the most recent interval. |
-| `interval` | String  | Aggregation interval - valid intervals are `day`, `week`, or `month`. Defaults to `day`. |
-| `live` | String | Return a live rolling window of this length of time. Valid values are `day`, `hour`, or `minute`. Ignored if `interval` is provided. _(New in [v2.3.0][])_ |
+| `live` | String | Return a live rolling window of this length of time. Valid values are `day`, `hour`, or `minute`. _(New in [v2.3.0][])_ |
 | `exchange_currency` | String - [Currency Code][] | Normalize all amounts to use this as a display currency. If not XRP, `exchange_issuer` is also required. Defaults to XRP. |
 | `exchange_issuer` | String - [Address][] | Normalize results to the specified `currency` issued by this issuer. |
-| `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
-| `marker` | String  | [Pagination](#pagination) key from previously returned response. |
 | `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
 
 #### Response Format
@@ -1819,117 +1809,6 @@ Response:
     ]
 }
 ```
-
-
-
-## Get Issued Value
-[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getMetric.js "Source")
-
-Get the total value of all currencies issued by major gateways over time. By default, returns only the most recent measurement. _(New in [v2.0.4][])_
-
-The API returns results in units of a single _display currency_ rather than many different currencies. The conversion uses standard rates to and from XRP.
-
-#### Request Format
-
-<!-- MULTICODE_BLOCK_START -->
-
-*REST*
-
-```
-GET /v2/network/issued_value
-```
-
-<!-- MULTICODE_BLOCK_END -->
-
-[Try it! >](https://developers.ripple.com/data-api-v2-tool.html#get-issued-value)
-
-Optionally, you can provide the following query parameters:
-
-| Field  | Value   | Description |
-|--------|---------|-------------|
-| `start` | String - [Timestamp][]  | Start time of query range. Defaults to the start of the most recent interval. |
-| `end` | String - [Timestamp][]  | End time of query range. Defaults to the end of the most recent interval. |
-| `exchange_currency` | String - [Currency Code][] | Normalize all amounts to use this as a display currency. If not XRP, `exchange_issuer` is also required. Defaults to XRP. |
-| `exchange_issuer` | String - [Address][] | Normalize results to the specified `currency` issued by this issuer. |
-| `limit` | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
-| `marker` | String  | [Pagination](#pagination) key from previously returned response. |
-| `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
-
-#### Response Format
-
-A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
-
-| Field  | Value | Description |
-|--------|-------|-------------|
-| `result` | String | The value `success` indicates that this is a successful response. |
-| `count` | Integer | Number of results returned. |
-| `rows` | Array of Issued Value Objects | Aggregated capitalization at the requested point(s) in time. |
-
-Each Issued Value Object represents the total value issued at one point in time, and has the following fields:
-
-| Field  | Value | Description |
-|--------|-------|-------------|
-| `components` | Array of Objects | The data on individual issuers that was used to assemble this total. |
-| `exchange` | Object | Indicates the display currency used, as with fields `currency` and (except for XRP) `issuer`. All amounts are normalized by first converting to XRP, and then to the display currency specified in the request. |
-| `exchange_rate` | Number | The exchange rate to the displayed currency from XRP.
-| `time` | String - [Timestamp][] | When this data was measured. |
-| `total` | Number | Total value of all issued assets at this time, in units of the display currency. |
-
-#### Example
-
-Request:
-
-```
-GET /v2/network/issued_value?start=2015-10-01T00:00:00&end=2015-10-01T00:00:00&exchange_currency=USD&exchange_issuer=rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q
-```
-
-Response:
-
-```
-200 OK
-{
-  "result": "success",
-  "count": 1,
-  "rows": [
-    {
-      "components": [
-        {
-          "currency": "USD",
-          "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-          "amount": "2177473.2843876695",
-          "rate": "0.000028818194",
-          "converted_amount": "2166521.1303508882"
-        },
-        {
-          "currency": "USD",
-          "issuer": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
-          "amount": "1651297.315492664",
-          "rate": "0.000028888001",
-          "converted_amount": "1639021.4313562333"
-        },
-
-        ... (additional results trimmed for size) ...
-
-        {
-          "currency": "MXN",
-          "issuer": "rG6FZ31hDHN1K5Dkbma3PSB5uVCuVVRzfn",
-          "amount": "2288827.2376308907",
-          "rate": "0.00050850375",
-          "converted_amount": "129061.20018881827"
-        }
-      ],
-      "exchange": {
-        "currency": "USD",
-        "issuer": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q"
-      },
-      "total": "8338101.394233938",
-      "exchange_rate": "0.0053547404",
-      "date": "2015-10-01T00:00:00Z"
-    }
-  ]
-}
-```
-
 
 ## Get External Markets
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/externalMarkets.js "Source")

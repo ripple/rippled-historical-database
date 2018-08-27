@@ -102,10 +102,6 @@ function generateMap(url) {
         route: '/v2/network/payment_volume',
         example: url + '/network/payment_volume'
       }, {
-        action: 'Get Issued Value',
-        route: '/v2/network/issued_value',
-        example: url + '/network/issued_value'
-      }, {
         action: 'Get External Market Volume',
         route: '/v2/network/external_markets',
         example: url + '/network/external_markets?period=3day'

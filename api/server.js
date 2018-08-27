@@ -70,7 +70,6 @@ function Server(options) {
   app.get('/v2/active_accounts/:base/:counter', routes.activeAccounts)
   app.get('/v2/network/exchange_volume', routes.network.exchangeVolume)
   app.get('/v2/network/payment_volume', routes.network.paymentVolume)
-  app.get('/v2/network/issued_value', routes.network.issuedValue)
   app.get('/v2/network/external_markets', routes.network.externalMarkets)
   app.get('/v2/network/xrp_distribution', routes.network.xrpDistribution)
   app.get('/v2/network/top_markets/:date?', routes.network.topMarkets)
