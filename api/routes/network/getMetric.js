@@ -6,14 +6,8 @@ var smoment = require('../../../lib/smoment')
 var utils = require('../../../lib/utils')
 var hbase = require('../../../lib/hbase')
 var PRECISION = 8
-var intervals = [
-  'day',
-  'week',
-  'month'
-]
 
 var livePeriodsTrade = [
-  'minute',
   'hour',
   'day',
   '3day',
@@ -22,7 +16,6 @@ var livePeriodsTrade = [
 ]
 
 var livePeriods = [
-  'minute',
   'hour',
   'day'
 ]
@@ -35,7 +28,6 @@ function getMetric(metric, req, res) {
 
   var options = {
     metric: metric,
-    interval: req.query.interval,
     live: req.query.live,
     start: req.query.start ? smoment(req.query.start) : null,
     end: req.query.end ? smoment(req.query.end) : null,
@@ -166,17 +158,10 @@ function getMetric(metric, req, res) {
     options.exchange = exchange
   }
 
-  if (options.interval &&
-             intervals.indexOf(options.interval) === -1) {
-    errorResponse({
-      error: 'invalid interval - use: ' + intervals.join(', '),
-      code: 400
-    })
-    return
 
-  } else if (options.live &&
-             options.metric === 'trade_volume' &&
-             livePeriodsTrade.indexOf(options.live) === -1) {
+  if (options.live &&
+      options.metric === 'trade_volume' &&
+      livePeriodsTrade.indexOf(options.live) === -1) {
 
     errorResponse({
       error: 'invalid period - use: ' + livePeriodsTrade.join(', '),

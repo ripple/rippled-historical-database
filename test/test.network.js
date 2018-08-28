@@ -930,29 +930,6 @@ describe('network - exchange volume', function() {
     })
   })
 
-  it('should error on invalid interval', function(done) {
-    var start = '2015-01-14T00:00'
-    var end = '2015-01-14T00:00'
-    var url = 'http://localhost:' + port +
-        '/v2/network/exchange_volume' +
-        '?start=' + start +
-        '&end=' + end + '&interval=years'
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 400)
-      assert.strictEqual(typeof body, 'object')
-      assert.strictEqual(body.result, 'error')
-      assert.strictEqual(body.message,
-                         'invalid interval - use: day, week, month')
-      done()
-    })
-  })
-
   it('should error on invalid live period', function(done) {
     var url = 'http://localhost:' + port +
         '/v2/network/exchange_volume?live=week'
@@ -968,7 +945,7 @@ describe('network - exchange volume', function() {
       assert.strictEqual(body.result, 'error')
       assert.strictEqual(body.message,
                          'invalid period - use: ' +
-                         'minute, hour, day, 3day, 7day, 30day')
+                         'hour, day, 3day, 7day, 30day')
       done()
     })
   })
