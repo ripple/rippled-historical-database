@@ -1,2 +1,10 @@
-FROM node:4.4-onbuild
-RUN bash scripts/versionsSetup.sh
+FROM node:10.4.0-slim
+
+WORKDIR /usr/app
+
+COPY scripts/versionsSetup.sh .
+RUN bash versionsSetup.sh
+COPY package.json .
+RUN npm install --quiet
+
+COPY . .
