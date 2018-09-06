@@ -11,6 +11,7 @@ module.exports = {
   topCurrencies: require('./topCurrencies'),
   getFees: require('./getFees'),
   getFeeStats: require('./getFeeStats'),
+  getManifests: require('./getManifests'),
   getNodes: require('./getNodes'),
   getLinks: require('./getLinks'),
   getTopology: require('./getTopology'),

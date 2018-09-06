@@ -86,6 +86,7 @@ Validation Network Methods:
 * [Get Validator  - `GET /v2/network/validators/{pubkey}`](#get-validator)
 * [Get Validators  - `GET /v2/network/validators`](#get-validators)
 * [Get Validator Validations - `GET /v2/network/validators/{pubkey}/validations`](#get-validator-validations)
+* [Get Validator Manifests - `GET /v2/network/validators/{pubkey}/manifests`](#get-validator-manifests)
 * [Get Single Validator Reports - `GET /v2/network/validators/{pubkey}/reports`](#get-single-validator-reports)
 * [Get Daily Validator Reports - `GET /v2/network/validator_reports`](#get-daily-validator-reports)
 * [Get `rippled` Versions - `GET /v2/network/rippled_versions`](#get-rippled-versions)
@@ -2756,6 +2757,97 @@ Response:
   result: "success",
   last_datetime: "2016-02-11T23:20:41.319Z",
   validation_public_key: "n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7"
+}
+```
+
+
+
+## Get Validator Manifests
+[[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getManifests.js "Source")
+
+Retrieve manifests signed by a specified validator, used to designate ephemeral key to sign proposals and validations. _(New in [v2.3.6][])_
+
+**Note:** The Data API does not have a comprehensive record of all manifests. The response only includes data that the Data API has recorded.
+
+#### Request Format
+
+<!-- MULTICODE_BLOCK_START -->
+
+*REST*
+
+```
+GET /v2/network/validators/{pubkey}/manifests
+```
+
+<!-- MULTICODE_BLOCK_END -->
+
+This method requires the following URL parameters:
+
+| Field     | Value                           | Description           |
+|:----------|:--------------------------------|:----------------------|
+| `pubkey`  | String - Base-58 [Public Key][] | Validator public key. |
+
+Optionally, you can provide the following query parameters:
+
+| Field    | Value   | Description                                             |
+|:---------|:--------|:--------------------------------------------------------|
+| `limit`  | Integer | Maximum results per page. Defaults to 200. Cannot be more than 1000. |
+| `marker` | String  | [Pagination](#pagination) key from previously returned response. |
+| `format` | String  | Format of returned results: `csv` or `json`. Defaults to `json`. |
+
+#### Response Format
+
+A successful response uses the HTTP code **200 OK** and has a JSON body with the following:
+
+| Field       | Value                         | Description                    |
+|:------------|:------------------------------|:-------------------------------|
+| `result`    | String                        | The value `success` indicates that the body represents a successful response. |
+| `count`     | Integer                       | Number of manifests returned.  |
+| `marker`    | String                        | (May be omitted) [Pagination](#pagination) marker. |
+| `manifests` | Array of [Manifest Objects][] | The requested manifests.       |
+
+
+#### Example
+
+Request:
+
+```
+GET /v2/network/validator/nHDEmQKb2nbcewdQ1fqCTGcPTcePhJ2Rh6MRftsCaf6UNRQLv7pB/manifests
+```
+
+Response:
+
+```
+200 OK
+{
+  "result": "success",
+  "count": 2,
+  "manifests": [
+    {
+      "count": 1,
+      "ephemeral_public_key": "nHUvPMeNsrwdJd7d65eaYGkKx6bPEcxJGudjVDqwCybtEfrSUE8w",
+      "first_datetime": "2018-09-06T20:20:08.353Z",
+      "last_datetime": "2018-09-06T20:20:08.353Z",
+      "master_public_key": "nHDEmQKb2nbcewdQ1fqCTGcPTcePhJ2Rh6MRftsCaf6UNRQLv7pB",
+      "master_signature":
+        "D8E78AD2C10ADA5A91D673C2EA66045926D3ED3D4C77DE4350AAA076379F69B8D0EC492A626EA9228964F694EED9EC63394D051001BA432EC57F2B6031204806",
+      "sequence": "1",
+      "signature":
+        "C794C3D1159932FF8EE7360074E7D17CB59F6646B227EF35D439892C00832648C46FD1958714E153AF4BD0540A7B27011B7F58D357B68B87DCBF5CA81874480C"
+    },
+    {
+      "count": 1,
+      "ephemeral_public_key": "n9M7mktkbZCnKWa41LFkZsfXemBGdYsFT6fqJBXa4xupV8X8px7W",
+      "first_datetime": "2018-09-06T20:20:08.357Z",
+      "last_datetime": "2018-09-06T20:20:08.357Z",
+      "master_public_key": "nHDEmQKb2nbcewdQ1fqCTGcPTcePhJ2Rh6MRftsCaf6UNRQLv7pB",
+      "master_signature":
+        "F7ECCB90F84ED3FC5E0DE1A6B0B7E835A8D2A94C8E985A74932DE30CD2EDCB46936FD14C39A5AA1BB3583CF888C869167979FEE068C6C34B9B63AB922850090E",
+      "sequence": "2",
+      "signature":
+        "3044022055ED7EFF1245DE21D3C28C57D19301291F0D617CA3A6D3D4CFDF8692D9E0E68502200276215BA986BA61834E0AC71E8590706C851B8F55F0B80A44EECE868F71415F"
+    }
+  ]
 }
 ```
 
