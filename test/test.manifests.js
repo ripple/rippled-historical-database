@@ -71,6 +71,14 @@ describe('manifests', function(done) {
     });
   });
 
+  it('should accept revocation without ephemeral key or signature', function(done) {
+    manifests.handleManifest({
+      master_key: 'nHB1PvPGSZhhNfdYDbwBmRmSWAEfd8YH97K9Bey82obyFh1nKDmq',
+      seq: 4294967295,
+      master_signature: 'A7D7E9C868874287B5888D5093DCAD8B8FF21BE306D9422C4DC7C143A37A2B961B490004892D6545A42A3A3291764B34A74D68FE1A0B22353E4F570F73C21401'
+    }).then(() => { done(); })
+  });
+
   it('should require a master key', function(done) {
     manifests.handleManifest({
       signing_key: 'n9LRZXPh1XZaJr5kVpdciN76WCCcb5ZRwjvHywd4Vc4fxyfGEDJA',
@@ -93,13 +101,13 @@ describe('manifests', function(done) {
     });
   });
 
-  it('should require a signature', function(done) {
+  it('should require a master signature or signature', function(done) {
     manifests.handleManifest({
       master_key: 'nHU5wPBpv1kk3kafS2ML2GhyoGJuHhPP4fCa2dwYUjMT5wR8Dk5B',
       signing_key: 'n9LRZXPh1XZaJr5kVpdciN76WCCcb5ZRwjvHywd4Vc4fxyfGEDJA',
       seq: 4,
     }).catch((err) => {
-      assert.strictEqual(err, 'signature cannot be null');
+      assert.strictEqual(err, 'master signature and signature cannot be null');
       done();
     });
   });
