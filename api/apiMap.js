@@ -149,6 +149,11 @@ function generateMap(url) {
         example: url + '/network/validators/' +
         'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7/validations'
       }, {
+        action: 'Get Validator Manifests',
+        route: '/v2/network/validators/{:pubkey}/manifests',
+        example: url + '/network/validators/' +
+        'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7/manifests'
+      }, {
         action: 'Get Validator Reports',
         route: '/v2/network/validators/{:pubkey}/reports',
         example: url + '/network/validators/' +

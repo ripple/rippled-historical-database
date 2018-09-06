@@ -4,22 +4,26 @@ var request = require('request');
 var Promise = require('bluebird');
 var hbase = require('../lib/hbase');
 var smoment = require('../lib/smoment');
+var mockManifests = require('./mock/manifests.json')
+var mockResponses = require('./mock/manifests.responses.json')
 var Manifests = require('../lib/validations/manifests');
+var _ = require('underscore');
 var dateFormat = 'YYYY-MM-DDTHH:mm:ss.SSS[Z]';
 var manifests;
+var port = config.get('port') || 7111
 
-beforeEach(function(done) {
-  manifests = new Manifests();
-  hbase.deleteAllRows({
-    table: 'manifests_by_master_key'
-  }).then(() => {
+describe('handleManifest', function(done) {
+  beforeEach(function(done) {
+    manifests = new Manifests();
     hbase.deleteAllRows({
-      table: 'manifests_by_validator'
-    }).then(() => { done(); })
+      table: 'manifests_by_master_key'
+    }).then(() => {
+      hbase.deleteAllRows({
+        table: 'manifests_by_validator'
+      }).then(() => { done(); })
+    });
   });
-});
 
-describe('manifests', function(done) {
   it('should save manifests into hbase', function(done) {
     const manifest = {
       signing_key: 'n9LRZXPh1XZaJr5kVpdciN76WCCcb5ZRwjvHywd4Vc4fxyfGEDJA',
@@ -324,4 +328,142 @@ describe('manifests', function(done) {
       assert.ifError(e);
     });
   });
+});
+
+describe('validator manifests endpoint', function() {
+
+  before(function(done) {
+    manifests = new Manifests();
+    hbase.deleteAllRows({
+      table: 'manifests_by_master_key'
+    }).then(() => {
+      return hbase.deleteAllRows({
+        table: 'manifests_by_validator'
+      })
+    }).then(() => {
+      Promise.map(mockManifests, function(man) {
+        return manifests.handleManifest(man)
+      })
+    }).then(() => { done(); })
+  });
+
+  it('should get validator manifest', function(done) {
+
+    var pubkey = 'nHBV75zgMXCRHiuTMq6MdbcA6tBoSMWucTvHrnkQFW9gAXWoW15N'
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey + '/manifests'
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 200)
+      assert.strictEqual(body.manifests.length, 1)
+      _.isMatch(body.manifests[0], mockResponses[pubkey][0])
+      done()
+    });
+  });
+
+  it('should get multiple validator manifests', function(done) {
+    var pubkey = 'nHDEmQKb2nbcewdQ1fqCTGcPTcePhJ2Rh6MRftsCaf6UNRQLv7pB'
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey + '/manifests'
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 200)
+      assert.strictEqual(body.manifests.length, 2)
+      _.isMatch(body.manifests[0], mockResponses[pubkey][0])
+      _.isMatch(body.manifests[1], mockResponses[pubkey][1])
+      done()
+    });
+  });
+
+  it('should use limit and marker', function(done) {
+    var pubkey = 'nHDEmQKb2nbcewdQ1fqCTGcPTcePhJ2Rh6MRftsCaf6UNRQLv7pB'
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey + '/manifests'
+
+    request({
+      url: url + '?limit=1',
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 200)
+      assert.strictEqual(body.manifests.length, 1)
+      _.isMatch(body.manifests[0], mockResponses[pubkey][0])
+      request({
+        url: url + '?marker=' + body.marker,
+        json: true
+      },
+      function(err, res, body) {
+        assert.ifError(err)
+        assert.strictEqual(res.statusCode, 200)
+        assert.strictEqual(body.manifests.length, 1)
+        _.isMatch(body.manifests[0], mockResponses[pubkey][1])
+        done()
+      })
+    });
+  });
+
+  it('should get validator revocation manifests', function(done) {
+    var pubkey = 'nHUtR1DUzB5AbHFDTwByTF684SwvyDxDqwcsBavZR62VFESMCBHj'
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey + '/manifests?descending=true'
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 200)
+      assert.strictEqual(body.manifests.length, 2)
+      _.isMatch(body.manifests[0], mockResponses[pubkey][1])
+      _.isMatch(body.manifests[1], mockResponses[pubkey][0])
+      done()
+    });
+  });
+
+
+  it('should get manifests in CSV format', function(done) {
+    var pubkey = 'nHDEmQKb2nbcewdQ1fqCTGcPTcePhJ2Rh6MRftsCaf6UNRQLv7pB'
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey + '/manifests?format=csv'
+
+    request({
+      url: url
+    },
+    function(err, res) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 200)
+      assert.strictEqual(res.headers['content-disposition'],
+        'attachment; filename=manifests.csv')
+      done()
+    })
+  })
+
+  it('should get empty list if no manifest found', function(done) {
+    var pubkey = 'zzz'
+    var url = 'http://localhost:' + port +
+        '/v2/network/validators/' + pubkey + '/manifests'
+
+    request({
+      url: url,
+      json: true
+    },
+    function(err, res, body) {
+      assert.ifError(err)
+      assert.strictEqual(res.statusCode, 200)
+      assert.strictEqual(body.manifests.length, 0)
+      done()
+    })
+  })
 });

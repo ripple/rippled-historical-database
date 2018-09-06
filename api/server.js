@@ -84,6 +84,8 @@ function Server(options) {
   app.get('/v2/network/validators/:pubkey', routes.network.getValidators)
   app.get('/v2/network/validators/:pubkey/validations',
           routes.network.getValidations)
+  app.get('/v2/network/validators/:pubkey/manifests',
+          routes.network.getManifests)
   app.get('/v2/network/validators/:pubkey/reports',
           routes.network.getValidatorReports)
   app.get('/v2/network/validator_reports', routes.network.getValidatorReports)
