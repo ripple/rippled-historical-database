@@ -2765,7 +2765,7 @@ Response:
 ## Get Validator Manifests
 [[Source]<br>](https://github.com/ripple/rippled-historical-database/blob/develop/api/routes/network/getManifests.js "Source")
 
-Retrieve manifests signed by a specified validator, used to designate ephemeral key to sign proposals and validations. _(New in [v2.3.6][])_
+Retrieve manifests signed by a specified validator, used to designate ephemeral key to sign proposals and validations. _(New in [v2.3.7][])_
 
 **Note:** The Data API does not have a comprehensive record of all manifests. The response only includes data that the Data API has recorded.
 
