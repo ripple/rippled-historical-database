@@ -60,11 +60,6 @@ var getManifests = function(req, res) {
 
   function successResponse(d) {
 
-    // if (options.pubkey) {
-    //   d.result = 'success';
-    //   res.json(d);
-
-    // } else if (options.format === 'csv') {
     if (options.format === 'csv') {
       res.csv(d, 'manifests.csv');
 
