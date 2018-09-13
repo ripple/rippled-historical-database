@@ -622,3 +622,92 @@ describe('validator manifests endpoint', function() {
     })
   })
 });
+
+describe('combineDuplicates', function() {
+  before(function(done) {
+    manifests = new Manifests();
+    hbase.deleteAllRows({
+      table: 'manifests_by_master_key'
+    }).then(() => {
+      return hbase.deleteAllRows({
+        table: 'manifests_by_validator'
+      })
+    }).then(() => { done(); })
+  });
+
+  function saveManifest(manifest, timestamp, oldRowKey) {
+
+    function makeRowKeyOld(manifest, date) {
+      return [
+        manifest.master_key,
+        manifest.seq,
+        date.hbaseFormatStartRow()
+      ].join('|');
+    }
+
+    const rowkey = oldRowKey ? makeRowKeyOld(manifest, timestamp) :
+                  makeRowKey(manifest.master_key, manifest.seq, manifest.signing_key)
+    const row = {
+      table: 'manifests_by_validator',
+      rowkey: rowkey,
+      columns: {
+        master_public_key: manifest.master_key,
+        ephemeral_public_key: manifest.signing_key,
+        sequence: manifest.seq,
+        signature: manifest.signature,
+        master_signature: manifest.master_signature,
+        first_datetime: timestamp.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
+        last_datetime: timestamp.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
+        count: 1
+      }
+    };
+    return hbase.putRow(row);
+  }
+
+  it('should combine duplicate manifests', function(done) {
+
+    const first_datetime = smoment('2018-01-01T00:00:00.000Z');
+    const last_datetime = smoment('2018-12-31T00:00:00.000Z');
+
+    Promise.all([
+      saveManifest(mockManifests[0], first_datetime, false /* new */),
+
+      saveManifest(mockManifests[1], first_datetime, true /* old */),
+
+      saveManifest(mockManifests[2], first_datetime, true /* old */),
+      saveManifest(mockManifests[2], last_datetime, true /* old */),
+
+      saveManifest(mockManifests[3], first_datetime, true /* old */),
+      saveManifest(mockManifests[3], last_datetime, false /* new */)
+    ]).then(() => {
+
+      return manifests.combineDuplicates()
+    }).then(() => {
+      return hbase.getAllRows({
+        table: 'manifests_by_validator'
+      });
+    }).then((rows) => {
+      assert.strictEqual(rows.length, 4);
+
+      const manifests = {};
+      for (const manifest of rows) {
+        manifests[makeRowKey(manifest.master_public_key, manifest.sequence, manifest.ephemeral_public_key)] = manifest;
+      }
+
+      function testManifest(mockManifest, first, last) {
+        const rowkey = makeRowKey(mockManifest.master_key, mockManifest.seq, mockManifest.signing_key);
+        assert(manifests[rowkey]);
+        assert.strictEqual(manifests[rowkey].rowkey, rowkey);
+        assert.strictEqual(manifests[rowkey].first_datetime, first.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'));
+        assert.strictEqual(manifests[rowkey].last_datetime, last.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'));
+      }
+
+      testManifest(mockManifests[0], first_datetime, first_datetime);
+      testManifest(mockManifests[1], first_datetime, first_datetime);
+      testManifest(mockManifests[2], first_datetime, last_datetime);
+      testManifest(mockManifests[3], first_datetime, last_datetime);
+
+      done()
+    });
+  });
+});
