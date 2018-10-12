@@ -41,7 +41,7 @@
     "request": "^2.39.0",
     "request-promise": "^2.0.0",
     "ripple-address-codec": "2.0.1",
-    "ripple-binary-codec": "0.1.14",
+    "ripple-binary-codec": "0.1.15",
     "ripple-lib": "0.19.0",
     "ripple-lib-transactionparser": "0.6.2",
     "serve-favicon": "^2.3.0",
