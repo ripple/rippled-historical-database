@@ -11,7 +11,7 @@ var getValidatorReports = function(req, res) {
     date: req.query.date ? smoment(req.query.date) : undefined,
     descending: (/true/i).test(req.query.descending) ? true : false,
     format: (req.query.format || 'json').toLowerCase(),
-    details: true
+    details: false
   };
   var days;
 
