@@ -82,14 +82,11 @@ function Server(options) {
   app.get('/v2/network/topology/links', routes.network.getLinks)
   app.get('/v2/network/validators', routes.network.getValidators)
   app.get('/v2/network/validators/:pubkey', routes.network.getValidators)
-  app.get('/v2/network/validators/:pubkey/validations',
-          routes.network.getValidations)
   app.get('/v2/network/validators/:pubkey/manifests',
           routes.network.getManifests)
   app.get('/v2/network/validators/:pubkey/reports',
           routes.network.getValidatorReports)
   app.get('/v2/network/validator_reports', routes.network.getValidatorReports)
-  app.get('/v2/network/validations', routes.network.getValidations)
   app.get('/v2/network/rippled_versions', routes.network.getVersions)
   app.get('/v2/last_validated', routes.getLastValidated)
   app.get('/v2/transactions/', routes.getTransactions)
