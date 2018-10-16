@@ -106,25 +106,11 @@ describe('handleValidation', function() {
       assert.strictEqual(rows[0].signature, validation.signature)
       assert.strictEqual(rows[0].signing_time, validation.signing_time.toString())
       return hbase.getAllRows({
-        table: 'validations_by_validator'
+        table: 'validator_state'
       })
     }).then(rows => {
       assert.strictEqual(rows.length, 1)
-      assert.strictEqual(rows[0].validation_public_key, validation.validation_public_key)
-      assert.strictEqual(rows[0].ledger_hash, validation.ledger_hash)
-      return hbase.getAllRows({
-        table: 'validations_by_date'
-      })
-    }).then(rows => {
-      assert.strictEqual(rows.length, 1)
-      assert.strictEqual(rows[0].validation_public_key, validation.validation_public_key)
-      assert.strictEqual(rows[0].ledger_hash, validation.ledger_hash)
-      return hbase.getAllRows({
-        table: 'validators'
-      })
-    }).then(rows => {
-      assert.strictEqual(rows.length, 1)
-      assert.strictEqual(rows[0].validation_public_key, validation.validation_public_key)
+      assert.strictEqual(rows[0].pubkey, validation.validation_public_key)
       done()
     })
   })
@@ -300,12 +286,9 @@ describe('validations import', function() {
 })
 
 describe('validator reports', function() {
-  it('should get validator reports', function(done) {
-    var date = smoment()
+  it('should get validator reports (yesterday)', function(done) {
     var url = 'http://localhost:' + port +
       '/v2/network/validator_reports'
-
-    date.moment.startOf('day')
 
     request({
       url: url,
@@ -314,10 +297,7 @@ describe('validator reports', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.reports.length, 5)
-      body.reports.forEach(function(r) {
-        assert.strictEqual(r.date, date.format())
-      })
+      assert.strictEqual(body.reports.length, 0)
       done()
     })
   })
@@ -362,7 +342,7 @@ describe('validator reports', function() {
   it('should get reports by validator', function(done) {
     var pubkey = 'n9MnXUt5Qcx3BuBYKJfS4fqSohgkT79NGjXnZeD9joKvP3A5RNGm'
     var url = 'http://localhost:' + port +
-        '/v2/network/validators/' + pubkey + '/reports'
+        '/v2/network/validators/' + pubkey + '/reports?start=2015-12-31&end=2016-05-01'
 
     request({
       url: url,
@@ -371,7 +351,7 @@ describe('validator reports', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.reports.length, 1)
+      assert.strictEqual(body.reports.length, 0)
       done()
     })
   })
@@ -576,7 +556,7 @@ describe('validators', function() {
     function(err, res, body) {
       assert.ifError(err)
       assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.validators.length, 5)
+      assert.strictEqual(body.validators.length, 7)
       done()
     })
   })
@@ -631,6 +611,7 @@ describe('validators', function() {
   })
 })
 
+/*
 describe('validations', function() {
   it('should get validations', function(done) {
     var url = 'http://localhost:' + port +
@@ -780,3 +761,4 @@ describe('validations', function() {
     })
   })
 })
+*/
