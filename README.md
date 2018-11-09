@@ -2679,7 +2679,7 @@ A successful response uses the HTTP code **200 OK** and has a JSON body with the
 | `validation_public_key` | String - Base-58 [Public Key][] | This validator's validator public key. |
 | `domain`                | String                          | (May be omitted) The DNS domain associated with this validator. |
 | `chain`                 | String                          | Ledger hash chain which this validator is currently following. |
-| `unl`                   | Bool                            | True if the validator is part of the ledger chain's UNL. |
+| `unl`                   | Bool                            | True if the validator is part of the ledger chain's recommended UNL. |
 | `current_index`         | Number                          | Ledger index of most recently validated ledger. |
 | `partial`               | Bool                            | True if the most recent validation was a partial one. |
 | `agreement_1h`          | Agreement Object                | Object containing agreement stats for the most recent hour. |
@@ -2969,7 +2969,7 @@ Each member in the `reports` array is a Single Validator Report Object with data
 
 | Field                | Value                           | Description                  |
 |:---------------------|:--------------------------------|:-----------------------------|
-| `validation_publkic` | String - Base-58 [Public Key][] | Validator public key. |
+| `validation_public`  | String - Base-58 [Public Key][] | Validator public key. |
 | `date`               | String - [Timestamp][]          | The start time of the date this object describes. |
 | `chain`              | String                          | Ledger hash chain which this validator is currently following. |
 | `score`              | String                          | Score of agreement with the ledger chain being followed. |
@@ -3060,7 +3060,7 @@ Each member in the `reports` array is a Single Validator Report Object with data
 
 | Field                | Value                           | Description                  |
 |:---------------------|:--------------------------------|:-----------------------------|
-| `validation_publkic` | String - Base-58 [Public Key][] | Validator public key. |
+| `validation_public`  | String - Base-58 [Public Key][] | Validator public key. |
 | `date`               | String - [Timestamp][]          | The start time of the date this object describes. |
 | `chain`              | String                          | Ledger hash chain which this validator is currently following. |
 | `score`              | String                          | Score of agreement with the ledger chain being followed. |
