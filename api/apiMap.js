@@ -129,7 +129,7 @@ function generateMap(url) {
         action: 'Get Network Topology Node by public key',
         route: '/v2/network/topology/nodes/:',
         example: url + '/network/topology/nodes/' +
-        'n94JjtkVyx6oTN1Rxs6RyxB9xCQB7NHpv5ibStmNHVQtDAZMJ2LB'
+        'n9KDJqdL5pebR35tkE4pRuZ7MhTvQGid8YqwjJajwrZUN5fEDxsZ'
       }, {
         action: 'Get Network Topology Links',
         route: '/v2/network/topology/links',
@@ -142,30 +142,21 @@ function generateMap(url) {
         action: 'Get Validator',
         route: '/v2/network/validators/{:pubkey}',
         example: url + '/network/validators/' +
-        'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7'
-      }, {
-        action: 'Get Validator Validations',
-        route: '/v2/network/validators/{:pubkey}/validations',
-        example: url + '/network/validators/' +
-        'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7/validations'
+        'nHBidG3pZK11zQD6kpNDoAhDxH6WLGui6ZxSbUx7LSqLHsgzMPec'
       }, {
         action: 'Get Validator Manifests',
         route: '/v2/network/validators/{:pubkey}/manifests',
         example: url + '/network/validators/' +
-        'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7/manifests'
+        'nHBidG3pZK11zQD6kpNDoAhDxH6WLGui6ZxSbUx7LSqLHsgzMPec/manifests'
       }, {
         action: 'Get Validator Reports',
         route: '/v2/network/validators/{:pubkey}/reports',
         example: url + '/network/validators/' +
-          'n949f75evCHwgyP4fPVgaHqNHxUVN15PsJEZ3B3HnXPcPjcZAoy7/reports'
+          'nHBidG3pZK11zQD6kpNDoAhDxH6WLGui6ZxSbUx7LSqLHsgzMPec/reports'
       }, {
         action: 'Get Validator Reports',
         route: '/v2/network/validator_reports',
         example: url + '/network/validator_reports'
-      }, {
-        action: 'Get Validations',
-        route: '/v2/network/validations',
-        example: url + '/network/validations'
       }, {
         action: 'Get Rippled Versions',
         route: '/v2/network/rippled_versions',
