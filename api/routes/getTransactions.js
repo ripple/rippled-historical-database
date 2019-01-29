@@ -65,7 +65,7 @@ var txResults = [
 var getTransactions = function (req, res, next) {
   var hexMatch = new RegExp('^(0x)?[0-9A-Fa-f]+$');
   var options  = {
-    tx_hash: req.params.tx_hash,
+    tx_hash: req.params.tx_hash ? req.params.tx_hash.toUpperCase() : undefined,
     binary: (/true/i).test(req.query.binary) ? true : false,
     descending: (/true/i).test(req.query.descending) ? true : false,
     type: req.query.type,
