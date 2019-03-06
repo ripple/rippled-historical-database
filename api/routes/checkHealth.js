@@ -18,6 +18,18 @@ var defaults = {
   },
   nodes_etl: {
     threshold1: 60 * 2
+  },
+  forex_etl: {
+    threshold1: 60 * 60 * 2.5,
+  },
+  trades_etl: {
+    threshold1: 60 * 5
+  },
+  agg_trades_etl: {
+    threshold1: 60 * 15
+  },
+  orderbook_etl: {
+    threshold1: 60 * 2
   }
 }
 
@@ -53,18 +65,198 @@ function duration(ms) {
   return ms / 1000 + 's'
 }
 
+function getLatest(table, key) {
+  return new Promise(function(resolve, reject) {
+    hbase.getScan({
+      table: table,
+      startRow: key,
+      stopRow: key + '|~',
+      limit: 1,
+      columns: ['f:timestamp']
+    }, function(err, resp) {
+      if (err) {
+        reject(err);
+      } else if (resp.length) {
+        resolve(moment(resp[0].timestamp || 0).unix());
+      } else {
+        resolve(0);
+      }
+    });
+  });
+}
+
 /**
  * checkHealth
  */
 
 function checkHealth(req, res) {
-
   var aspect = (req.params.aspect || 'api').toLowerCase()
   var verbose = (/true/i).test(req.query.verbose) ? true : false
   var t1
   var t2
 
   var d = Date.now()
+
+  /**
+   * forexHealthCheck
+   */
+
+  function forexHealthCheck() {
+    return new Promise(function(resolve, reject) {
+      hbase.getScan({
+        table: 'forex_rates',
+        startRow: 'USD|EUR',
+        stopRow: 'USD|EUR|~',
+        descending: true,
+        limit: 1,
+        //columns: ['f:timestamp']
+      }, function(err, resp) {
+        if (err) {
+          reject(err);
+        } else if (resp.length) {
+          resolve(moment(resp[0].date || 0).unix());
+        } else {
+          resolve(0);
+        }
+      });
+    })
+    .then(function(newest) {
+      var gap = moment().diff(newest * 1000) / 1000;
+      var score = gap <= t1 ? 0 : 1
+
+      if (verbose) {
+        res.json({
+          score: score,
+          gap: duration(gap * 1000),
+          gap_threshold: duration(t1 * 1000),
+          message: score ? 'last imported data exceeds threshold' : undefined
+        })
+      } else {
+        res.send(score.toString())
+      }
+    })
+    .catch(function(err) {
+      log.error(err)
+      res.status(500).json({
+        result: 'error',
+        message: 'hbase response error'
+      })
+    })
+  }
+
+  /**
+   * externalTradesHealthCheck
+   */
+
+  function externalTradesHealthCheck() {
+    Promise.all([
+      getLatest('external_trades', 'binance|XRP|BTC'),
+      getLatest('external_trades', 'zb|XRP|BTC'),
+      getLatest('external_trades', 'hitbtc|XRP|USDT'),
+      getLatest('external_trades', 'okex|XRP|USDT'),
+    ])
+    .then(function(data) {
+      return Math.max(data[0], data[1], data[2], data[3]);
+    })
+    .then(function(newest) {
+      var gap = moment().diff(newest * 1000) / 1000;
+      var score = gap <= t1 ? 0 : 1
+
+      if (verbose) {
+        res.json({
+          score: score,
+          gap: duration(gap * 1000),
+          gap_threshold: duration(t1 * 1000),
+          message: score ? 'last imported data exceeds threshold' : undefined
+        })
+      } else {
+        res.send(score.toString())
+      }
+    })
+    .catch(function(err) {
+      log.error(err)
+      res.status(500).json({
+        result: 'error',
+        message: 'hbase response error'
+      })
+    })
+  }
+
+  /**
+   * aggTradseHealthCheck
+   */
+
+  function aggTradesHealthCheck() {
+    Promise.all([
+      getLatest('agg_external_trades', 'binance|XRP|BTC|5minute'),
+      getLatest('agg_external_trades', 'zb|XRP|BTC|5minute'),
+      getLatest('agg_external_trades', 'hitbtc|XRP|USDT|5minute'),
+      getLatest('agg_external_trades', 'okex|XRP|USDT|5minute'),
+    ])
+    .then(function(data) {
+      return Math.max(data[0], data[1], data[2], data[3]);
+    })
+    .then(function(newest) {
+      var gap = moment().diff(newest * 1000) / 1000;
+      var score = gap <= t1 ? 0 : 1
+
+      if (verbose) {
+        res.json({
+          score: score,
+          gap: duration(gap * 1000),
+          gap_threshold: duration(t1 * 1000),
+          message: score ? 'last imported data exceeds threshold' : undefined
+        })
+      } else {
+        res.send(score.toString())
+      }
+    })
+    .catch(function(err) {
+      log.error(err)
+      res.status(500).json({
+        result: 'error',
+        message: 'hbase response error'
+      })
+    })
+  }
+
+  /**
+   * externalOrderbookHealthCheck
+   */
+
+  function externalOrderbookHealthCheck() {
+    Promise.all([
+      getLatest('external_orderbooks', 'binance|XRP|BTC'),
+      getLatest('external_orderbooks', 'zb|XRP|BTC'),
+      getLatest('external_orderbooks', 'hitbtc|XRP|USDT'),
+      getLatest('external_orderbooks', 'okex|XRP|USDT'),
+    ])
+    .then(function(data) {
+      return Math.max(data[0], data[1], data[2], data[3]);
+    })
+    .then(function(newest) {
+      var gap = moment().diff(newest * 1000) / 1000;
+      var score = gap <= t1 ? 0 : 1
+
+      if (verbose) {
+        res.json({
+          score: score,
+          gap: duration(gap * 1000),
+          gap_threshold: duration(t1 * 1000),
+          message: score ? 'last imported data exceeds threshold' : undefined
+        })
+      } else {
+        res.send(score.toString())
+      }
+    })
+    .catch(function(err) {
+      log.error(err)
+      res.status(500).json({
+        result: 'error',
+        message: 'hbase response error'
+      })
+    })
+  }
 
   /**
    * nodeHealthCheck
@@ -258,6 +450,18 @@ function checkHealth(req, res) {
 
   } else if (aspect === 'validations_etl') {
     validationHealthCheck()
+
+  } else if (aspect === 'trades_etl') {
+    externalTradesHealthCheck()
+
+  } else if (aspect === 'agg_trades_etl') {
+    aggTradesHealthCheck()
+
+  } else if (aspect === 'orderbook_etl') {
+    externalOrderbookHealthCheck()
+
+  } else if (aspect === 'forex_etl') {
+    forexHealthCheck()
 
   } else {
     hbase.getLedger({}, function(err, ledger) {
