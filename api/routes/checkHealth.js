@@ -294,13 +294,10 @@ function checkHealth(req, res) {
 
   function validationHealthCheck() {
     hbase.getScan({
-      table: 'validations_by_date',
+      table: 'validator_state',
       startRow: 0,
       stopRow: '~',
-      descending: true,
-      limit: 1
     }, function(err, resp) {
-
       if (err) {
         log.error(err)
         res.status(500).json({
@@ -310,10 +307,20 @@ function checkHealth(req, res) {
         return
       }
 
-      var last = resp && resp.length ?
-        moment(resp[0].datetime) : null
-      var gap = last ?
-        (Date.now() - last.unix() * 1000) / 1000 : Infinity
+      var max = 0;
+
+      resp.forEach(function(d) {
+        if (d.last_ledger_time) {
+          var last = moment(d.last_ledger_time).unix();
+          if (max < last) {
+            max = last;
+          }
+        }
+      });
+
+
+      var gap = max ?
+        (Date.now() - max * 1000) / 1000 : Infinity
       var score = gap <= t1 ? 0 : 1
 
       if (verbose) {
