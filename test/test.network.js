@@ -9,7 +9,7 @@ var smoment = require('../lib/smoment')
 var utils = require('./utils')
 
 var hbase = require('../lib/hbase')
-var saveVersions = require('../scripts/saveVersions')
+var rippledVersions = require('./mock/rippled-versions.json')
 var mockExchangeVolume = require('./mock/exchange-volume.json')
 var mockExchangeVolumeHour = require('./mock/exchange-volume-live-hour.json')
 var mockPaymentVolume = require('./mock/payment-volume.json')
@@ -218,8 +218,10 @@ describe('setup mock data', function() {
   })
 
   it('import rippled versions', function() {
-    this.timeout(60000)
-    return saveVersions(hbase)
+    hbase.putRows({
+      table: 'rippled_versions',
+      rows: rippledVersions
+    })
   })
 })
 

@@ -1,6 +1,6 @@
 {
   "name": "rippled-historical-database",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "SQL database storing historical data from Rippled.",
   "repository": {
     "type": "git",
@@ -42,7 +42,6 @@
     "request-promise": "^2.0.0",
     "ripple-address-codec": "2.0.1",
     "ripple-binary-codec": "0.2.1",
-    "ripple-lib": "0.19.0",
     "ripple-lib-transactionparser": "0.6.2",
     "serve-favicon": "^2.3.0",
     "sjcl": "^1.0.3",

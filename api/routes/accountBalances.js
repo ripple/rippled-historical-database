@@ -108,7 +108,7 @@ var accountBalances = function (req, res, next) {
   /**
   * getBalances
   * use ledger_index from getLedger api call
-  * to get balances using rippleAPI
+  * to get balances using rippled
   */
 
   function getBalances(opts) {

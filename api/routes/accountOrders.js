@@ -97,7 +97,7 @@ function accountOrders(req, res) {
   /**
   * getOrders
   * use ledger_index from getLedger api call
-  * to get orders using rippleAPI
+  * to get orders using rippled
   */
 
   function getOrders(opts) {

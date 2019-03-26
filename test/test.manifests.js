@@ -501,26 +501,6 @@ describe('validator manifests endpoint', function() {
     }).then(() => { done(); })
   });
 
-  it('should get validator manifest', function(done) {
-
-    var pubkey = 'nHBV75zgMXCRHiuTMq6MdbcA6tBoSMWucTvHrnkQFW9gAXWoW15N'
-    var url = 'http://localhost:' + port +
-        '/v2/network/validators/' + pubkey + '/manifests'
-
-    request({
-      url: url,
-      json: true
-    },
-    function(err, res, body) {
-      assert.ifError(err)
-      assert.strictEqual(res.statusCode, 200)
-      assert.strictEqual(body.manifests.length, 1)
-      _.isMatch(body.manifests[0], mockResponses[pubkey][0])
-      assert.strictEqual(body.manifests[0].count, 1)
-      done()
-    });
-  });
-
   it('should get multiple validator manifests', function(done) {
     var pubkey = 'nHDEmQKb2nbcewdQ1fqCTGcPTcePhJ2Rh6MRftsCaf6UNRQLv7pB'
     var url = 'http://localhost:' + port +
