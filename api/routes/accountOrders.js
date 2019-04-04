@@ -26,6 +26,10 @@ function accountOrders(req, res) {
     return;
   }
 
+  if (options.ledger_index) {
+    options.ledger_index = Number(options.ledger_index);
+  }
+
   // validate and fomat close time
   if (options.closeTime) {
     options.closeTime = smoment(options.closeTime);
