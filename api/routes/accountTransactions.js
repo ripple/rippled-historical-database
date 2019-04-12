@@ -6,11 +6,22 @@ var hbase = require('../../lib/hbase')
 var intMatch = /^\d+$/;
 
 var txTypes = [
-  'Payment',
-  'OfferCreate',
-  'OfferCancel',
   'AccountSet',
+  'CheckCancel',
+  'CheckCash',
+  'CheckCreate',
+  'DepositPreauth',
+  'EscrowCancel',
+  'EscrowCreate',
+  'EscrowFinish',
+  'OfferCancel',
+  'OfferCreate',
+  'Payment',
+  'PaymentChannelClaim',
+  'PaymentChannelCreate',
+  'PaymentChannelFund',
   'SetRegularKey',
+  'SignerListSet',
   'TrustSet',
   'EnableAmendment',
   'SetFee'
@@ -48,7 +59,12 @@ var txResults = [
   'tecNEED_MASTER_KEY',
   'tecDST_TAG_NEEDED',
   'tecINTERNAL',
-  'tecOVERSIZE'
+  'tecOVERSIZE',
+  'tecCRYPTOCONDITION_ERROR',
+  'tecINVARIANT_FAILED',
+  'tecEXPIRED',
+  'tecDUPLICATE',
+  'tecKILLED'
 ];
 
 var accountTransactions = function (req, res) {
