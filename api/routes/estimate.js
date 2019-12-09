@@ -154,7 +154,7 @@ function validate(options) {
   }
 
   if (!options.destination) {
-    return Promise.reject('destinatio0n exchange required')
+    return Promise.reject('destination exchange required')
   }
 
   if (!options.source_currency) {
