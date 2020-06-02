@@ -6,15 +6,13 @@ Ripple provides a live instance of the Data API with as complete a transaction r
 
 [**https://data.ripple.com**](https://data.ripple.com)
 
-You can run a historical database yourself, but we don’t recommend it because of the complexity involved. If your use case requires that you run a historical database, contact [Ripple Technical Services](mailto:support@ripple.com) for information about how to set it up.
-
-
 
 ## More Information
 The Ripple Data API v2 replaces the Historical Database v1 and the [Charts API](https://github.com/ripple/ripple-data-api/).
 
 * [API Methods](#api-method-reference)
 * [API Conventions](#api-conventions)
+* [Setup (local instance)](#running-the-historical-database)
 * [Source Code on Github](https://github.com/ripple/rippled-historical-database)
 * [Release Notes](https://github.com/ripple/rippled-historical-database/releases)
 
@@ -164,7 +162,7 @@ Response:
         "total_coins": 99999980165594400,
         "close_time_res": 10,
         "accounts_hash": "8ad73e49a34d8b9c31bc13b8a97c56981e45ee70225ef4892e8b198fec5a1f7d",
-        "transaction_hash": "33e0b9c5fd7766343e67854aed4222f5ed9c9507e0ec0d7ae7d54d0f17adb98e",
+        "transactions_hash": "33e0b9c5fd7766343e67854aed4222f5ed9c9507e0ec0d7ae7d54d0f17adb98e",
         "close_time": 1408047740,
         "close_time_human": "2014-08-14T20:22:20+00:00"
     }
@@ -1221,7 +1219,6 @@ The Data API derives the following values for every interval. These metrics are 
 | `ledger_count`     | Number | The number of ledgers closed during this interval. |
 | `ledger_interval`  | Number | The average number of seconds between ledgers closing during this interval. |
 | `payments_count`   | Number | The number of payments from one account to another during this interval. |
-| `transaction_count`| Number | The number of transactions that executed during this interval. |
 | `tx_per_ledger`    | Number | The average number of transactions per ledger in this interval. |
 
 If any of the metrics have a value of 0, they are omitted from the results.
@@ -4964,7 +4961,7 @@ In other words, XRP has the same precision as a 64-bit unsigned integer where ea
 ### Addresses
 [Address]: #addresses
 
-Accounts in the XRP Ledger are identified by an address in the XRP Ledger's [base58][] format. The address is derived from the account's master [public key](https://en.wikipedia.org/wiki/Public-key_cryptography), which is in turn derived from a secret key. An address is represented as a string in JSON and has the following characteristics:
+Accounts in the XRP Ledger are identified by a base58 XRP Ledger Address. The address is derived from the account's master [public key](https://en.wikipedia.org/wiki/Public-key_cryptography), which is in turn derived from a secret key. An address is represented as a string in JSON and has the following characteristics:
 
 * Between 25 and 35 characters in length
 * Starts with the character `r`
@@ -4973,7 +4970,7 @@ Accounts in the XRP Ledger are identified by an address in the XRP Ledger's [bas
 * Includes a 4-byte checksum so that the probability of generating a valid address from random characters is approximately 1 in 2^32
 
 
-For more information, see [Accounts](https://developers.ripple.com/accounts.html) and [base58 Encodings](https://developers.ripple.com/base58-encodings.html).
+For more information, see [Accounts](https://developers.ripple.com/accounts.html).
 
 
 
@@ -4998,7 +4995,7 @@ XRP Ledger addresses are mathematically associated with a public key. This publi
 ### Hashes
 [Hash]: #hashes
 
-Many objects in the XRP Ledger, particularly transactions and ledgers, are uniquely identified by a 256-bit hash value. This value is typically calculated as a "SHA-512Half", which calculates a [SHA-512](http://dx.doi.org/10.6028/NIST.FIPS.180-4) hash from some contents, then takes the first half of the output. (That's 256 bits, which is 32 bytes, or 64 characters of the hexadecimal representation.) Since the hash of an object is derived from the contents in a way that is extremely unlikely to produce collisions, two objects with the same hash can be considered the same.
+Many objects in the XRP Ledger, particularly transactions and ledgers, are uniquely identified by a 256-bit hash value. This value is typically calculated as a "SHA-512Half", which calculates a [SHA-512](http://dx.doi.org/10.6028/NIST.FIPS.180-4) hash from some contents, then takes the first 64 characters of the hexadecimal representation. Since the hash of an object is derived from the contents in a way that is extremely unlikely to produce collisions, two objects with the same hash can be considered the same.
 
 An XRP Ledger hash value has the following characteristics:
 
@@ -5100,7 +5097,7 @@ A "ledger" is one version of the shared global ledger. Each ledger object has th
 | `total_coins`       | [String - Number][]       | The total number of "drops" of XRP still in existence at the time of the ledger. (Each XRP is 1,000,000 drops.) |
 | `close_time_res`    | Number                    | The ledger close time is rounded to this many seconds. |
 | `accounts_hash`     | String - [Hash][]         | Hash of the account information contained in this ledger, as hex. |
-| `transaction_hash`  | String - [Hash][]         | Hash of the transaction information contained in this ledger, as hex. |
+| `transactions_hash` | String - [Hash][]         | Hash of the transaction information contained in this ledger, as hex. |
 | `close_time`        | Number                    | When this ledger was closed, in UNIX time. |
 | `close_time_human`  | String - [Timestamp][]    | When this ledger was closed. |
 
@@ -5283,7 +5280,7 @@ Volume objects represent the total volumes of money moved, in either payments or
 [Server Object]: #server-objects
 [Server Objects]: #server-objects
 
-A "Server Object" describes one `rippled` server in the XRP Ledger peer-to-peer network. Server objects are returned by the [Get Topology](#get-topology), [Get Toplogy Nodes](#get-topology-nodes), and [Get Topology Node](#get-topology-node) methods. The Data API collects reported network topology approximately every 30 seconds using the [peer crawler](https://developers.ripple.com/peer-crawler.html).
+A "Server Object" describes one `rippled` server in the XRP Ledger peer-to-peer network. Server objects are returned by the [Get Topology](#get-topology), [Get Toplogy Nodes](#get-topology-nodes), and [Get Topology Node](#get-topology-node) methods. The Data API collects reported network topology approximately every 30 seconds using the [peer crawler](https://developers.ripple.com/peer-protocol.html#peer-crawler).
 
 Server objects have the following fields, with some only appearing if the request specified a verbose response:
 
@@ -5346,12 +5343,110 @@ A Validation Object has the following fields:
 | `last_datetime`         | String - [Timestamp][]          | Date and time of the last report of this validation. |
 
 
-<!-- common links -->
-[Address]: https://developers.ripple.com/basic-data-types.html#addresses
-[base58]: https://developers.ripple.com/base58-encodings.html
-[Currency Amount]: https://developers.ripple.com/basic-data-types.html#specifying-currency-amounts
-[Currency Code]: https://developers.ripple.com/currency-formats.html#currency-codes
-[Hash]: https://developers.ripple.com/basic-data-types.html#hashes
-[Ledger Index]: https://developers.ripple.com/basic-data-types.html#ledger-index
-[Sequence Number]: https://developers.ripple.com/basic-data-types.html#account-sequence
-[transaction cost]: https://developers.ripple.com/transaction-cost.html
+
+# Running the Historical Database
+
+You can also serve the Data API v2 from your own instance of the Historical Database software, and populate it with transactions from your own `rippled` instance. This is useful if you do not want to depend on Ripple to run the historical database indefinitely, or you want access to historical transactions from within your own intranet.
+
+## Installation
+
+### Dependencies
+
+The Historical Database requires the following software installed first:
+
+* [HBase](http://hbase.apache.org/) (required for v2),
+* [Node.js](http://nodejs.org/)
+* [npm](https://www.npmjs.org/)
+* [git](http://git-scm.com/) (optional) for installation and updating.
+
+Version 2 of the Historical Database requires HBase instead of [PostgreSQL](http://www.postgresql.org/). Postgres support is deprecated.
+
+### Installation Process
+
+To install the Data API v2:
+
+1. Install HBase. For production use, configure it in distributed mode.
+2. Clone the Historical Database Git Repository:
+
+        git clone https://github.com/ripple/rippled-historical-database.git
+
+    (You can also download and extract a zipped release instead.)
+
+3. Use npm to install additional modules:
+
+        cd rippled-historical-database
+        npm install
+
+    The install script creates the required config files: `config/api.config.json` and `config/import.config.json`
+
+4. Change the config files as needed. Remove the `postgres` section from `api.config.json`.
+
+Reports, stats, and aggregated exchange data needs more processing before the API can make it available. This processing uses Apache Storm as well as some custom scripts. See [Storm Setup](https://github.com/ripple/rippled-historical-database/blob/develop/storm/README.md) for more information.
+
+At this point, the Data API is installed. See [Services](#services) for the different components that you can run.
+
+### Tests
+
+Dependencies:
+
+* [Docker Compose](https://docs.docker.com/compose/install/)
+
+```
+$ docker-compose build
+$ docker-compose up -d hbase
+$ docker-compose run --rm webapp npm test
+```
+
+### Services
+
+The `rippled` Historical Database consists of several processes that can be run separately.
+
+* [Live Ledger Importer](#live-ledger-importer) - Monitors `rippled` for newly-validated ledgers.
+    Command: `node import/live`
+* [Backfiller](#backfiller) - Populates the database with older ledgers from a `rippled` instance.
+    Command: `node import/postgres/backfill`
+* API Server - Provides [REST API access](#api-method-reference) to the data.
+    Command:  `npm start` (restarts the server automatically when source files change),
+    or `node api/server.js` (start once)
+
+## Importing Data
+
+In order to retrieve data from the `rippled` Historical Database, you must first populate it with data. Broadly speaking, there are two ways this can happen:
+
+* Connect to a `rippled` server that has the historical ledgers and retrieve them. (Later, you can reconfigure the `rippled` server not to keep history older than what you have in your Historical Database.)
+    * You can choose to retrieve only new ledgers as they are validated, or you can retrieve old ledgers, too.
+* Or, you can load a dump from a database that already has the historical ledger data. (At this time, there are no publicly-available database dumps of historical data.) Use the standard process for your database.
+
+In all cases, keep in mind that the integrity of the data is only as good as the original source. If you retrieve data from a public server, you are assuming that the operator of that server is trustworthy. If you load from a database dump, you are assuming that the provider of the dump has not corrupted or tampered with the data.
+
+### Live Ledger Importer
+
+The Live Ledger Importer is a service that connects to a `rippled` server using the WebSocket API and listens for ledger close events. Each time a new ledger is closed, the Importer requests the latest validated ledger. Although this process has some fault tolerance built in to prevent ledgers from being skipped, the Importer may still miss ledgers.
+
+The Live Ledger Importer includes a secondary process that runs periodically to validate the data already imported and check for gaps in the ledger history.
+
+The Live Ledger Importer can import to one or more different data stores concurrently. If you have configured the historical database to use another storage scheme, you can use the `--type` parameter to specify the database type or types to use.
+
+Example usage:
+
+```
+// start loading records into HBase:
+$ node import/live
+```
+
+### Backfiller
+
+The Backfiller retrieves old ledgers from a `rippled` instance by moving backwards in time. You can optionally provide start and stop indexes to retrieve a specific range of ledgers, by their sequence number.
+
+The `--startIndex` parameter defines the most-recent ledger to retrieve. The Backfiller retrieves this ledger first and then continues retrieving progressively older ledgers. If this parameter is omitted, the Backfiller begins with the newest validated ledger.
+
+The `--stopIndex` parameter defines the oldest ledger to retrieve. The Backfiller stops after it retrieves this ledger. If omitted, the Backfiller continues as far back as possible. Because backfilling goes from most recent to least recent, the stop index should be a smaller than the start index.
+
+**Caution:** The Backfiller is best for filling in relatively short histories of transactions. Importing a complete history of all XRP Ledger transactions using the Backfiller could take weeks. If you want a full history, we recommend acquiring a database dump with early transctions, and importing it directly. For the public server, Ripple (the company) used the internal SQLite database from an offline `rippled` to populate its historical databases with the early transactions, then used the Backfiller to catch up to date after the import finished.
+
+Example usage:
+
+```
+// get ledgers #1,000,000 to #2,000,000 (inclusive) and store in HBase
+node import/hbase/backfill --startIndex 2000000 --stopIndex 1000000
+```
