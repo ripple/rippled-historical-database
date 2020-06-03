@@ -16,8 +16,7 @@ var accountBalances = function (req, res, next) {
     closeTime: req.query.close_time || req.query.date,
     account: req.params.address,
     format: (req.query.format || 'json').toLowerCase(),
-    limit: req.query.limit || 200,
-    ip: req.headers['fastly-client-ip'] || req.headers['x-forwarded-for'] || 'not_provided'
+    limit: req.query.limit || 200
   };
 
   if (!options.account) {
@@ -122,8 +121,7 @@ var accountBalances = function (req, res, next) {
       ledger: opts.ledger_index,
       limit: opts.limit,
       currency: opts.currency,
-      counterparty: opts.counterparty,
-      ip: opts.ip
+      counterparty: opts.counterparty
     })
     .then(function(resp) {
       var results = {

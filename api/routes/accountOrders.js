@@ -15,8 +15,7 @@ function accountOrders(req, res) {
     closeTime: req.query.close_time || req.query.date,
     account: req.params.address,
     format: (req.query.format || 'json').toLowerCase(),
-    limit: req.query.limit || 200,
-    ip: req.headers['fastly-client-ip'] || req.headers['x-forwarded-for'] || 'not_provided'
+    limit: req.query.limit || 200
   };
 
   if (!options.account) {
@@ -109,8 +108,7 @@ function accountOrders(req, res) {
     rippled.getOrders({
       account: opts.account,
       ledger: opts.ledger_index,
-      limit: opts.limit,
-      ip: opts.ip
+      limit: opts.limit
     })
     .then(function(resp) {
       var results = {
