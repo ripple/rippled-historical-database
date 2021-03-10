@@ -1,5 +1,8 @@
 # Ripple Data API v2
 
+## Warning: The Ripple Data API v2 is deprecated with no ongoing support. Please use the [rippled API](https://xrpl.org/rippled-api.html) instead.
+
+
 The Ripple Data API v2 provides access to information about changes in the XRP Ledger, including transaction history and processed analytical data. This information is stored in a dedicated database, which frees `rippled` servers to keep fewer historical ledger versions. The Data API v2 also acts as data source for applications such as [XRP Charts](https://xrpcharts.ripple.com/) and [ripple.com](https://www.ripple.com).
 
 Ripple provides a live instance of the Data API with as complete a transaction record as possible at the following address:
